@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Briefcase } from "lucide-react";
+import { Menu, X, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import logoSine from "@/assets/logo-sine.png";
 
 const navItems = [
   { label: "Início", path: "/" },
@@ -18,9 +19,7 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-lg">
       <div className="container mx-auto flex items-center justify-between h-14 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
-            <Briefcase className="w-5 h-5 text-primary-foreground" />
-          </div>
+          <img src={logoSine} alt="Logo SINE João Pessoa" className="h-8 w-auto" />
           <span className="font-heading font-bold text-sm text-primary-foreground">
             SINE João Pessoa
           </span>
@@ -41,6 +40,13 @@ const Header = () => {
               {item.label}
             </Link>
           ))}
+          <Link
+            to="/admin"
+            className="ml-2 p-2 rounded-md text-primary-foreground/50 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-colors"
+            title="Painel Admin"
+          >
+            <Settings className="w-4 h-4" />
+          </Link>
         </nav>
 
         {/* Mobile menu button */}
@@ -76,6 +82,14 @@ const Header = () => {
                   {item.label}
                 </Link>
               ))}
+              <Link
+                to="/admin"
+                onClick={() => setOpen(false)}
+                className="px-3 py-3 rounded-md text-sm font-medium text-primary-foreground/50 hover:text-primary-foreground flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Painel Admin
+              </Link>
             </nav>
           </motion.div>
         )}
