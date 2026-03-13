@@ -231,9 +231,9 @@ const Admin = () => {
           <p className="text-xs text-muted-foreground">
             Atual: {calcTotalVagas(vagasFeirao)} vagas • {vagasFeirao.length} cargos
           </p>
-          <Button onClick={() => handleFileUpload("feirao")} className="w-full rounded-xl font-heading font-semibold gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            <Upload className="w-4 h-4" />
-            Upload arquivo do feirão
+          <Button onClick={() => handleFileUpload("feirao")} disabled={!!uploadLoading} className="w-full rounded-xl font-heading font-semibold gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+            {uploadLoading === "feirao" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {uploadLoading === "feirao" ? "Processando PDF..." : "Upload arquivo do feirão"}
           </Button>
         </div>
       </div>
