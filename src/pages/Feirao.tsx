@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ArrowLeft, Rocket } from "lucide-react";
+import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useVagasFeirao, calcTotalVagas } from "@/hooks/useVagas";
