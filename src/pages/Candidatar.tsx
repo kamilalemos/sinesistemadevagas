@@ -78,13 +78,13 @@ const Candidatar = () => {
         </div>
 
         <a
-          href="https://www.google.com/maps/search/SINE+João+Pessoa+Av+João+da+Mata+455+Jaguaribe"
+          href="https://www.google.com/maps/place/Av.+Jo%C3%A3o+da+Mata,+455+-+Jaguaribe,+Jo%C3%A3o+Pessoa+-+PB"
           target="_blank"
           rel="noopener noreferrer"
         >
           <Button className="w-full rounded-xl font-heading font-semibold gap-2 mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
             <MapPin className="w-4 h-4" />
-            Abrir localização no Google Maps
+            Ver no Google Maps
           </Button>
         </a>
       </div>
