@@ -153,7 +153,7 @@ serve(async (req) => {
       // Use pdf-parse for PDF files
       const { default: pdfParse } = await import("npm:pdf-parse@1.1.1");
       const buffer = await file.arrayBuffer();
-      const pdfData = await pdfParse(Buffer.from(buffer));
+      const pdfData = await pdfParse(new Uint8Array(buffer));
       extractedText = pdfData.text;
     } else {
       // Plain text / CSV
