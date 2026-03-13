@@ -1,4 +1,4 @@
-import { MapPin, Instagram, Phone } from "lucide-react";
+import { MapPin, Instagram, Phone, Clock } from "lucide-react";
 import logoSine from "@/assets/logo-sine.png";
 import logoPrefeitura from "@/assets/logo-prefeitura.png";
 
@@ -13,6 +13,10 @@ const Footer = () => {
           <img src={logoPrefeitura} alt="Prefeitura de João Pessoa" className="h-12 w-auto bg-primary-foreground/90 rounded-md px-2 py-1" />
         </div>
 
+        <div className="flex items-center justify-center gap-1 text-primary-foreground/80 text-xs">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span>Segunda a sexta, das 8h às 14h</span>
+        </div>
         <div className="flex items-center justify-center gap-1 text-primary-foreground/80 text-xs">
           <MapPin className="w-3.5 h-3.5 shrink-0" />
           <span>Av. João da Mata, 455 – Jaguaribe, João Pessoa – PB</span>
