@@ -82,7 +82,7 @@ const Candidatar = () => {
         </div>
 
         <a
-          href="https://www.google.com/maps/place/Av.+Jo%C3%A3o+da+Mata,+455+-+Jaguaribe,+Jo%C3%A3o+Pessoa+-+PB"
+          href="https://www.google.com/maps/place/R.+Jo%C3%A3o+Suassuna,+49+-+Varadouro,+Jo%C3%A3o+Pessoa+-+PB"
           target="_blank"
           rel="noopener noreferrer"
         >

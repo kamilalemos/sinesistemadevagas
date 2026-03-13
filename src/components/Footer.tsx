@@ -19,7 +19,7 @@ const Footer = () => {
         </div>
         <div className="flex items-center justify-center gap-1 text-primary-foreground/80 text-xs">
           <MapPin className="w-3.5 h-3.5 shrink-0" />
-          <span>Av. João da Mata, 455 – Jaguaribe, João Pessoa – PB</span>
+          <span>R. João Suassuna, 49 – Varadouro, João Pessoa – PB</span>
         </div>
 
         <div className="flex items-center justify-center gap-4 flex-wrap text-xs">
