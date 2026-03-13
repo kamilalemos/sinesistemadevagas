@@ -1,4 +1,4 @@
-import { MapPin, Instagram, Phone } from "lucide-react";
+import { MapPin, Instagram, Phone, Clock } from "lucide-react";
 import logoSine from "@/assets/logo-sine.png";
 import logoPrefeitura from "@/assets/logo-prefeitura.png";
 
