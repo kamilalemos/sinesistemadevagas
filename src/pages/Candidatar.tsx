@@ -59,7 +59,7 @@ const Candidatar = () => {
           </div>
           <div className="flex items-start gap-2 text-sm text-foreground">
             <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-            <span>Av. João da Mata, 455 – Jaguaribe, João Pessoa – PB</span>
+            <span>R. João Suassuna, 49 – Varadouro, João Pessoa – PB</span>
           </div>
           <a
             href="https://wa.me/5583982131516"
@@ -82,7 +82,7 @@ const Candidatar = () => {
         </div>
 
         <a
-          href="https://www.google.com/maps/place/Av.+Jo%C3%A3o+da+Mata,+455+-+Jaguaribe,+Jo%C3%A3o+Pessoa+-+PB"
+          href="https://www.google.com/maps/place/R.+Jo%C3%A3o+Suassuna,+49+-+Varadouro,+Jo%C3%A3o+Pessoa+-+PB"
           target="_blank"
           rel="noopener noreferrer"
         >

@@ -138,7 +138,7 @@ const Index = () => {
             </div>
             <div className="flex items-start gap-2 text-sm text-foreground">
               <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-              <span>Av. João da Mata, 455 – Jaguaribe, João Pessoa – PB</span>
+              <span>R. João Suassuna, 49 – Varadouro, João Pessoa – PB</span>
             </div>
             <a href="https://wa.me/5583982131516" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
               <Phone className="w-4 h-4 shrink-0" />
@@ -149,7 +149,7 @@ const Index = () => {
               @sinejpoficial
             </a>
           </div>
-          <a href="https://www.google.com/maps/place/Av.+Jo%C3%A3o+da+Mata,+455+-+Jaguaribe,+Jo%C3%A3o+Pessoa+-+PB" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.google.com/maps/place/R.+Jo%C3%A3o+Suassuna,+49+-+Varadouro,+Jo%C3%A3o+Pessoa+-+PB" target="_blank" rel="noopener noreferrer">
             <Button className="w-full rounded-xl font-heading font-semibold gap-2 mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
               <MapPin className="w-4 h-4" />
               Ver no Google Maps
