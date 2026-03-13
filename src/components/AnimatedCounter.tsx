@@ -11,13 +11,16 @@ interface AnimatedCounterProps {
 const AnimatedCounter = ({ target, duration = 2000, prefix = "", className = "" }: AnimatedCounterProps) => {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
-  const hasAnimated = useRef(false);
+  const lastTarget = useRef(0);
 
   useEffect(() => {
+    if (target === 0 || target === lastTarget.current) return;
+    lastTarget.current = target;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
+        if (entry.isIntersecting) {
+          observer.disconnect();
           const startTime = Date.now();
           const animate = () => {
             const elapsed = Date.now() - startTime;
