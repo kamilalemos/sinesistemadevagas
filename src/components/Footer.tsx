@@ -14,6 +14,10 @@ const Footer = () => {
         </div>
 
         <div className="flex items-center justify-center gap-1 text-primary-foreground/80 text-xs">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span>Segunda a sexta, das 8h às 14h</span>
+        </div>
+        <div className="flex items-center justify-center gap-1 text-primary-foreground/80 text-xs">
           <MapPin className="w-3.5 h-3.5 shrink-0" />
           <span>Av. João da Mata, 455 – Jaguaribe, João Pessoa – PB</span>
         </div>

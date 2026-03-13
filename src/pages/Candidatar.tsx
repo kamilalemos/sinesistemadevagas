@@ -54,6 +54,10 @@ const Candidatar = () => {
         <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <h2 className="font-heading font-semibold text-sm text-foreground">Endereço e Contato</h2>
           <div className="flex items-start gap-2 text-sm text-foreground">
+            <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <span>Segunda a sexta, das 8h às 14h</span>
+          </div>
+          <div className="flex items-start gap-2 text-sm text-foreground">
             <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
             <span>Av. João da Mata, 455 – Jaguaribe, João Pessoa – PB</span>
           </div>
