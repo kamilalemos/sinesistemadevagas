@@ -215,11 +215,14 @@ const Admin = () => {
           <p className="text-xs text-muted-foreground">
             Atual: {calcTotalVagas(vagasSemana)} vagas • {vagasSemana.length} cargos
           </p>
-          <Button onClick={() => handleFileUpload("semana")} className="w-full rounded-xl font-heading font-semibold gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-            <Upload className="w-4 h-4" />
-            Upload arquivo de vagas
+          <Button onClick={() => handleFileUpload("semana")} disabled={!!uploadLoading} className="w-full rounded-xl font-heading font-semibold gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+            {uploadLoading === "semana" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {uploadLoading === "semana" ? "Processando PDF..." : "Upload arquivo de vagas"}
           </Button>
-          <p className="text-xs text-muted-foreground">Formatos: CSV ou TXT separado por ; ou tab</p>
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <FileText className="w-3 h-3" />
+            Formatos: PDF, CSV ou TXT — extração automática de tabelas
+          </p>
         </div>
 
         {/* Upload Feirão */}
