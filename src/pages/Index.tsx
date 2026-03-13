@@ -130,10 +130,29 @@ const Index = () => {
               ))}
             </ul>
           </div>
-          <a href="https://www.google.com/maps/search/SINE+João+Pessoa" target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="w-full rounded-xl font-heading font-semibold gap-2 mt-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+          <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+            <h3 className="font-heading font-semibold text-sm text-foreground">Endereço e Contato</h3>
+            <div className="flex items-start gap-2 text-sm text-foreground">
+              <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <span>Segunda a sexta, das 8h às 14h</span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-foreground">
+              <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <span>Av. João da Mata, 455 – Jaguaribe, João Pessoa – PB</span>
+            </div>
+            <a href="https://wa.me/5583982131516" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+              <Phone className="w-4 h-4 shrink-0" />
+              (83) 98213-1516
+            </a>
+            <a href="https://www.instagram.com/sinejpoficial/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+              <Instagram className="w-4 h-4 shrink-0" />
+              @sinejpoficial
+            </a>
+          </div>
+          <a href="https://www.google.com/maps/place/Av.+Jo%C3%A3o+da+Mata,+455+-+Jaguaribe,+Jo%C3%A3o+Pessoa+-+PB" target="_blank" rel="noopener noreferrer">
+            <Button className="w-full rounded-xl font-heading font-semibold gap-2 mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
               <MapPin className="w-4 h-4" />
-              Abrir localização no Google Maps
+              Ver no Google Maps
             </Button>
           </a>
         </div>
