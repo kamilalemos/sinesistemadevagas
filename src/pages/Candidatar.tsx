@@ -1,4 +1,4 @@
-import { ArrowLeft, MapPin, FileText, CheckCircle } from "lucide-react";
+import { ArrowLeft, MapPin, FileText, CheckCircle, Instagram, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -50,8 +50,35 @@ const Candidatar = () => {
           </ul>
         </div>
 
+        {/* Endereço e contato */}
+        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+          <h2 className="font-heading font-semibold text-sm text-foreground">Endereço e Contato</h2>
+          <div className="flex items-start gap-2 text-sm text-foreground">
+            <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <span>Av. João da Mata, 455 – Jaguaribe, João Pessoa – PB</span>
+          </div>
+          <a
+            href="https://wa.me/5583982131516"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            <Phone className="w-4 h-4 shrink-0" />
+            (83) 98213-1516
+          </a>
+          <a
+            href="https://www.instagram.com/sinejpoficial/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            <Instagram className="w-4 h-4 shrink-0" />
+            @sinejpoficial
+          </a>
+        </div>
+
         <a
-          href="https://www.google.com/maps/search/SINE+João+Pessoa"
+          href="https://www.google.com/maps/search/SINE+João+Pessoa+Av+João+da+Mata+455+Jaguaribe"
           target="_blank"
           rel="noopener noreferrer"
         >
