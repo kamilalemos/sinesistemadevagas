@@ -40,40 +40,6 @@ const Admin = () => {
     }
   };
 
-  const detectarCategoria = (cargo: string): string => {
-    const c = cargo.toLowerCase();
-    if (c.includes("desenvolv") || c.includes("técnico") || c.includes("ti") || c.includes("program")) return "Tecnologia";
-    if (c.includes("admin") || c.includes("recep") || c.includes("secretár") || c.includes("auxiliar admin")) return "Administrativo";
-    if (c.includes("vend") || c.includes("comerci")) return "Vendas";
-    if (c.includes("market") || c.includes("design") || c.includes("comunic")) return "Marketing";
-    if (c.includes("motor") || c.includes("logíst") || c.includes("entrega") || c.includes("estoque")) return "Logística";
-    if (c.includes("oper") || c.includes("produção") || c.includes("industr") || c.includes("soldad")) return "Indústria";
-    return "Serviços";
-  };
-
-  const parsePDFText = (text: string) => {
-    const lines = text.split("\n").filter((l) => l.trim());
-    const vagas: { qtd: number; cargo: string; escolaridade: string; experiencia: string; descricao: string; categoria: string; cbo?: string }[] = [];
-    for (const line of lines) {
-      const parts = line.split(/\t|;|,/).map((p) => p.trim());
-      if (parts.length >= 4) {
-        const qtd = parseInt(parts[0]);
-        if (!isNaN(qtd) && qtd > 0) {
-          const cargo = parts[1] || "Cargo não informado";
-          vagas.push({
-            qtd,
-            cargo,
-            escolaridade: parts[2] || "Não informado",
-            experiencia: parts[3] || "Não informada",
-            descricao: parts[4] || "",
-            categoria: detectarCategoria(cargo),
-          });
-        }
-      }
-    }
-    return vagas;
-  };
-
   const handleFileUpload = async (tipo: "semana" | "feirao") => {
     const input = document.createElement("input");
     input.type = "file";
@@ -82,31 +48,66 @@ const Admin = () => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      const text = await file.text();
-      const vagas = parsePDFText(text);
+      setUploadLoading(tipo);
 
-      if (vagas.length === 0) {
-        toast.error("Não foi possível extrair vagas. Use CSV/TXT: Qtd;Cargo;Escolaridade;Experiência;Descrição");
-        return;
+      try {
+        // Send file to edge function for parsing
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+
+        const response = await supabase.functions.invoke("parse-pdf", {
+          body: formData,
+        });
+
+        if (response.error) {
+          toast.error("Erro ao processar arquivo: " + response.error.message);
+          setUploadLoading(null);
+          return;
+        }
+
+        const result = response.data;
+
+        if (!result.vagas || result.vagas.length === 0) {
+          toast.error("Nenhuma vaga encontrada no arquivo. Verifique o formato do PDF.");
+          setUploadLoading(null);
+          return;
+        }
+
+        // Delete old vagas of this type
+        const { error: deleteError } = await supabase.from("vagas").delete().eq("tipo", tipo);
+        if (deleteError) {
+          toast.error("Erro ao limpar vagas antigas");
+          setUploadLoading(null);
+          return;
+        }
+
+        // Insert new vagas
+        const rows = result.vagas.map((v: any) => ({
+          qtd: v.qtd,
+          cbo: v.cbo || null,
+          cargo: v.cargo,
+          escolaridade: v.escolaridade,
+          experiencia: v.experiencia,
+          descricao: v.descricao,
+          categoria: v.categoria,
+          tipo,
+        }));
+        const { error: insertError } = await supabase.from("vagas").insert(rows);
+        if (insertError) {
+          toast.error("Erro ao salvar vagas: " + insertError.message);
+          setUploadLoading(null);
+          return;
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["vagas", tipo] });
+        toast.success(`${result.totalVagas} vagas extraídas e importadas com sucesso!`);
+      } catch (err: any) {
+        toast.error("Erro inesperado: " + (err.message || "Tente novamente"));
       }
-
-      // Delete old vagas of this type
-      const { error: deleteError } = await supabase.from("vagas").delete().eq("tipo", tipo);
-      if (deleteError) {
-        toast.error("Erro ao limpar vagas antigas");
-        return;
-      }
-
-      // Insert new vagas
-      const rows = vagas.map((v) => ({ ...v, tipo }));
-      const { error: insertError } = await supabase.from("vagas").insert(rows);
-      if (insertError) {
-        toast.error("Erro ao insertar vagas: " + insertError.message);
-        return;
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["vagas", tipo] });
-      toast.success(`${vagas.reduce((s, v) => s + v.qtd, 0)} vagas importadas com sucesso!`);
+      setUploadLoading(null);
     };
     input.click();
   };
