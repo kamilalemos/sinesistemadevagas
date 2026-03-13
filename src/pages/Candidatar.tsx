@@ -1,4 +1,4 @@
-import { ArrowLeft, MapPin, FileText, CheckCircle, Instagram, Phone } from "lucide-react";
+import { ArrowLeft, MapPin, FileText, CheckCircle, Instagram, Phone, Rocket, Calendar, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
