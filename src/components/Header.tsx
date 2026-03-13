@@ -21,7 +21,7 @@ const Header = () => {
         <Link to="/" className="flex items-center gap-2">
           <img src={logoSine} alt="Logo SINE João Pessoa" className="h-8 w-auto" />
           <span className="font-heading font-bold text-sm text-primary-foreground">
-            SINE João Pessoa
+            João Pessoa
           </span>
         </Link>
 
