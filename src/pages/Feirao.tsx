@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ArrowLeft, Rocket } from "lucide-react";
+import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useVagasFeirao, calcTotalVagas } from "@/hooks/useVagas";
@@ -32,6 +32,21 @@ const Feirao = () => {
             <AnimatedCounter target={totalVagas} />
           </div>
           <p className="text-muted-foreground text-sm">vagas disponíveis no feirão</p>
+
+          <div className="mt-4 text-left space-y-2 text-sm text-foreground">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-secondary shrink-0" />
+              <span><strong>18 e 19 de março</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-secondary shrink-0" />
+              <span>Das 9h às 16h</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-secondary shrink-0" />
+              <span>Espaço Cultural José Lins do Rego</span>
+            </div>
+          </div>
         </div>
 
         <div className="relative">
