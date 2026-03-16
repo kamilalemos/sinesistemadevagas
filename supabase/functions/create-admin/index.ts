@@ -14,28 +14,32 @@ serve(async (req) => {
   try {
     const { email, password, action } = await req.json();
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    // For actions that require an existing admin, verify the caller
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // Extract caller user from Authorization header
     const authHeader = req.headers.get('Authorization');
-    
-    if (action === 'change-password') {
-      // Change password for the calling user
-      if (!authHeader) {
-        return new Response(JSON.stringify({ error: "Não autenticado" }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+    let callerUserId: string | null = null;
 
+    if (authHeader) {
       const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-      if (userError || !user) {
-        return new Response(JSON.stringify({ error: "Token inválido" }), {
+      // Use a regular client to verify the user token
+      const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY') || '';
+      const userClient = createClient(supabaseUrl, anonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+        global: { headers: { Authorization: `Bearer ${token}` } }
+      });
+      const { data: { user } } = await userClient.auth.getUser();
+      callerUserId = user?.id || null;
+    }
+
+    if (action === 'change-password') {
+      if (!callerUserId) {
+        return new Response(JSON.stringify({ error: "Não autenticado" }), {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -48,7 +52,7 @@ serve(async (req) => {
         });
       }
 
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, { password });
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(callerUserId, { password });
       if (updateError) {
         return new Response(JSON.stringify({ error: updateError.message }), {
           status: 400,
@@ -78,16 +82,8 @@ serve(async (req) => {
       .limit(1);
 
     if (existingAdmins && existingAdmins.length > 0) {
-      if (!authHeader) {
+      if (!callerUserId) {
         return new Response(JSON.stringify({ error: "Não autenticado" }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-      if (userError || !user) {
-        return new Response(JSON.stringify({ error: "Token inválido" }), {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -96,7 +92,7 @@ serve(async (req) => {
       const { data: callerRole } = await supabaseAdmin
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
+        .eq('user_id', callerUserId)
         .eq('role', 'admin')
         .limit(1);
 
