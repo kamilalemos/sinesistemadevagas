@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const CHUNK_SIZE = 12000; // characters per chunk
+const CHUNK_SIZE = 12000;
 
 const buildPrompt = (text: string) => `Você é um extrator de dados de vagas de emprego. Analise o texto abaixo extraído de um PDF do SINE (Sistema Nacional de Emprego) e extraia TODAS as vagas encontradas.
 
@@ -99,57 +99,75 @@ serve(async (req) => {
       });
     }
 
-    // Split text into chunks to process large PDFs
     const chunks: string[] = [];
     for (let i = 0; i < extractedText.length; i += CHUNK_SIZE) {
       chunks.push(extractedText.substring(i, i + CHUNK_SIZE));
     }
 
-    console.log(`Texto total: ${extractedText.length} chars, dividido em ${chunks.length} parte(s)`);
+    const totalChunks = chunks.length;
+    console.log(`Texto total: ${extractedText.length} chars, dividido em ${totalChunks} parte(s)`);
 
-    let allVagas: any[] = [];
+    // Use SSE to stream progress
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const send = (data: any) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        };
 
-    // Process chunks in parallel (max 3 concurrent)
-    const batchSize = 3;
-    for (let i = 0; i < chunks.length; i += batchSize) {
-      const batch = chunks.slice(i, i + batchSize);
-      const results = await Promise.all(
-        batch.map((chunk, idx) => {
-          console.log(`Processando parte ${i + idx + 1}/${chunks.length}...`);
-          return callAI(apiKey, chunk).catch((err) => {
-            console.error(`Erro na parte ${i + idx + 1}:`, err.message);
-            return [] as any[];
-          });
-        })
-      );
-      for (const vagas of results) {
-        allVagas = allVagas.concat(vagas);
+        try {
+          send({ type: "progress", step: "extract", message: "Texto extraído do PDF", current: 0, total: totalChunks });
+
+          let allVagas: any[] = [];
+          const batchSize = 3;
+
+          for (let i = 0; i < chunks.length; i += batchSize) {
+            const batch = chunks.slice(i, i + batchSize);
+            const results = await Promise.all(
+              batch.map((chunk, idx) => {
+                console.log(`Processando parte ${i + idx + 1}/${totalChunks}...`);
+                return callAI(apiKey, chunk).catch((err) => {
+                  console.error(`Erro na parte ${i + idx + 1}:`, err.message);
+                  return [] as any[];
+                });
+              })
+            );
+            for (const vagas of results) {
+              allVagas = allVagas.concat(vagas);
+            }
+
+            const processed = Math.min(i + batchSize, totalChunks);
+            send({ type: "progress", step: "ai", message: `Processando parte ${processed}/${totalChunks}`, current: processed, total: totalChunks });
+          }
+
+          // Deduplicate
+          const vagaMap = new Map<string, any>();
+          for (const v of allVagas) {
+            const key = `${v.cargo}|${v.cbo || ""}`;
+            if (vagaMap.has(key)) {
+              vagaMap.get(key).qtd += v.qtd || 0;
+            } else {
+              vagaMap.set(key, { ...v });
+            }
+          }
+          const vagas = Array.from(vagaMap.values());
+          const totalVagas = vagas.reduce((sum: number, v: any) => sum + (v.qtd || 0), 0);
+
+          send({ type: "done", vagas, totalVagas });
+        } catch (err) {
+          send({ type: "error", error: err.message });
+        } finally {
+          controller.close();
+        }
       }
-    }
+    });
 
-    // Deduplicate by cargo+cbo (merge quantities)
-    const vagaMap = new Map<string, any>();
-    for (const v of allVagas) {
-      const key = `${v.cargo}|${v.cbo || ""}`;
-      if (vagaMap.has(key)) {
-        vagaMap.get(key).qtd += v.qtd || 0;
-      } else {
-        vagaMap.set(key, { ...v });
-      }
-    }
-    const vagas = Array.from(vagaMap.values());
-
-    const totalVagas = vagas.reduce((sum: number, v: any) => sum + (v.qtd || 0), 0);
-    console.log(`Total extraído: ${totalVagas} vagas em ${vagas.length} cargos`);
-
-    return new Response(JSON.stringify({
-      success: true,
-      vagas,
-      totalVagas,
-      rawTextPreview: extractedText.substring(0, 500),
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(stream, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+      },
     });
   } catch (err) {
     console.error("Parse error:", err);
