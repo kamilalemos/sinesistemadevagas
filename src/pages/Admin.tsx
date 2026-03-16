@@ -22,6 +22,29 @@ interface HistoricoEntry {
 }
 
 const MESES = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const SUMMARY_ROW_REGEX = /(total de vagas|total geral|vagas abertas|feirão da empregabilidade|quantidade total|total\b)/i;
+
+const sanitizeUploadedVagas = (vagas: any[]) =>
+  vagas
+    .map((vaga) => {
+      const qtd = Number(vaga?.qtd);
+      const cargo = String(vaga?.cargo || "").trim();
+
+      if (!Number.isInteger(qtd) || qtd <= 0 || qtd > 9999 || !cargo || SUMMARY_ROW_REGEX.test(cargo)) {
+        return null;
+      }
+
+      return {
+        qtd,
+        cbo: vaga?.cbo || null,
+        cargo,
+        escolaridade: String(vaga?.escolaridade || "Não informado").trim(),
+        experiencia: String(vaga?.experiencia || "Não informada").trim(),
+        descricao: String(vaga?.descricao || "").trim(),
+        categoria: String(vaga?.categoria || "Serviços").trim() || "Serviços",
+      };
+    })
+    .filter((vaga): vaga is NonNullable<typeof vaga> => Boolean(vaga));
 
 const Admin = () => {
   const { user, loading, isAdmin, signIn, signOut } = useAuth();
