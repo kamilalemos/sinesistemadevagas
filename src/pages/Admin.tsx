@@ -572,6 +572,9 @@ const Admin = () => {
                       {historico.length > 0 ? Math.round(historico.reduce((sum, h) => sum + h.total_vagas, 0) / historico.length).toLocaleString() : 0}
                     </p>
                   </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
