@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save } from "lucide-react";
+import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save, KeyRound, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,11 @@ const Admin = () => {
   const [periodoInicio, setPeriodoInicio] = useState("");
   const [periodoFim, setPeriodoFim] = useState("");
   const [periodoLoaded, setPeriodoLoaded] = useState(false);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [createAdminLoading, setCreateAdminLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
   const [statsAno, setStatsAno] = useState(new Date().getFullYear());
 
   const { data: vagasSemana = [] } = useVagasSemana();
@@ -197,6 +202,75 @@ const Admin = () => {
       setProgressInfo(null);
     };
     input.click();
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setChangePasswordLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "apikey": anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "change-password", password: newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Erro ao alterar senha");
+      } else {
+        toast.success("Senha alterada com sucesso!");
+        setNewPassword("");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || "Tente novamente"));
+    }
+    setChangePasswordLoading(false);
+  };
+
+  const handleCreateAdmin = async () => {
+    if (!newAdminEmail || !newAdminPassword) {
+      toast.error("Preencha email e senha do novo admin");
+      return;
+    }
+    setCreateAdminLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "apikey": anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: newAdminEmail, password: newAdminPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Erro ao criar admin");
+      } else {
+        toast.success("Novo admin criado com sucesso!");
+        setNewAdminEmail("");
+        setNewAdminPassword("");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || "Tente novamente"));
+    }
+    setCreateAdminLoading(false);
   };
 
   const handleUpdatePeriodo = async () => {
@@ -502,6 +576,63 @@ const Admin = () => {
               </>
             )}
           </div>
+        </div>
+
+        {/* Alterar Senha */}
+        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-secondary" />
+            <h2 className="font-heading font-semibold text-sm text-foreground">Alterar Senha</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">Altere a senha da sua conta admin atual ({user?.email})</p>
+          <Input
+            type="password"
+            placeholder="Nova senha (mín. 6 caracteres)"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="rounded-lg text-sm"
+          />
+          <Button
+            size="sm"
+            onClick={handleChangePassword}
+            disabled={changePasswordLoading}
+            className="rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/90 font-heading text-xs gap-1"
+          >
+            {changePasswordLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <KeyRound className="w-3 h-3" />}
+            Alterar senha
+          </Button>
+        </div>
+
+        {/* Criar Novo Admin */}
+        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+          <div className="flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-primary" />
+            <h2 className="font-heading font-semibold text-sm text-foreground">Criar Novo Admin</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">Cadastre um novo usuário com permissão de administrador</p>
+          <Input
+            type="email"
+            placeholder="Email do novo admin"
+            value={newAdminEmail}
+            onChange={(e) => setNewAdminEmail(e.target.value)}
+            className="rounded-lg text-sm"
+          />
+          <Input
+            type="password"
+            placeholder="Senha (mín. 6 caracteres)"
+            value={newAdminPassword}
+            onChange={(e) => setNewAdminPassword(e.target.value)}
+            className="rounded-lg text-sm"
+          />
+          <Button
+            size="sm"
+            onClick={handleCreateAdmin}
+            disabled={createAdminLoading}
+            className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-heading text-xs gap-1"
+          >
+            {createAdminLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserPlus className="w-3 h-3" />}
+            Criar admin
+          </Button>
         </div>
       </div>
     </div>
