@@ -532,6 +532,7 @@ const Admin = () => {
 
         {/* Upload Semana */}
         <div id="section-upload-semana" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+          <h2 className="font-heading font-semibold text-sm text-foreground">Vagas da Semana</h2>
           <p className="text-xs text-muted-foreground">
             Atual: {calcTotalVagas(vagasSemana)} vagas • {vagasSemana.length} cargos
           </p>
