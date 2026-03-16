@@ -575,9 +575,68 @@ const Admin = () => {
                 </div>
               </>
             )}
+        {/* Alterar Senha */}
+        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-secondary" />
+            <h2 className="font-heading font-semibold text-sm text-foreground">Alterar Senha</h2>
           </div>
+          <p className="text-xs text-muted-foreground">Altere a senha da sua conta admin atual ({user?.email})</p>
+          <Input
+            type="password"
+            placeholder="Nova senha (mín. 6 caracteres)"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="rounded-lg text-sm"
+          />
+          <Button
+            size="sm"
+            onClick={handleChangePassword}
+            disabled={changePasswordLoading}
+            className="rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/90 font-heading text-xs gap-1"
+          >
+            {changePasswordLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <KeyRound className="w-3 h-3" />}
+            Alterar senha
+          </Button>
+        </div>
+
+        {/* Criar Novo Admin */}
+        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+          <div className="flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-primary" />
+            <h2 className="font-heading font-semibold text-sm text-foreground">Criar Novo Admin</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">Cadastre um novo usuário com permissão de administrador</p>
+          <Input
+            type="email"
+            placeholder="Email do novo admin"
+            value={newAdminEmail}
+            onChange={(e) => setNewAdminEmail(e.target.value)}
+            className="rounded-lg text-sm"
+          />
+          <Input
+            type="password"
+            placeholder="Senha (mín. 6 caracteres)"
+            value={newAdminPassword}
+            onChange={(e) => setNewAdminPassword(e.target.value)}
+            className="rounded-lg text-sm"
+          />
+          <Button
+            size="sm"
+            onClick={handleCreateAdmin}
+            disabled={createAdminLoading}
+            className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-heading text-xs gap-1"
+          >
+            {createAdminLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserPlus className="w-3 h-3" />}
+            Criar admin
+          </Button>
         </div>
       </div>
+    </div>
+  );
+};
+
+export default Admin;
     </div>
   );
 };
