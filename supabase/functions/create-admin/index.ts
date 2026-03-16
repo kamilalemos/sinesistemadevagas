@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password, action } = await req.json();
+    const { email, password, action, target_user_id } = await req.json();
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -27,7 +27,6 @@ serve(async (req) => {
 
     if (authHeader) {
       const token = authHeader.replace('Bearer ', '');
-      // Use a regular client to verify the user token
       const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY') || '';
       const userClient = createClient(supabaseUrl, anonKey, {
         auth: { autoRefreshToken: false, persistSession: false },
@@ -37,6 +36,116 @@ serve(async (req) => {
       callerUserId = user?.id || null;
     }
 
+    // Helper: require admin
+    const requireAdmin = async () => {
+      if (!callerUserId) {
+        return { error: "Não autenticado", status: 401 };
+      }
+      const { data: callerRole } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', callerUserId)
+        .eq('role', 'admin')
+        .limit(1);
+      if (!callerRole || callerRole.length === 0) {
+        return { error: "Apenas administradores podem realizar esta ação", status: 403 };
+      }
+      return null;
+    };
+
+    // ACTION: list-admins
+    if (action === 'list-admins') {
+      const adminCheck = await requireAdmin();
+      if (adminCheck) {
+        return new Response(JSON.stringify({ error: adminCheck.error }), {
+          status: adminCheck.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: roles, error: rolesError } = await supabaseAdmin
+        .from('user_roles')
+        .select('user_id, role')
+        .eq('role', 'admin');
+
+      if (rolesError) {
+        return new Response(JSON.stringify({ error: rolesError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Get user emails from auth
+      const admins = [];
+      for (const r of (roles || [])) {
+        const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(r.user_id);
+        admins.push({
+          user_id: r.user_id,
+          email: user?.email || 'Desconhecido',
+          created_at: user?.created_at || null,
+        });
+      }
+
+      return new Response(JSON.stringify({ admins }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ACTION: delete-admin
+    if (action === 'delete-admin') {
+      const adminCheck = await requireAdmin();
+      if (adminCheck) {
+        return new Response(JSON.stringify({ error: adminCheck.error }), {
+          status: adminCheck.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!target_user_id) {
+        return new Response(JSON.stringify({ error: "ID do usuário é obrigatório" }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (target_user_id === callerUserId) {
+        return new Response(JSON.stringify({ error: "Você não pode remover a si mesmo" }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Remove role
+      const { error: deleteRoleError } = await supabaseAdmin
+        .from('user_roles')
+        .delete()
+        .eq('user_id', target_user_id)
+        .eq('role', 'admin');
+
+      if (deleteRoleError) {
+        return new Response(JSON.stringify({ error: deleteRoleError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Delete auth user
+      const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(target_user_id);
+      if (deleteUserError) {
+        return new Response(JSON.stringify({ error: deleteUserError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, message: "Admin removido com sucesso" }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ACTION: change-password
     if (action === 'change-password') {
       if (!callerUserId) {
         return new Response(JSON.stringify({ error: "Não autenticado" }), {
@@ -74,7 +183,6 @@ serve(async (req) => {
       });
     }
 
-    // If admins already exist, require the caller to be an admin
     const { data: existingAdmins } = await supabaseAdmin
       .from('user_roles')
       .select('id')
@@ -82,29 +190,15 @@ serve(async (req) => {
       .limit(1);
 
     if (existingAdmins && existingAdmins.length > 0) {
-      if (!callerUserId) {
-        return new Response(JSON.stringify({ error: "Não autenticado" }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const { data: callerRole } = await supabaseAdmin
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', callerUserId)
-        .eq('role', 'admin')
-        .limit(1);
-
-      if (!callerRole || callerRole.length === 0) {
-        return new Response(JSON.stringify({ error: "Apenas administradores podem criar novos admins" }), {
-          status: 403,
+      const adminCheck = await requireAdmin();
+      if (adminCheck) {
+        return new Response(JSON.stringify({ error: adminCheck.error }), {
+          status: adminCheck.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
 
-    // Create user
     const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -118,7 +212,6 @@ serve(async (req) => {
       });
     }
 
-    // Assign admin role
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({ user_id: userData.user.id, role: 'admin' });
