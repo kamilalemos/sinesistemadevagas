@@ -681,9 +681,7 @@ const Admin = () => {
         </div>
 
         {/* Criar Novo Admin */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
-          <div className="flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-primary" />
+        <div id="section-criar-admin" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
             <h2 className="font-heading font-semibold text-sm text-foreground">Criar Novo Admin</h2>
           </div>
           <p className="text-xs text-muted-foreground">Cadastre um novo usuário com permissão de administrador</p>
