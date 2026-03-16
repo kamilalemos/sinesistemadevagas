@@ -16,6 +16,7 @@ const Admin = () => {
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState<"semana" | "feirao" | null>(null);
+  const [progressInfo, setProgressInfo] = useState<{ current: number; total: number; message: string } | null>(null);
   const [periodoInicio, setPeriodoInicio] = useState("");
   const [periodoFim, setPeriodoFim] = useState("");
   const [periodoLoaded, setPeriodoLoaded] = useState(false);
