@@ -100,12 +100,12 @@ function normalizeText(v: unknown, fallback = ""): string {
 }
 
 /**
- * Sanitize qtd: must be an integer 1–999.
- * Values >= 1000 are almost certainly concatenation errors (CBO+Qtd).
+ * Sanitize qtd: must be an integer 1–9999.
+ * Values above 9999 are almost certainly concatenation errors (CBO+Qtd).
  */
 function safeQtd(v: unknown): number | null {
   const n = typeof v === "number" ? v : Number.parseInt(String(v ?? "").replace(/\D/g, ""), 10);
-  if (!Number.isInteger(n) || n <= 0 || n > 999) return null;
+  if (!Number.isInteger(n) || n <= 0 || n > 9999) return null;
   return n;
 }
 
