@@ -22,6 +22,29 @@ interface HistoricoEntry {
 }
 
 const MESES = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const SUMMARY_ROW_REGEX = /(total de vagas|total geral|vagas abertas|feirão da empregabilidade|quantidade total|total\b)/i;
+
+const sanitizeUploadedVagas = (vagas: any[]) =>
+  vagas
+    .map((vaga) => {
+      const qtd = Number(vaga?.qtd);
+      const cargo = String(vaga?.cargo || "").trim();
+
+      if (!Number.isInteger(qtd) || qtd <= 0 || qtd > 9999 || !cargo || SUMMARY_ROW_REGEX.test(cargo)) {
+        return null;
+      }
+
+      return {
+        qtd,
+        cbo: vaga?.cbo || null,
+        cargo,
+        escolaridade: String(vaga?.escolaridade || "Não informado").trim(),
+        experiencia: String(vaga?.experiencia || "Não informada").trim(),
+        descricao: String(vaga?.descricao || "").trim(),
+        categoria: String(vaga?.categoria || "Serviços").trim() || "Serviços",
+      };
+    })
+    .filter((vaga): vaga is NonNullable<typeof vaga> => Boolean(vaga));
 
 const Admin = () => {
   const { user, loading, isAdmin, signIn, signOut } = useAuth();
@@ -163,8 +186,10 @@ const Admin = () => {
           }
         }
 
-        if (!result || !result.vagas || result.vagas.length === 0) {
-          toast.error("Nenhuma vaga encontrada no arquivo. Verifique o formato do PDF.");
+        const sanitizedVagas = sanitizeUploadedVagas(result?.vagas || []);
+
+        if (sanitizedVagas.length === 0) {
+          toast.error("Nenhuma vaga válida encontrada no arquivo. Verifique o formato do PDF.");
           setUploadLoading(null);
           setProgressInfo(null);
           return;
@@ -178,14 +203,8 @@ const Admin = () => {
           return;
         }
 
-        const rows = result.vagas.map((v: any) => ({
-          qtd: v.qtd,
-          cbo: v.cbo || null,
-          cargo: v.cargo,
-          escolaridade: v.escolaridade,
-          experiencia: v.experiencia,
-          descricao: v.descricao,
-          categoria: v.categoria,
+        const rows = sanitizedVagas.map((v) => ({
+          ...v,
           tipo,
         }));
         const { error: insertError } = await supabase.from("vagas").insert(rows);
@@ -196,8 +215,9 @@ const Admin = () => {
           return;
         }
 
+        const totalImportado = sanitizedVagas.reduce((sum, vaga) => sum + vaga.qtd, 0);
         queryClient.invalidateQueries({ queryKey: ["vagas", tipo] });
-        toast.success(`${result.totalVagas} vagas extraídas e importadas com sucesso!`);
+        toast.success(`${totalImportado} vagas extraídas e importadas com sucesso!`);
       } catch (err: any) {
         toast.error("Erro inesperado: " + (err.message || "Tente novamente"));
       }

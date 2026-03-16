@@ -7,16 +7,33 @@ const corsHeaders = {
 
 const MAX_CHUNK_CHARS = 12000;
 
+const VALID_CATEGORIES = new Set([
+  "Tecnologia",
+  "Administrativo",
+  "Vendas",
+  "Marketing",
+  "Logística",
+  "Indústria",
+  "Saúde",
+  "Construção",
+  "Alimentação",
+  "Serviços",
+]);
+
+const SUMMARY_ROW_REGEX = /(total de vagas|total geral|vagas abertas|feirão da empregabilidade|quantidade total|total\b)/i;
+
 const buildPrompt = (text: string) => `Você é um extrator de dados de vagas de emprego. Analise o texto abaixo extraído de um documento do SINE (Sistema Nacional de Emprego) e extraia ABSOLUTAMENTE TODAS as vagas encontradas.
 
 REGRAS CRÍTICAS:
 1. Extraia CADA LINHA da tabela como uma vaga separada. NÃO agrupe nem some vagas com o mesmo cargo.
-2. O valor "qtd" deve ser EXATAMENTE o número que aparece na coluna "Qtd" ou "Quantidade" para aquela linha específica.
-3. Se o mesmo cargo aparecer múltiplas vezes com descrições ou requisitos diferentes, cada uma deve ser uma entrada SEPARADA.
-4. NÃO ignore nenhuma linha. Cada linha da tabela = uma entrada no array.
+2. O valor "qtd" deve ser EXATAMENTE o número isolado da coluna "Qtd" ou "Quantidade" da linha específica.
+3. NUNCA concatene números de colunas vizinhas. Exemplo: se a linha tiver CBO 2201 e Qtd 15, o campo qtd deve ser 15, nunca 220115.
+4. NUNCA inclua cabeçalhos, subtítulos, observações, totais, linhas-resumo ou frases como "Vagas abertas para o feirão da empregabilidade".
+5. Se o mesmo cargo aparecer múltiplas vezes com descrições ou requisitos diferentes, cada uma deve ser uma entrada SEPARADA.
+6. NÃO ignore nenhuma linha real da tabela. Cada linha da tabela = uma entrada no array.
 
 Para cada vaga, retorne um objeto JSON com:
-- qtd: número EXATO de vagas conforme a coluna Qtd (inteiro, nunca 0)
+- qtd: número EXATO de vagas conforme a coluna Qtd (inteiro positivo)
 - cbo: código CBO se disponível (string, ex: "5173-30"), ou string vazia
 - cargo: nome do cargo (string)
 - escolaridade: nível de escolaridade exigido (string)
@@ -24,7 +41,7 @@ Para cada vaga, retorne um objeto JSON com:
 - descricao: descrição/observação adicional da vaga (string)
 - categoria: uma dessas categorias: "Tecnologia", "Administrativo", "Vendas", "Marketing", "Logística", "Indústria", "Saúde", "Construção", "Alimentação", "Serviços"
 
-Responda APENAS com um JSON válido no formato: {"vagas": [...]}
+Responda APENAS com um JSON válido no formato: {"vagas": [...]}.
 
 Texto extraído:
 ${text}`;
@@ -62,25 +79,61 @@ async function callAI(apiKey: string, text: string): Promise<any[]> {
   return parsed.vagas || [];
 }
 
-/**
- * Split text into chunks at line boundaries to avoid cutting rows mid-line
- */
 function splitIntoChunks(text: string, maxChars: number): string[] {
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   const chunks: string[] = [];
-  let currentChunk = '';
+  let currentChunk = "";
 
   for (const line of lines) {
     if (currentChunk.length + line.length + 1 > maxChars && currentChunk.length > 0) {
       chunks.push(currentChunk);
-      currentChunk = '';
+      currentChunk = "";
     }
-    currentChunk += (currentChunk ? '\n' : '') + line;
+    currentChunk += (currentChunk ? "\n" : "") + line;
   }
+
   if (currentChunk.trim()) {
     chunks.push(currentChunk);
   }
+
   return chunks;
+}
+
+function normalizeText(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value.trim() : fallback;
+}
+
+function normalizeQtd(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value > 0 && value <= 9999) {
+    return value;
+  }
+
+  const digits = String(value ?? "").replace(/\D/g, "");
+  if (!digits || digits.length > 4) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(digits, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function normalizeVaga(raw: any) {
+  const cargo = normalizeText(raw?.cargo);
+  const qtd = normalizeQtd(raw?.qtd);
+
+  if (!cargo || !qtd || SUMMARY_ROW_REGEX.test(cargo)) {
+    return null;
+  }
+
+  return {
+    qtd,
+    cbo: normalizeText(raw?.cbo) || "",
+    cargo,
+    escolaridade: normalizeText(raw?.escolaridade, "Não informado"),
+    experiencia: normalizeText(raw?.experiencia, "Não informada"),
+    descricao: normalizeText(raw?.descricao),
+    categoria: VALID_CATEGORIES.has(raw?.categoria) ? raw.categoria : "Serviços",
+  };
 }
 
 serve(async (req) => {
@@ -163,22 +216,12 @@ serve(async (req) => {
             send({ type: "progress", step: "ai", message: `Processando parte ${processed}/${totalChunks}`, current: processed, total: totalChunks });
           }
 
-          // Deduplicate only truly identical entries (same cargo + cbo + escolaridade + experiencia + descricao)
-          const vagaMap = new Map<string, any>();
-          for (const v of allVagas) {
-            const key = `${(v.cargo || '').trim().toLowerCase()}|${(v.cbo || '').trim()}|${(v.escolaridade || '').trim().toLowerCase()}|${(v.experiencia || '').trim().toLowerCase()}|${(v.descricao || '').trim().toLowerCase().substring(0, 80)}`;
-            if (vagaMap.has(key)) {
-              // True duplicate from chunk overlap — keep the one with higher qtd
-              const existing = vagaMap.get(key);
-              existing.qtd = Math.max(existing.qtd || 0, v.qtd || 0);
-            } else {
-              vagaMap.set(key, { ...v, qtd: v.qtd || 1 });
-            }
-          }
-          const vagas = Array.from(vagaMap.values());
-          const totalVagas = vagas.reduce((sum: number, v: any) => sum + (v.qtd || 0), 0);
+          const vagas = allVagas
+            .map(normalizeVaga)
+            .filter((vaga): vaga is NonNullable<typeof vaga> => Boolean(vaga));
+          const totalVagas = vagas.reduce((sum: number, v: any) => sum + v.qtd, 0);
 
-          console.log(`Total extraído: ${allVagas.length} entradas brutas -> ${vagas.length} vagas únicas -> ${totalVagas} vagas total`);
+          console.log(`Total extraído: ${allVagas.length} entradas brutas -> ${vagas.length} vagas válidas -> ${totalVagas} vagas total`);
 
           send({ type: "done", vagas, totalVagas });
         } catch (err) {
