@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Flame, Rocket, MapPin, FileText, CheckCircle, Clock, Phone, Instagram } from "lucide-react";
+import { ArrowRight, Flame, Rocket, MapPin, FileText, CheckCircle, Clock, Phone, Instagram, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import CategoryCard from "@/components/CategoryCard";
