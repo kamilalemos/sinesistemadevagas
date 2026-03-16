@@ -659,6 +659,8 @@ const Admin = () => {
 
         {/* Alterar Senha */}
         <div id="section-alterar-senha" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-secondary" />
             <h2 className="font-heading font-semibold text-sm text-foreground">Alterar Senha</h2>
           </div>
           <p className="text-xs text-muted-foreground">Altere a senha da sua conta admin atual ({user?.email})</p>
