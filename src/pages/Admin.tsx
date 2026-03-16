@@ -204,6 +204,75 @@ const Admin = () => {
     input.click();
   };
 
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setChangePasswordLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "apikey": anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "change-password", password: newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Erro ao alterar senha");
+      } else {
+        toast.success("Senha alterada com sucesso!");
+        setNewPassword("");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || "Tente novamente"));
+    }
+    setChangePasswordLoading(false);
+  };
+
+  const handleCreateAdmin = async () => {
+    if (!newAdminEmail || !newAdminPassword) {
+      toast.error("Preencha email e senha do novo admin");
+      return;
+    }
+    setCreateAdminLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "apikey": anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: newAdminEmail, password: newAdminPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Erro ao criar admin");
+      } else {
+        toast.success("Novo admin criado com sucesso!");
+        setNewAdminEmail("");
+        setNewAdminPassword("");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || "Tente novamente"));
+    }
+    setCreateAdminLoading(false);
+  };
+
   const handleUpdatePeriodo = async () => {
     const updates = [
       supabase.from("configuracoes").update({ valor: periodoInicio }).eq("chave", "periodo_inicio"),
