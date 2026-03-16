@@ -123,7 +123,7 @@ const Index = () => {
               <h2 className="font-heading font-bold text-lg mb-4 text-foreground">Vagas por Área</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {categoriasComQtdSemana.map((cat, i) => (
-                  <CategoryCard key={cat.nome} nome={cat.nome} icone={cat.icone} quantidade={cat.quantidade} index={i} />
+                  <CategoryCard key={cat.nome} nome={cat.nome} icone={cat.icone} quantidade={cat.quantidade} index={i} tipo="semana" />
                 ))}
               </div>
             </div>
