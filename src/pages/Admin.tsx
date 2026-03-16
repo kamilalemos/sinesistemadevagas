@@ -39,6 +39,9 @@ const Admin = () => {
   const [newPassword, setNewPassword] = useState("");
   const [changePasswordLoading, setChangePasswordLoading] = useState(false);
   const [statsAno, setStatsAno] = useState(new Date().getFullYear());
+  const [adminList, setAdminList] = useState<{ user_id: string; email: string; created_at: string | null }[]>([]);
+  const [adminListLoading, setAdminListLoading] = useState(false);
+  const [deleteAdminLoading, setDeleteAdminLoading] = useState<string | null>(null);
 
   const { data: vagasSemana = [] } = useVagasSemana();
   const { data: vagasFeirao = [] } = useVagasFeirao();
