@@ -466,19 +466,10 @@ const Admin = () => {
   }
 
   return (
-    <div className="pt-14 min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-primary">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="font-heading font-bold text-lg text-foreground">Painel Admin</h1>
-          </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
-            <LogOut className="w-4 h-4 mr-1" /> Sair
-          </Button>
-        </div>
+    <div className="pt-14 min-h-screen bg-background flex">
+      <AdminSidebar userEmail={user?.email} onSignOut={signOut} />
+      <div className="flex-1 overflow-y-auto">
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
         {/* Visibilidade das seções */}
         <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
