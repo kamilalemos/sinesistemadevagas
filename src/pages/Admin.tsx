@@ -257,6 +257,22 @@ const Admin = () => {
           </Button>
         </div>
 
+        {/* Progress indicator */}
+        {uploadLoading && progressInfo && (
+          <div className="bg-card rounded-xl shadow-card p-5 border border-accent space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-heading font-semibold text-foreground flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                {progressInfo.message}
+              </p>
+              <span className="text-xs text-muted-foreground">
+                {progressInfo.total > 1 ? `${progressInfo.current}/${progressInfo.total}` : ""}
+              </span>
+            </div>
+            <Progress value={progressInfo.total > 0 ? (progressInfo.current / progressInfo.total) * 100 : 0} className="h-2" />
+          </div>
+        )}
+
         {/* Upload Semana */}
         <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <h2 className="font-heading font-semibold text-sm text-foreground">Vagas da Semana</h2>
