@@ -5,17 +5,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const CHUNK_SIZE = 12000;
+const MAX_CHUNK_CHARS = 12000;
 
-const buildPrompt = (text: string) => `Você é um extrator de dados de vagas de emprego. Analise o texto abaixo extraído de um PDF do SINE (Sistema Nacional de Emprego) e extraia TODAS as vagas encontradas.
+const buildPrompt = (text: string) => `Você é um extrator de dados de vagas de emprego. Analise o texto abaixo extraído de um documento do SINE (Sistema Nacional de Emprego) e extraia ABSOLUTAMENTE TODAS as vagas encontradas.
+
+REGRAS CRÍTICAS:
+1. Extraia CADA LINHA da tabela como uma vaga separada. NÃO agrupe nem some vagas com o mesmo cargo.
+2. O valor "qtd" deve ser EXATAMENTE o número que aparece na coluna "Qtd" ou "Quantidade" para aquela linha específica.
+3. Se o mesmo cargo aparecer múltiplas vezes com descrições ou requisitos diferentes, cada uma deve ser uma entrada SEPARADA.
+4. NÃO ignore nenhuma linha. Cada linha da tabela = uma entrada no array.
 
 Para cada vaga, retorne um objeto JSON com:
-- qtd: número de vagas (inteiro)
+- qtd: número EXATO de vagas conforme a coluna Qtd (inteiro, nunca 0)
 - cbo: código CBO se disponível (string, ex: "5173-30"), ou string vazia
 - cargo: nome do cargo (string)
 - escolaridade: nível de escolaridade exigido (string)
 - experiencia: experiência exigida (string)
-- descricao: descrição adicional da vaga (string)
+- descricao: descrição/observação adicional da vaga (string)
 - categoria: uma dessas categorias: "Tecnologia", "Administrativo", "Vendas", "Marketing", "Logística", "Indústria", "Saúde", "Construção", "Alimentação", "Serviços"
 
 Responda APENAS com um JSON válido no formato: {"vagas": [...]}
@@ -54,6 +60,27 @@ async function callAI(apiKey: string, text: string): Promise<any[]> {
 
   const parsed = JSON.parse(jsonMatch[0]);
   return parsed.vagas || [];
+}
+
+/**
+ * Split text into chunks at line boundaries to avoid cutting rows mid-line
+ */
+function splitIntoChunks(text: string, maxChars: number): string[] {
+  const lines = text.split('\n');
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const line of lines) {
+    if (currentChunk.length + line.length + 1 > maxChars && currentChunk.length > 0) {
+      chunks.push(currentChunk);
+      currentChunk = '';
+    }
+    currentChunk += (currentChunk ? '\n' : '') + line;
+  }
+  if (currentChunk.trim()) {
+    chunks.push(currentChunk);
+  }
+  return chunks;
 }
 
 serve(async (req) => {
@@ -99,15 +126,11 @@ serve(async (req) => {
       });
     }
 
-    const chunks: string[] = [];
-    for (let i = 0; i < extractedText.length; i += CHUNK_SIZE) {
-      chunks.push(extractedText.substring(i, i + CHUNK_SIZE));
-    }
-
+    // Split at line boundaries
+    const chunks = splitIntoChunks(extractedText, MAX_CHUNK_CHARS);
     const totalChunks = chunks.length;
-    console.log(`Texto total: ${extractedText.length} chars, dividido em ${totalChunks} parte(s)`);
+    console.log(`Texto total: ${extractedText.length} chars, ${extractedText.split('\n').length} linhas, dividido em ${totalChunks} parte(s)`);
 
-    // Use SSE to stream progress
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
@@ -116,7 +139,7 @@ serve(async (req) => {
         };
 
         try {
-          send({ type: "progress", step: "extract", message: "Texto extraído do PDF", current: 0, total: totalChunks });
+          send({ type: "progress", step: "extract", message: "Texto extraído do arquivo", current: 0, total: totalChunks });
 
           let allVagas: any[] = [];
           const batchSize = 3;
@@ -125,7 +148,7 @@ serve(async (req) => {
             const batch = chunks.slice(i, i + batchSize);
             const results = await Promise.all(
               batch.map((chunk, idx) => {
-                console.log(`Processando parte ${i + idx + 1}/${totalChunks}...`);
+                console.log(`Processando parte ${i + idx + 1}/${totalChunks} (${chunk.length} chars)...`);
                 return callAI(apiKey, chunk).catch((err) => {
                   console.error(`Erro na parte ${i + idx + 1}:`, err.message);
                   return [] as any[];
@@ -140,18 +163,22 @@ serve(async (req) => {
             send({ type: "progress", step: "ai", message: `Processando parte ${processed}/${totalChunks}`, current: processed, total: totalChunks });
           }
 
-          // Deduplicate
+          // Deduplicate only truly identical entries (same cargo + cbo + escolaridade + experiencia + descricao)
           const vagaMap = new Map<string, any>();
           for (const v of allVagas) {
-            const key = `${v.cargo}|${v.cbo || ""}`;
+            const key = `${(v.cargo || '').trim().toLowerCase()}|${(v.cbo || '').trim()}|${(v.escolaridade || '').trim().toLowerCase()}|${(v.experiencia || '').trim().toLowerCase()}|${(v.descricao || '').trim().toLowerCase().substring(0, 80)}`;
             if (vagaMap.has(key)) {
-              vagaMap.get(key).qtd += v.qtd || 0;
+              // True duplicate from chunk overlap — keep the one with higher qtd
+              const existing = vagaMap.get(key);
+              existing.qtd = Math.max(existing.qtd || 0, v.qtd || 0);
             } else {
-              vagaMap.set(key, { ...v });
+              vagaMap.set(key, { ...v, qtd: v.qtd || 1 });
             }
           }
           const vagas = Array.from(vagaMap.values());
           const totalVagas = vagas.reduce((sum: number, v: any) => sum + (v.qtd || 0), 0);
+
+          console.log(`Total extraído: ${allVagas.length} entradas brutas -> ${vagas.length} vagas únicas -> ${totalVagas} vagas total`);
 
           send({ type: "done", vagas, totalVagas });
         } catch (err) {
