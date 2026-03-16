@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save, KeyRound, UserPlus } from "lucide-react";
+import { useState, useCallback } from "react";
+import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save, KeyRound, UserPlus, Trash2, Users, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,9 @@ const Admin = () => {
   const [newPassword, setNewPassword] = useState("");
   const [changePasswordLoading, setChangePasswordLoading] = useState(false);
   const [statsAno, setStatsAno] = useState(new Date().getFullYear());
+  const [adminList, setAdminList] = useState<{ user_id: string; email: string; created_at: string | null }[]>([]);
+  const [adminListLoading, setAdminListLoading] = useState(false);
+  const [deleteAdminLoading, setDeleteAdminLoading] = useState<string | null>(null);
 
   const { data: vagasSemana = [] } = useVagasSemana();
   const { data: vagasFeirao = [] } = useVagasFeirao();
@@ -271,6 +274,66 @@ const Admin = () => {
       toast.error("Erro: " + (err.message || "Tente novamente"));
     }
     setCreateAdminLoading(false);
+  };
+
+  const fetchAdminList = useCallback(async () => {
+    setAdminListLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "apikey": anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "list-admins" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAdminList(data.admins || []);
+      } else {
+        toast.error(data.error || "Erro ao listar admins");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || "Tente novamente"));
+    }
+    setAdminListLoading(false);
+  }, []);
+
+  const handleDeleteAdmin = async (targetUserId: string, targetEmail: string) => {
+    if (!confirm(`Tem certeza que deseja remover o admin "${targetEmail}"? Esta ação é irreversível.`)) return;
+    setDeleteAdminLoading(targetUserId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "apikey": anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "delete-admin", target_user_id: targetUserId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Admin removido com sucesso!");
+        fetchAdminList();
+      } else {
+        toast.error(data.error || "Erro ao remover admin");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || "Tente novamente"));
+    }
+    setDeleteAdminLoading(null);
   };
 
   const handleUpdatePeriodo = async () => {
@@ -633,6 +696,66 @@ const Admin = () => {
             {createAdminLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserPlus className="w-3 h-3" />}
             Criar admin
           </Button>
+        </div>
+
+        {/* Listar Admins */}
+        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary" />
+              <h2 className="font-heading font-semibold text-sm text-foreground">Administradores Cadastrados</h2>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={fetchAdminList}
+              disabled={adminListLoading}
+              className="rounded-lg text-xs gap-1"
+            >
+              {adminListLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+              Carregar lista
+            </Button>
+          </div>
+
+          {adminList.length === 0 && !adminListLoading && (
+            <p className="text-xs text-muted-foreground text-center py-3">
+              Clique em "Carregar lista" para ver os admins cadastrados.
+            </p>
+          )}
+
+          {adminList.length > 0 && (
+            <div className="space-y-2">
+              {adminList.map((admin) => (
+                <div key={admin.user_id} className="flex items-center justify-between bg-accent/50 rounded-lg px-3 py-2">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{admin.email}</p>
+                    {admin.created_at && (
+                      <p className="text-[10px] text-muted-foreground">
+                        Criado em {new Date(admin.created_at).toLocaleDateString("pt-BR")}
+                      </p>
+                    )}
+                  </div>
+                  {admin.user_id !== user?.id ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteAdmin(admin.user_id, admin.email)}
+                      disabled={deleteAdminLoading === admin.user_id}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
+                    >
+                      {deleteAdminLoading === admin.user_id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3 h-3" />
+                      )}
+                    </Button>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground italic">Você</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
