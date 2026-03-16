@@ -216,22 +216,12 @@ serve(async (req) => {
             send({ type: "progress", step: "ai", message: `Processando parte ${processed}/${totalChunks}`, current: processed, total: totalChunks });
           }
 
-          // Deduplicate only truly identical entries (same cargo + cbo + escolaridade + experiencia + descricao)
-          const vagaMap = new Map<string, any>();
-          for (const v of allVagas) {
-            const key = `${(v.cargo || '').trim().toLowerCase()}|${(v.cbo || '').trim()}|${(v.escolaridade || '').trim().toLowerCase()}|${(v.experiencia || '').trim().toLowerCase()}|${(v.descricao || '').trim().toLowerCase().substring(0, 80)}`;
-            if (vagaMap.has(key)) {
-              // True duplicate from chunk overlap — keep the one with higher qtd
-              const existing = vagaMap.get(key);
-              existing.qtd = Math.max(existing.qtd || 0, v.qtd || 0);
-            } else {
-              vagaMap.set(key, { ...v, qtd: v.qtd || 1 });
-            }
-          }
-          const vagas = Array.from(vagaMap.values());
-          const totalVagas = vagas.reduce((sum: number, v: any) => sum + (v.qtd || 0), 0);
+          const vagas = allVagas
+            .map(normalizeVaga)
+            .filter((vaga): vaga is NonNullable<typeof vaga> => Boolean(vaga));
+          const totalVagas = vagas.reduce((sum: number, v: any) => sum + v.qtd, 0);
 
-          console.log(`Total extraído: ${allVagas.length} entradas brutas -> ${vagas.length} vagas únicas -> ${totalVagas} vagas total`);
+          console.log(`Total extraído: ${allVagas.length} entradas brutas -> ${vagas.length} vagas válidas -> ${totalVagas} vagas total`);
 
           send({ type: "done", vagas, totalVagas });
         } catch (err) {

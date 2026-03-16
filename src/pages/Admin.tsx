@@ -186,8 +186,10 @@ const Admin = () => {
           }
         }
 
-        if (!result || !result.vagas || result.vagas.length === 0) {
-          toast.error("Nenhuma vaga encontrada no arquivo. Verifique o formato do PDF.");
+        const sanitizedVagas = sanitizeUploadedVagas(result?.vagas || []);
+
+        if (sanitizedVagas.length === 0) {
+          toast.error("Nenhuma vaga válida encontrada no arquivo. Verifique o formato do PDF.");
           setUploadLoading(null);
           setProgressInfo(null);
           return;
@@ -201,14 +203,8 @@ const Admin = () => {
           return;
         }
 
-        const rows = result.vagas.map((v: any) => ({
-          qtd: v.qtd,
-          cbo: v.cbo || null,
-          cargo: v.cargo,
-          escolaridade: v.escolaridade,
-          experiencia: v.experiencia,
-          descricao: v.descricao,
-          categoria: v.categoria,
+        const rows = sanitizedVagas.map((v) => ({
+          ...v,
           tipo,
         }));
         const { error: insertError } = await supabase.from("vagas").insert(rows);
@@ -219,8 +215,9 @@ const Admin = () => {
           return;
         }
 
+        const totalImportado = sanitizedVagas.reduce((sum, vaga) => sum + vaga.qtd, 0);
         queryClient.invalidateQueries({ queryKey: ["vagas", tipo] });
-        toast.success(`${result.totalVagas} vagas extraídas e importadas com sucesso!`);
+        toast.success(`${totalImportado} vagas extraídas e importadas com sucesso!`);
       } catch (err: any) {
         toast.error("Erro inesperado: " + (err.message || "Tente novamente"));
       }
