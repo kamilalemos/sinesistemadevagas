@@ -12,14 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
-      return new Response(JSON.stringify({ error: "Email e senha são obrigatórios" }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const { email, password, action } = await req.json();
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -27,7 +20,57 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Check if any admin exists already
+    // For actions that require an existing admin, verify the caller
+    const authHeader = req.headers.get('Authorization');
+    
+    if (action === 'change-password') {
+      // Change password for the calling user
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: "Não autenticado" }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: "Token inválido" }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!password || password.length < 6) {
+        return new Response(JSON.stringify({ error: "Senha deve ter pelo menos 6 caracteres" }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, { password });
+      if (updateError) {
+        return new Response(JSON.stringify({ error: updateError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, message: "Senha alterada com sucesso" }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Default action: create admin
+    if (!email || !password) {
+      return new Response(JSON.stringify({ error: "Email e senha são obrigatórios" }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // If admins already exist, require the caller to be an admin
     const { data: existingAdmins } = await supabaseAdmin
       .from('user_roles')
       .select('id')
@@ -35,10 +78,34 @@ serve(async (req) => {
       .limit(1);
 
     if (existingAdmins && existingAdmins.length > 0) {
-      return new Response(JSON.stringify({ error: "Já existe um administrador cadastrado" }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: "Não autenticado" }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: "Token inválido" }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: callerRole } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .limit(1);
+
+      if (!callerRole || callerRole.length === 0) {
+        return new Response(JSON.stringify({ error: "Apenas administradores podem criar novos admins" }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // Create user
