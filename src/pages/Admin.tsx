@@ -3,6 +3,7 @@ import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText } from "lu
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useVagasSemana, useVagasFeirao, useConfiguracoes, calcTotalVagas } from "@/hooks/useVagas";
 import { supabase } from "@/integrations/supabase/client";
