@@ -494,7 +494,7 @@ const Admin = () => {
         </div>
 
         {/* Período */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <div id="section-periodo" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-secondary" />
             <h2 className="font-heading font-semibold text-sm text-foreground">Período das Vagas</h2>
