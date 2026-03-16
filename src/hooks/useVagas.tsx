@@ -59,8 +59,13 @@ export const useConfiguracoes = () => {
   });
 };
 
-export const calcTotalVagas = (vagas: VagaDB[]) =>
-  vagas.reduce((sum, v) => sum + v.qtd, 0);
+export const calcTotalVagas = (vagas: VagaDB[], declaredTotal?: string) => {
+  if (declaredTotal) {
+    const n = parseInt(declaredTotal, 10);
+    if (n > 0) return n;
+  }
+  return vagas.reduce((sum, v) => sum + v.qtd, 0);
+};
 
 export const calcCategoriasComQtd = (vagas: VagaDB[]) =>
   categorias.map((cat) => ({

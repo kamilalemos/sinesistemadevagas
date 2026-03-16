@@ -2,15 +2,16 @@ import { useState } from "react";
 import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { useVagasFeirao, calcTotalVagas } from "@/hooks/useVagas";
+import { useVagasFeirao, useConfiguracoes, calcTotalVagas } from "@/hooks/useVagas";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 
 const Feirao = () => {
   const { data: vagas = [] } = useVagasFeirao();
+  const { data: config } = useConfiguracoes();
   const [busca, setBusca] = useState("");
 
-  const totalVagas = calcTotalVagas(vagas);
+  const totalVagas = calcTotalVagas(vagas, config?.feirao_total_vagas);
 
   const vagasFiltradas = vagas.filter(
     (v) =>
