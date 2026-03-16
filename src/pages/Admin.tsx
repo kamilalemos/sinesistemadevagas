@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save, KeyRound, UserPlus } from "lucide-react";
+import { useState, useCallback } from "react";
+import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save, KeyRound, UserPlus, Trash2, Users, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
