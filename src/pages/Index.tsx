@@ -16,6 +16,8 @@ const Index = () => {
   const categoriasComQtd = calcCategoriasComQtd(vagasSemana);
   const periodoInicio = config?.periodo_inicio ?? "";
   const periodoFim = config?.periodo_fim ?? "";
+  const semanaAtiva = config?.semana_ativa !== "false";
+  const feiraoAtivo = config?.feirao_ativo !== "false";
 
   const documentos = [
     "Documento com foto",
