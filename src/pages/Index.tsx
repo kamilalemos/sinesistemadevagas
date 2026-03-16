@@ -6,19 +6,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import CategoryCard from "@/components/CategoryCard";
 import { useVagasSemana, useVagasFeirao, useConfiguracoes, calcTotalVagas, calcCategoriasComQtd } from "@/hooks/useVagas";
 
-const Index = () => {
-  const { data: vagasSemana = [] } = useVagasSemana();
-  const { data: vagasFeirao = [] } = useVagasFeirao();
-  const { data: config } = useConfiguracoes();
-
-  const totalSemana = calcTotalVagas(vagasSemana, config?.semana_total_vagas);
-  const totalFeirao = calcTotalVagas(vagasFeirao, config?.feirao_total_vagas);
-  const categoriasComQtd = calcCategoriasComQtd(vagasSemana);
-  const periodoInicio = config?.periodo_inicio ?? "";
-  const periodoFim = config?.periodo_fim ?? "";
-  const semanaAtiva = config?.semana_ativa !== "false";
-  const feiraoAtivo = config?.feirao_ativo !== "false";
-
+const CandidatarSection = () => {
   const documentos = [
     "Documento com foto",
     "CPF",
@@ -26,6 +14,71 @@ const Index = () => {
     "Comprovante de escolaridade",
     "Certificados ou diplomas de cursos (se possuir)",
   ];
+
+  return (
+    <div className="space-y-4 mt-6">
+      <h3 className="font-heading font-bold text-base text-foreground">Como se Candidatar</h3>
+      <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <div className="flex gap-3">
+          <FileText className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
+          <p className="text-sm text-foreground leading-relaxed">
+            As vagas são intermediadas pelo <strong>SINE João Pessoa</strong>. Compareça presencialmente com os documentos necessários.
+          </p>
+        </div>
+      </div>
+      <div className="bg-card rounded-xl shadow-card p-5 border border-border">
+        <h4 className="font-heading font-semibold text-sm mb-3 text-foreground">Documentos Necessários</h4>
+        <ul className="space-y-2">
+          {documentos.map((doc) => (
+            <li key={doc} className="flex items-start gap-2 text-sm text-foreground">
+              <CheckCircle className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
+              {doc}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <h4 className="font-heading font-semibold text-sm text-foreground">Endereço e Contato</h4>
+        <div className="flex items-start gap-2 text-sm text-foreground">
+          <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+          <span>Segunda a sexta, das 8h às 14h</span>
+        </div>
+        <div className="flex items-start gap-2 text-sm text-foreground">
+          <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+          <span>R. João Suassuna, 49 – Varadouro, João Pessoa – PB</span>
+        </div>
+        <a href="https://wa.me/5583982131516" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+          <Phone className="w-4 h-4 shrink-0" />
+          (83) 98213-1516
+        </a>
+        <a href="https://www.instagram.com/sinejpoficial/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+          <Instagram className="w-4 h-4 shrink-0" />
+          @sinejpoficial
+        </a>
+      </div>
+      <a href="https://www.google.com/maps/place/R.+Jo%C3%A3o+Suassuna,+49+-+Varadouro,+Jo%C3%A3o+Pessoa+-+PB" target="_blank" rel="noopener noreferrer">
+        <Button className="w-full rounded-xl font-heading font-semibold gap-2 mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
+          <MapPin className="w-4 h-4" />
+          Ver no Google Maps
+        </Button>
+      </a>
+    </div>
+  );
+};
+
+const Index = () => {
+  const { data: vagasSemana = [] } = useVagasSemana();
+  const { data: vagasFeirao = [] } = useVagasFeirao();
+  const { data: config } = useConfiguracoes();
+
+  const totalSemana = calcTotalVagas(vagasSemana, config?.semana_total_vagas);
+  const totalFeirao = calcTotalVagas(vagasFeirao, config?.feirao_total_vagas);
+  const categoriasComQtdSemana = calcCategoriasComQtd(vagasSemana);
+  const categoriasComQtdFeirao = calcCategoriasComQtd(vagasFeirao);
+  const periodoInicio = config?.periodo_inicio ?? "";
+  const periodoFim = config?.periodo_fim ?? "";
+  const semanaAtiva = config?.semana_ativa !== "false";
+  const feiraoAtivo = config?.feirao_ativo !== "false";
 
   return (
     <div className="pt-14">
@@ -44,7 +97,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Contador Principal */}
+      {/* Vagas da Semana */}
       {semanaAtiva && (
         <>
           <section className="px-4 -mt-6">
@@ -64,12 +117,12 @@ const Index = () => {
             </div>
           </section>
 
-          {/* Categorias */}
+          {/* Categorias Semana */}
           <section className="px-4 py-8">
             <div className="container mx-auto">
               <h2 className="font-heading font-bold text-lg mb-4 text-foreground">Vagas por Área</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {categoriasComQtd.map((cat, i) => (
+                {categoriasComQtdSemana.map((cat, i) => (
                   <CategoryCard key={cat.nome} nome={cat.nome} icone={cat.icone} quantidade={cat.quantidade} index={i} />
                 ))}
               </div>
@@ -77,13 +130,20 @@ const Index = () => {
           </section>
 
           {/* Botão ver todas */}
-          <section className="px-4 pb-8">
+          <section className="px-4 pb-4">
             <div className="container mx-auto">
               <Link to="/vagas">
                 <Button className="w-full h-14 text-base font-heading font-bold rounded-xl bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2">
                   Ver todas as vagas <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
+            </div>
+          </section>
+
+          {/* Como se Candidatar - Semana */}
+          <section className="px-4 pb-8">
+            <div className="container mx-auto">
+              <CandidatarSection />
             </div>
           </section>
         </>
@@ -102,69 +162,32 @@ const Index = () => {
                 <AnimatedCounter target={totalFeirao} />
               </div>
               <p className="text-muted-foreground text-sm mb-4">vagas disponíveis</p>
+            </motion.div>
+
+            {/* Categorias Feirão */}
+            <div className="mt-6">
+              <h2 className="font-heading font-bold text-lg mb-4 text-foreground">Vagas por Área – Feirão</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {categoriasComQtdFeirao.map((cat, i) => (
+                  <CategoryCard key={cat.nome} nome={cat.nome} icone={cat.icone} quantidade={cat.quantidade} index={i} />
+                ))}
+              </div>
+            </div>
+
+            {/* Botão ver vagas do feirão */}
+            <div className="mt-6">
               <Link to="/feirao">
-                <Button variant="outline" className="rounded-xl font-heading font-semibold gap-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground">
-                  Ver vagas do feirão <ArrowRight className="w-4 h-4" />
+                <Button className="w-full h-14 text-base font-heading font-bold rounded-xl bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2">
+                  Ver todas as vagas do feirão <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-            </motion.div>
+            </div>
+
+            {/* Como se Candidatar - Feirão */}
+            <CandidatarSection />
           </div>
         </section>
       )}
-
-      {/* Como se candidatar */}
-      <section className="px-4 py-8">
-        <div className="container mx-auto space-y-4">
-          <h2 className="font-heading font-bold text-lg text-foreground">Como se Candidatar</h2>
-          <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
-            <div className="flex gap-3">
-              <FileText className="w-5 h-5 text-secondary mt-0.5 shrink-0" />
-              <p className="text-sm text-foreground leading-relaxed">
-                As vagas são intermediadas pelo <strong>SINE João Pessoa</strong>. Para participar é necessário comparecer presencialmente na sede do SINE com os documentos necessários.
-              </p>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed pl-8">
-              O atendimento realiza uma entrevista inicial. Caso o candidato tenha perfil compatível com alguma vaga, será feito o encaminhamento para entrevista na empresa.
-            </p>
-          </div>
-          <div className="bg-card rounded-xl shadow-card p-5 border border-border">
-            <h3 className="font-heading font-semibold text-sm mb-3 text-foreground">Documentos Necessários</h3>
-            <ul className="space-y-2">
-              {documentos.map((doc) => (
-                <li key={doc} className="flex items-start gap-2 text-sm text-foreground">
-                  <CheckCircle className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
-                  {doc}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
-            <h3 className="font-heading font-semibold text-sm text-foreground">Endereço e Contato</h3>
-            <div className="flex items-start gap-2 text-sm text-foreground">
-              <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-              <span>Segunda a sexta, das 8h às 14h</span>
-            </div>
-            <div className="flex items-start gap-2 text-sm text-foreground">
-              <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-              <span>R. João Suassuna, 49 – Varadouro, João Pessoa – PB</span>
-            </div>
-            <a href="https://wa.me/5583982131516" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
-              <Phone className="w-4 h-4 shrink-0" />
-              (83) 98213-1516
-            </a>
-            <a href="https://www.instagram.com/sinejpoficial/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
-              <Instagram className="w-4 h-4 shrink-0" />
-              @sinejpoficial
-            </a>
-          </div>
-          <a href="https://www.google.com/maps/place/R.+Jo%C3%A3o+Suassuna,+49+-+Varadouro,+Jo%C3%A3o+Pessoa+-+PB" target="_blank" rel="noopener noreferrer">
-            <Button className="w-full rounded-xl font-heading font-semibold gap-2 mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
-              <MapPin className="w-4 h-4" />
-              Ver no Google Maps
-            </Button>
-          </a>
-        </div>
-      </section>
     </div>
   );
 };
