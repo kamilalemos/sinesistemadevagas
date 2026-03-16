@@ -183,6 +183,39 @@ const Index = () => {
               </Link>
             </div>
 
+            {/* Info Feirão */}
+            <div className="mt-6 bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+              <div className="space-y-2 text-sm text-foreground">
+                <div className="flex items-start gap-2">
+                  <Calendar className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
+                  <span><strong>18 e 19 de março</strong></span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Clock className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
+                  <span>Das 9h às 16h</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
+                  <span>Espaço Cultural José Lins do Rego</span>
+                </div>
+              </div>
+
+              <div className="bg-accent rounded-lg p-3 border border-border space-y-2">
+                <p className="text-sm font-semibold text-foreground">💼 Dica importante:</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Para agilizar seu atendimento no dia do evento, você pode realizar ou atualizar seu cadastro no Sine até o dia <strong className="text-foreground">17 de março</strong>.
+                </p>
+                <div className="flex items-start gap-2 text-sm text-foreground">
+                  <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <span>Sine João Pessoa – Av. João Suassuna, nº 49 – Varadouro</span>
+                </div>
+              </div>
+
+              <p className="text-sm text-muted-foreground italic">
+                Prepare seu currículo e venha participar desse grande encontro de oportunidades!
+              </p>
+            </div>
+
             {/* Como se Candidatar - Feirão */}
             <CandidatarSection />
           </div>
