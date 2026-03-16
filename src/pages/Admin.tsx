@@ -276,6 +276,66 @@ const Admin = () => {
     setCreateAdminLoading(false);
   };
 
+  const fetchAdminList = useCallback(async () => {
+    setAdminListLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "apikey": anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "list-admins" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAdminList(data.admins || []);
+      } else {
+        toast.error(data.error || "Erro ao listar admins");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || "Tente novamente"));
+    }
+    setAdminListLoading(false);
+  }, []);
+
+  const handleDeleteAdmin = async (targetUserId: string, targetEmail: string) => {
+    if (!confirm(`Tem certeza que deseja remover o admin "${targetEmail}"? Esta ação é irreversível.`)) return;
+    setDeleteAdminLoading(targetUserId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-admin`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "apikey": anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "delete-admin", target_user_id: targetUserId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Admin removido com sucesso!");
+        fetchAdminList();
+      } else {
+        toast.error(data.error || "Erro ao remover admin");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + (err.message || "Tente novamente"));
+    }
+    setDeleteAdminLoading(null);
+  };
+
   const handleUpdatePeriodo = async () => {
     const updates = [
       supabase.from("configuracoes").update({ valor: periodoInicio }).eq("chave", "periodo_inicio"),
