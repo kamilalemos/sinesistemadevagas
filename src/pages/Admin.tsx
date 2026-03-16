@@ -33,6 +33,11 @@ const Admin = () => {
   const [periodoInicio, setPeriodoInicio] = useState("");
   const [periodoFim, setPeriodoFim] = useState("");
   const [periodoLoaded, setPeriodoLoaded] = useState(false);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [createAdminLoading, setCreateAdminLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
   const [statsAno, setStatsAno] = useState(new Date().getFullYear());
 
   const { data: vagasSemana = [] } = useVagasSemana();
