@@ -216,6 +216,19 @@ const Index = () => {
               </p>
             </div>
 
+            {/* Documentos Feirão */}
+            <div className="mt-6 bg-card rounded-xl shadow-card p-5 border border-border">
+              <h3 className="font-heading font-semibold text-sm mb-3 text-foreground">Documentos Necessários</h3>
+              <ul className="space-y-2">
+                {["Documento com foto", "CPF", "Comprovante de residência", "Comprovante de escolaridade", "Certificados ou diplomas de cursos (se possuir)", "Currículo"].map((doc) => (
+                  <li key={doc} className="flex items-start gap-2 text-sm text-foreground">
+                    <CheckCircle className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
+                    {doc}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
           </div>
         </section>
       )}
