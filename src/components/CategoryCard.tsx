@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Monitor, Briefcase, ShoppingCart, Megaphone, Wrench, Truck, Factory } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const iconMap: Record<string, React.ElementType> = {
   Monitor, Briefcase, ShoppingCart, Megaphone, Wrench, Truck, Factory,
@@ -10,10 +11,17 @@ interface CategoryCardProps {
   icone: string;
   quantidade: number;
   index: number;
+  tipo?: "semana" | "feirao";
 }
 
-const CategoryCard = ({ nome, icone, quantidade, index }: CategoryCardProps) => {
+const CategoryCard = ({ nome, icone, quantidade, index, tipo = "semana" }: CategoryCardProps) => {
   const Icon = iconMap[icone] || Briefcase;
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    const path = tipo === "feirao" ? "/feirao" : "/vagas";
+    navigate(`${path}?categoria=${encodeURIComponent(nome)}`);
+  };
 
   return (
     <motion.div
@@ -21,6 +29,7 @@ const CategoryCard = ({ nome, icone, quantidade, index }: CategoryCardProps) => 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
+      onClick={handleClick}
       className="bg-card rounded-xl p-4 shadow-card hover:shadow-card-hover transition-shadow cursor-pointer border border-border"
     >
       <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center mb-3">
