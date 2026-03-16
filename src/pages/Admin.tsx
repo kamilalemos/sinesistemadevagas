@@ -1,14 +1,27 @@
 import { useState } from "react";
-import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText } from "lucide-react";
+import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
-import { useVagasSemana, useVagasFeirao, useConfiguracoes, calcTotalVagas } from "@/hooks/useVagas";
+import { useVagasSemana, useVagasFeirao, useConfiguracoes, calcTotalVagas, calcCategoriasComQtd } from "@/hooks/useVagas";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+
+interface HistoricoEntry {
+  id: string;
+  mes: number;
+  ano: number;
+  tipo: string;
+  total_vagas: number;
+  total_cargos: number;
+  categorias: Record<string, number>;
+}
+
+const MESES = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 const Admin = () => {
   const { user, loading, isAdmin, signIn, signOut } = useAuth();
@@ -20,11 +33,25 @@ const Admin = () => {
   const [periodoInicio, setPeriodoInicio] = useState("");
   const [periodoFim, setPeriodoFim] = useState("");
   const [periodoLoaded, setPeriodoLoaded] = useState(false);
+  const [statsAno, setStatsAno] = useState(new Date().getFullYear());
 
   const { data: vagasSemana = [] } = useVagasSemana();
   const { data: vagasFeirao = [] } = useVagasFeirao();
   const { data: config } = useConfiguracoes();
   const queryClient = useQueryClient();
+
+  const { data: historico = [] } = useQuery<HistoricoEntry[]>({
+    queryKey: ["vagas_historico", statsAno],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vagas_historico")
+        .select("*")
+        .eq("ano", statsAno)
+        .order("mes", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as HistoricoEntry[];
+    },
+  });
 
   // Load period from config once
   if (config && !periodoLoaded) {
@@ -32,6 +59,22 @@ const Admin = () => {
     setPeriodoFim(config.periodo_fim || "");
     setPeriodoLoaded(true);
   }
+
+  const semanaAtiva = config?.semana_ativa !== "false";
+  const feiraoAtivo = config?.feirao_ativo !== "false";
+
+  const handleToggleSection = async (chave: string, valor: boolean) => {
+    const { error } = await supabase
+      .from("configuracoes")
+      .update({ valor: valor ? "true" : "false" })
+      .eq("chave", chave);
+    if (error) {
+      toast.error("Erro ao atualizar configuração");
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["configuracoes"] });
+    toast.success(`Seção ${chave === "semana_ativa" ? "Vagas da Semana" : "Feirão"} ${valor ? "ativada" : "desativada"}`);
+  };
 
   const handleLogin = async () => {
     setLoginLoading(true);
@@ -60,7 +103,6 @@ const Admin = () => {
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData?.session?.access_token;
 
-        // Use fetch directly for SSE streaming
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
@@ -81,7 +123,6 @@ const Admin = () => {
           return;
         }
 
-        // Read SSE stream
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let result: { vagas: any[]; totalVagas: number } | null = null;
@@ -121,7 +162,6 @@ const Admin = () => {
           return;
         }
 
-        // Delete old vagas of this type
         const { error: deleteError } = await supabase.from("vagas").delete().eq("tipo", tipo);
         if (deleteError) {
           toast.error("Erro ao limpar vagas antigas");
@@ -130,7 +170,6 @@ const Admin = () => {
           return;
         }
 
-        // Insert new vagas
         const rows = result.vagas.map((v: any) => ({
           qtd: v.qtd,
           cbo: v.cbo || null,
@@ -169,6 +208,44 @@ const Admin = () => {
     queryClient.invalidateQueries({ queryKey: ["configuracoes"] });
     toast.success("Período atualizado!");
   };
+
+  const handleSalvarEstatistica = async () => {
+    const now = new Date();
+    const mes = now.getMonth() + 1;
+    const ano = now.getFullYear();
+
+    const categoriasMap: Record<string, number> = {};
+    vagasSemana.forEach((v) => {
+      categoriasMap[v.categoria] = (categoriasMap[v.categoria] || 0) + v.qtd;
+    });
+    vagasFeirao.forEach((v) => {
+      categoriasMap[v.categoria] = (categoriasMap[v.categoria] || 0) + v.qtd;
+    });
+
+    const totalVagas = calcTotalVagas(vagasSemana) + calcTotalVagas(vagasFeirao);
+    const totalCargos = vagasSemana.length + vagasFeirao.length;
+
+    const { error } = await supabase.from("vagas_historico").upsert(
+      {
+        mes,
+        ano,
+        tipo: "geral",
+        total_vagas: totalVagas,
+        total_cargos: totalCargos,
+        categorias: categoriasMap,
+      },
+      { onConflict: "mes,ano,tipo" }
+    );
+
+    if (error) {
+      toast.error("Erro ao salvar estatística: " + error.message);
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["vagas_historico"] });
+    toast.success(`Estatística de ${MESES[mes]}/${ano} salva!`);
+  };
+
+  const maxVagas = Math.max(...historico.map((h) => h.total_vagas), 1);
 
   if (loading) {
     return (
@@ -236,6 +313,28 @@ const Admin = () => {
           </Button>
         </div>
 
+        {/* Visibilidade das seções */}
+        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
+          <div className="flex items-center gap-2">
+            <Eye className="w-4 h-4 text-secondary" />
+            <h2 className="font-heading font-semibold text-sm text-foreground">Visibilidade das Seções</h2>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {semanaAtiva ? <Eye className="w-4 h-4 text-primary" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+              <span className="text-sm text-foreground">Vagas da Semana</span>
+            </div>
+            <Switch checked={semanaAtiva} onCheckedChange={(v) => handleToggleSection("semana_ativa", v)} />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {feiraoAtivo ? <Eye className="w-4 h-4 text-secondary" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+              <span className="text-sm text-foreground">Feirão da Empregabilidade</span>
+            </div>
+            <Switch checked={feiraoAtivo} onCheckedChange={(v) => handleToggleSection("feirao_ativo", v)} />
+          </div>
+        </div>
+
         {/* Período */}
         <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <div className="flex items-center gap-2">
@@ -299,6 +398,110 @@ const Admin = () => {
             {uploadLoading === "feirao" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploadLoading === "feirao" ? "Processando PDF..." : "Upload arquivo do feirão"}
           </Button>
+        </div>
+
+        {/* Dashboard Estatísticas */}
+        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary" />
+              <h2 className="font-heading font-semibold text-sm text-foreground">Estatísticas de Vagas</h2>
+            </div>
+            <Button size="sm" variant="outline" onClick={handleSalvarEstatistica} className="rounded-lg text-xs gap-1">
+              <Save className="w-3 h-3" /> Salvar mês atual
+            </Button>
+          </div>
+
+          {/* Resumo atual */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <p className="text-2xl font-heading font-bold text-primary">{calcTotalVagas(vagasSemana)}</p>
+              <p className="text-xs text-muted-foreground">Semana</p>
+            </div>
+            <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <p className="text-2xl font-heading font-bold text-secondary">{calcTotalVagas(vagasFeirao)}</p>
+              <p className="text-xs text-muted-foreground">Feirão</p>
+            </div>
+            <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <p className="text-2xl font-heading font-bold text-foreground">{calcTotalVagas(vagasSemana) + calcTotalVagas(vagasFeirao)}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+          </div>
+
+          {/* Categorias atuais */}
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">VAGAS POR CATEGORIA (ATUAL)</p>
+            <div className="space-y-1.5">
+              {calcCategoriasComQtd(vagasSemana).filter(c => c.quantidade > 0).sort((a, b) => b.quantidade - a.quantidade).map((cat) => (
+                <div key={cat.nome} className="flex items-center gap-2">
+                  <span className="text-xs text-foreground w-24 truncate">{cat.nome}</span>
+                  <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-primary h-full rounded-full transition-all"
+                      style={{ width: `${(cat.quantidade / calcTotalVagas(vagasSemana)) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-mono text-muted-foreground w-10 text-right">{cat.quantidade}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Histórico anual */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" /> HISTÓRICO MENSAL
+              </p>
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => setStatsAno(statsAno - 1)}>←</Button>
+                <span className="text-xs font-heading font-bold text-foreground">{statsAno}</span>
+                <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => setStatsAno(statsAno + 1)}>→</Button>
+              </div>
+            </div>
+
+            {historico.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">
+                Nenhuma estatística salva para {statsAno}. Clique em "Salvar mês atual" para registrar.
+              </p>
+            ) : (
+              <>
+                {/* Bar chart */}
+                <div className="flex items-end gap-1 h-32">
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const entry = historico.find((h) => h.mes === i + 1);
+                    const height = entry ? (entry.total_vagas / maxVagas) * 100 : 0;
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-[9px] text-muted-foreground">{entry?.total_vagas || ""}</span>
+                        <div
+                          className="w-full rounded-t bg-primary/80 transition-all min-h-[2px]"
+                          style={{ height: `${Math.max(height, entry ? 4 : 0)}%` }}
+                        />
+                        <span className="text-[9px] text-muted-foreground">{MESES[i + 1]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Totals */}
+                <div className="flex justify-between mt-3 pt-3 border-t border-border">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Total no ano</p>
+                    <p className="text-lg font-heading font-bold text-foreground">
+                      {historico.reduce((sum, h) => sum + h.total_vagas, 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Média mensal</p>
+                    <p className="text-lg font-heading font-bold text-foreground">
+                      {historico.length > 0 ? Math.round(historico.reduce((sum, h) => sum + h.total_vagas, 0) / historico.length).toLocaleString() : 0}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

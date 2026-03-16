@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      vagas_historico: {
+        Row: {
+          ano: number
+          categorias: Json | null
+          created_at: string
+          id: string
+          mes: number
+          tipo: string
+          total_cargos: number
+          total_vagas: number
+        }
+        Insert: {
+          ano: number
+          categorias?: Json | null
+          created_at?: string
+          id?: string
+          mes: number
+          tipo?: string
+          total_cargos?: number
+          total_vagas?: number
+        }
+        Update: {
+          ano?: number
+          categorias?: Json | null
+          created_at?: string
+          id?: string
+          mes?: number
+          tipo?: string
+          total_cargos?: number
+          total_vagas?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
