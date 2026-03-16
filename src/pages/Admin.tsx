@@ -472,7 +472,7 @@ const Admin = () => {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
         {/* Visibilidade das seções */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
+        <div id="section-visibilidade" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-secondary" />
             <h2 className="font-heading font-semibold text-sm text-foreground">Visibilidade das Seções</h2>
