@@ -215,8 +215,17 @@ const Admin = () => {
           return;
         }
 
-        const totalImportado = sanitizedVagas.reduce((sum, vaga) => sum + vaga.qtd, 0);
+        const totalImportado = result?.totalVagas ?? sanitizedVagas.reduce((sum, vaga) => sum + vaga.qtd, 0);
+
+        // Save declared total as configuration for accurate display
+        const chaveTotal = tipo === "feirao" ? "feirao_total_vagas" : "semana_total_vagas";
+        await supabase.from("configuracoes").upsert(
+          { chave: chaveTotal, valor: String(totalImportado) },
+          { onConflict: "chave" }
+        );
+
         queryClient.invalidateQueries({ queryKey: ["vagas", tipo] });
+        queryClient.invalidateQueries({ queryKey: ["configuracoes"] });
         toast.success(`${totalImportado} vagas extraídas e importadas com sucesso!`);
       } catch (err: any) {
         toast.error("Erro inesperado: " + (err.message || "Tente novamente"));

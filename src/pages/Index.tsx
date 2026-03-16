@@ -11,8 +11,8 @@ const Index = () => {
   const { data: vagasFeirao = [] } = useVagasFeirao();
   const { data: config } = useConfiguracoes();
 
-  const totalSemana = calcTotalVagas(vagasSemana);
-  const totalFeirao = calcTotalVagas(vagasFeirao);
+  const totalSemana = calcTotalVagas(vagasSemana, config?.semana_total_vagas);
+  const totalFeirao = calcTotalVagas(vagasFeirao, config?.feirao_total_vagas);
   const categoriasComQtd = calcCategoriasComQtd(vagasSemana);
   const periodoInicio = config?.periodo_inicio ?? "";
   const periodoFim = config?.periodo_fim ?? "";

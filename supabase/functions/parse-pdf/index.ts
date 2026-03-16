@@ -127,7 +127,27 @@ function normalizeVaga(raw: any) {
   };
 }
 
-/* ────────────────────────── serve ────────────────────────── */
+/**
+ * Try to extract the authoritative total from the document title/header or filename.
+ * Patterns like "3312 Vagas abertas" or filename "3312_Vagas_abertas..."
+ */
+function extractDeclaredTotal(text: string, fileName: string): number | null {
+  // Try from text content: "3312 Vagas abertas" or "3312 vagas"
+  const textMatch = text.match(/(\d{3,5})\s*vagas?\b/i);
+  if (textMatch) {
+    const n = parseInt(textMatch[1], 10);
+    if (n > 0 && n < 100000) return n;
+  }
+
+  // Try from filename: "3312_Vagas_abertas..."
+  const fileMatch = fileName.match(/^(\d{3,5})[_\s-]*vagas?/i);
+  if (fileMatch) {
+    const n = parseInt(fileMatch[1], 10);
+    if (n > 0 && n < 100000) return n;
+  }
+
+  return null;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -215,12 +235,16 @@ serve(async (req) => {
             .map(normalizeVaga)
             .filter((v): v is NonNullable<typeof v> => Boolean(v));
 
-          const totalVagas = vagas.reduce((s, v) => s + v.qtd, 0);
+          const summedTotal = vagas.reduce((s, v) => s + v.qtd, 0);
+
+          /* Use declared total from document title/filename if available */
+          const declaredTotal = extractDeclaredTotal(extractedText, file.name);
+          const totalVagas = declaredTotal ?? summedTotal;
 
           /* Log per-entry for debugging */
           const rejected = allRaw.length - vagas.length;
           console.log(
-            `Resultado: ${allRaw.length} brutas, ${rejected} rejeitadas, ${vagas.length} válidas, total=${totalVagas}`
+            `Resultado: ${allRaw.length} brutas, ${rejected} rejeitadas, ${vagas.length} válidas, soma=${summedTotal}, declarado=${declaredTotal ?? "N/A"}, totalFinal=${totalVagas}`
           );
           if (rejected > 0) {
             const examples = allRaw
