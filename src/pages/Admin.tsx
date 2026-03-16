@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
-import { ArrowLeft, Upload, Lock, LogOut, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save, KeyRound, UserPlus, Trash2, Users, RefreshCw } from "lucide-react";
+import { Upload, Lock, Calendar, Loader2, FileText, BarChart3, TrendingUp, Eye, EyeOff, Save, KeyRound, UserPlus, Trash2, Users, RefreshCw } from "lucide-react";
+import { AdminSidebar } from "@/components/ui/admin-sidebar";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -465,22 +466,13 @@ const Admin = () => {
   }
 
   return (
-    <div className="pt-14 min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-primary">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="font-heading font-bold text-lg text-foreground">Painel Admin</h1>
-          </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
-            <LogOut className="w-4 h-4 mr-1" /> Sair
-          </Button>
-        </div>
+    <div className="pt-14 min-h-screen bg-background flex">
+      <AdminSidebar userEmail={user?.email} onSignOut={signOut} />
+      <div className="flex-1 overflow-y-auto">
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
         {/* Visibilidade das seções */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
+        <div id="section-visibilidade" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-secondary" />
             <h2 className="font-heading font-semibold text-sm text-foreground">Visibilidade das Seções</h2>
@@ -502,7 +494,7 @@ const Admin = () => {
         </div>
 
         {/* Período */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <div id="section-periodo" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-secondary" />
             <h2 className="font-heading font-semibold text-sm text-foreground">Período das Vagas</h2>
@@ -539,7 +531,7 @@ const Admin = () => {
         )}
 
         {/* Upload Semana */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <div id="section-upload-semana" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <h2 className="font-heading font-semibold text-sm text-foreground">Vagas da Semana</h2>
           <p className="text-xs text-muted-foreground">
             Atual: {calcTotalVagas(vagasSemana)} vagas • {vagasSemana.length} cargos
@@ -555,7 +547,7 @@ const Admin = () => {
         </div>
 
         {/* Upload Feirão */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <div id="section-upload-feirao" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <h2 className="font-heading font-semibold text-sm text-foreground">Feirão da Empregabilidade</h2>
           <p className="text-xs text-muted-foreground">
             Atual: {calcTotalVagas(vagasFeirao)} vagas • {vagasFeirao.length} cargos
@@ -567,7 +559,7 @@ const Admin = () => {
         </div>
 
         {/* Dashboard Estatísticas */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
+        <div id="section-estatisticas" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-primary" />
@@ -671,7 +663,7 @@ const Admin = () => {
         </div>
 
         {/* Alterar Senha */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <div id="section-alterar-senha" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-secondary" />
             <h2 className="font-heading font-semibold text-sm text-foreground">Alterar Senha</h2>
@@ -696,7 +688,7 @@ const Admin = () => {
         </div>
 
         {/* Criar Novo Admin */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <div id="section-criar-admin" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <div className="flex items-center gap-2">
             <UserPlus className="w-4 h-4 text-primary" />
             <h2 className="font-heading font-semibold text-sm text-foreground">Criar Novo Admin</h2>
@@ -728,7 +720,7 @@ const Admin = () => {
         </div>
 
         {/* Listar Admins */}
-        <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
+        <div id="section-listar-admins" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
@@ -786,6 +778,7 @@ const Admin = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
