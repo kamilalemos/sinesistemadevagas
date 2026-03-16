@@ -558,6 +558,9 @@ const Admin = () => {
 
         {/* Dashboard Estatísticas */}
         <div id="section-estatisticas" className="bg-card rounded-xl shadow-card p-5 border border-border space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary" />
               <h2 className="font-heading font-semibold text-sm text-foreground">Estatísticas de Vagas</h2>
             </div>
             <Button size="sm" variant="outline" onClick={handleSalvarEstatistica} className="rounded-lg text-xs gap-1">
