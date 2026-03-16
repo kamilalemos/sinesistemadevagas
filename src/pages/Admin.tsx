@@ -572,9 +572,9 @@ const Admin = () => {
                       {historico.length > 0 ? Math.round(historico.reduce((sum, h) => sum + h.total_vagas, 0) / historico.length).toLocaleString() : 0}
                     </p>
                   </div>
-                </div>
-              </>
-            )}
+          </div>
+        </div>
+
         {/* Alterar Senha */}
         <div className="bg-card rounded-xl shadow-card p-5 border border-border space-y-3">
           <div className="flex items-center gap-2">
@@ -632,11 +632,6 @@ const Admin = () => {
           </Button>
         </div>
       </div>
-    </div>
-  );
-};
-
-export default Admin;
     </div>
   );
 };
