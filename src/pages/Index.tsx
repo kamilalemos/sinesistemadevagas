@@ -45,45 +45,49 @@ const Index = () => {
       </section>
 
       {/* Contador Principal */}
-      <section className="px-4 -mt-6">
-        <div className="container mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-card rounded-2xl shadow-card p-6 text-center border border-border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Flame className="w-6 h-6 text-destructive" />
-              <span className="text-muted-foreground text-sm font-medium">Vagas abertas esta semana</span>
+      {semanaAtiva && (
+        <>
+          <section className="px-4 -mt-6">
+            <div className="container mx-auto">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-card rounded-2xl shadow-card p-6 text-center border border-border">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Flame className="w-6 h-6 text-destructive" />
+                  <span className="text-muted-foreground text-sm font-medium">Vagas abertas esta semana</span>
+                </div>
+                <div className="text-5xl md:text-6xl font-heading font-extrabold text-primary">
+                  <AnimatedCounter target={totalSemana} />
+                </div>
+                <p className="text-muted-foreground text-xs mt-2">
+                  Período: {periodoInicio} a {periodoFim}
+                </p>
+              </motion.div>
             </div>
-            <div className="text-5xl md:text-6xl font-heading font-extrabold text-primary">
-              <AnimatedCounter target={totalSemana} />
+          </section>
+
+          {/* Categorias */}
+          <section className="px-4 py-8">
+            <div className="container mx-auto">
+              <h2 className="font-heading font-bold text-lg mb-4 text-foreground">Vagas por Área</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {categoriasComQtd.map((cat, i) => (
+                  <CategoryCard key={cat.nome} nome={cat.nome} icone={cat.icone} quantidade={cat.quantidade} index={i} />
+                ))}
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs mt-2">
-              Período: {periodoInicio} a {periodoFim}
-            </p>
-          </motion.div>
-        </div>
-      </section>
+          </section>
 
-      {/* Categorias */}
-      <section className="px-4 py-8">
-        <div className="container mx-auto">
-          <h2 className="font-heading font-bold text-lg mb-4 text-foreground">Vagas por Área</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {categoriasComQtd.map((cat, i) => (
-              <CategoryCard key={cat.nome} nome={cat.nome} icone={cat.icone} quantidade={cat.quantidade} index={i} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Botão ver todas */}
-      <section className="px-4 pb-8">
-        <div className="container mx-auto">
-          <Link to="/vagas">
-            <Button className="w-full h-14 text-base font-heading font-bold rounded-xl bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2">
-              Ver todas as vagas <ArrowRight className="w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+          {/* Botão ver todas */}
+          <section className="px-4 pb-8">
+            <div className="container mx-auto">
+              <Link to="/vagas">
+                <Button className="w-full h-14 text-base font-heading font-bold rounded-xl bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2">
+                  Ver todas as vagas <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
+          </section>
+        </>
+      )}
 
       {/* Feirão */}
       <section className="px-4 py-8 bg-accent">
