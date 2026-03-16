@@ -216,8 +216,6 @@ const Index = () => {
               </p>
             </div>
 
-            {/* Como se Candidatar - Feirão */}
-            <CandidatarSection />
           </div>
         </section>
       )}
