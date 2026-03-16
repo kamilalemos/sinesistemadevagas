@@ -90,25 +90,27 @@ const Index = () => {
       )}
 
       {/* Feirão */}
-      <section className="px-4 py-8 bg-accent">
-        <div className="container mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-card rounded-2xl shadow-card p-6 text-center border border-border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Rocket className="w-6 h-6 text-secondary" />
-              <h2 className="font-heading font-bold text-lg text-foreground">Feirão da Empregabilidade</h2>
-            </div>
-            <div className="text-4xl md:text-5xl font-heading font-extrabold text-secondary my-4">
-              <AnimatedCounter target={totalFeirao} />
-            </div>
-            <p className="text-muted-foreground text-sm mb-4">vagas disponíveis</p>
-            <Link to="/feirao">
-              <Button variant="outline" className="rounded-xl font-heading font-semibold gap-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground">
-                Ver vagas do feirão <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+      {feiraoAtivo && (
+        <section className="px-4 py-8 bg-accent">
+          <div className="container mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-card rounded-2xl shadow-card p-6 text-center border border-border">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Rocket className="w-6 h-6 text-secondary" />
+                <h2 className="font-heading font-bold text-lg text-foreground">Feirão da Empregabilidade</h2>
+              </div>
+              <div className="text-4xl md:text-5xl font-heading font-extrabold text-secondary my-4">
+                <AnimatedCounter target={totalFeirao} />
+              </div>
+              <p className="text-muted-foreground text-sm mb-4">vagas disponíveis</p>
+              <Link to="/feirao">
+                <Button variant="outline" className="rounded-xl font-heading font-semibold gap-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground">
+                  Ver vagas do feirão <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Como se candidatar */}
       <section className="px-4 py-8">
