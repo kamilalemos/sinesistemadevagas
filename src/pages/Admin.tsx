@@ -51,30 +51,73 @@ const Admin = () => {
       if (!file) return;
 
       setUploadLoading(tipo);
+      setProgressInfo({ current: 0, total: 1, message: "Enviando arquivo..." });
 
       try {
-        // Send file to edge function for parsing
         const formData = new FormData();
         formData.append("file", file);
 
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData?.session?.access_token;
 
-        const response = await supabase.functions.invoke("parse-pdf", {
+        // Use fetch directly for SSE streaming
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/parse-pdf`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token || anonKey}`,
+            "apikey": anonKey,
+          },
           body: formData,
         });
 
-        if (response.error) {
-          toast.error("Erro ao processar arquivo: " + response.error.message);
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({ error: "Erro desconhecido" }));
+          toast.error("Erro ao processar arquivo: " + (errData.error || response.statusText));
           setUploadLoading(null);
+          setProgressInfo(null);
           return;
         }
 
-        const result = response.data;
+        // Read SSE stream
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let result: { vagas: any[]; totalVagas: number } | null = null;
 
-        if (!result.vagas || result.vagas.length === 0) {
+        if (reader) {
+          let buffer = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split("\n\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+              const match = line.match(/^data: (.+)$/m);
+              if (!match) continue;
+              try {
+                const data = JSON.parse(match[1]);
+                if (data.type === "progress") {
+                  setProgressInfo({ current: data.current, total: data.total, message: data.message });
+                } else if (data.type === "done") {
+                  result = { vagas: data.vagas, totalVagas: data.totalVagas };
+                  setProgressInfo({ current: data.total || 1, total: data.total || 1, message: "Salvando vagas..." });
+                } else if (data.type === "error") {
+                  toast.error("Erro: " + data.error);
+                }
+              } catch {}
+            }
+          }
+        }
+
+        if (!result || !result.vagas || result.vagas.length === 0) {
           toast.error("Nenhuma vaga encontrada no arquivo. Verifique o formato do PDF.");
           setUploadLoading(null);
+          setProgressInfo(null);
           return;
         }
 
@@ -83,6 +126,7 @@ const Admin = () => {
         if (deleteError) {
           toast.error("Erro ao limpar vagas antigas");
           setUploadLoading(null);
+          setProgressInfo(null);
           return;
         }
 
@@ -101,6 +145,7 @@ const Admin = () => {
         if (insertError) {
           toast.error("Erro ao salvar vagas: " + insertError.message);
           setUploadLoading(null);
+          setProgressInfo(null);
           return;
         }
 
@@ -110,6 +155,7 @@ const Admin = () => {
         toast.error("Erro inesperado: " + (err.message || "Tente novamente"));
       }
       setUploadLoading(null);
+      setProgressInfo(null);
     };
     input.click();
   };
