@@ -235,12 +235,16 @@ serve(async (req) => {
             .map(normalizeVaga)
             .filter((v): v is NonNullable<typeof v> => Boolean(v));
 
-          const totalVagas = vagas.reduce((s, v) => s + v.qtd, 0);
+          const summedTotal = vagas.reduce((s, v) => s + v.qtd, 0);
+
+          /* Use declared total from document title/filename if available */
+          const declaredTotal = extractDeclaredTotal(extractedText, file.name);
+          const totalVagas = declaredTotal ?? summedTotal;
 
           /* Log per-entry for debugging */
           const rejected = allRaw.length - vagas.length;
           console.log(
-            `Resultado: ${allRaw.length} brutas, ${rejected} rejeitadas, ${vagas.length} válidas, total=${totalVagas}`
+            `Resultado: ${allRaw.length} brutas, ${rejected} rejeitadas, ${vagas.length} válidas, soma=${summedTotal}, declarado=${declaredTotal ?? "N/A"}, totalFinal=${totalVagas}`
           );
           if (rejected > 0) {
             const examples = allRaw
