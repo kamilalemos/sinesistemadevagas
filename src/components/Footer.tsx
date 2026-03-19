@@ -84,7 +84,7 @@ const Footer = () => {
             © {ano} Prefeitura de João Pessoa • SINE João Pessoa
           </p>
           <p className="text-primary-foreground/40 text-xs flex items-center gap-1">
-            Atualização semanal de vagas
+            Desenvolvido por UMTI – Prefeitura de João Pessoa
           </p>
         </div>
       </div>
