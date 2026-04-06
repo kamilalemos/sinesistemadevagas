@@ -19,11 +19,14 @@ const Vagas = () => {
   const periodoFim = config?.periodo_fim ?? "";
 
   const vagasFiltradas = vagas.filter((v) => {
+    const termo = busca.toLowerCase();
     const matchBusca =
       !busca ||
-      v.cargo.toLowerCase().includes(busca.toLowerCase()) ||
-      v.descricao.toLowerCase().includes(busca.toLowerCase()) ||
-      v.categoria?.toLowerCase().includes(busca.toLowerCase());
+      v.cargo.toLowerCase().includes(termo) ||
+      v.descricao.toLowerCase().includes(termo) ||
+      v.categoria?.toLowerCase().includes(termo) ||
+      v.empresa?.toLowerCase().includes(termo) ||
+      v.observacoes?.toLowerCase().includes(termo);
     const matchCategoria = !categoriaFiltro || v.categoria === categoriaFiltro;
     return matchBusca && matchCategoria;
   });
@@ -58,21 +61,23 @@ const Vagas = () => {
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar vagas..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 rounded-xl bg-card border-border" />
+          <Input placeholder="Buscar por cargo, empresa..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 rounded-xl bg-card border-border" />
         </div>
 
         {/* Mobile cards */}
         <div className="md:hidden space-y-3">
           {vagasFiltradas.map((vaga, i) => (
-            <motion.div key={vaga.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-card rounded-xl p-4 shadow-card border border-border">
+            <motion.div key={vaga.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="bg-card rounded-xl p-4 shadow-card border border-border">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-heading font-bold text-sm text-foreground">{vaga.cargo}</span>
-                <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">{vaga.qtd} vagas</span>
+                <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">{vaga.qtd} vaga{vaga.qtd > 1 ? "s" : ""}</span>
               </div>
               <div className="space-y-1 text-xs text-muted-foreground">
+                <p><strong className="text-foreground">Empresa:</strong> {vaga.empresa}</p>
                 <p><strong className="text-foreground">Escolaridade:</strong> {vaga.escolaridade}</p>
                 <p><strong className="text-foreground">Experiência:</strong> {vaga.experiencia}</p>
-                <p><strong className="text-foreground">Descrição:</strong> {vaga.descricao}</p>
+                <p><strong className="text-foreground">Nº Vaga:</strong> {vaga.num_vaga}</p>
+                {vaga.observacoes && <p><strong className="text-foreground">Observações:</strong> {vaga.observacoes}</p>}
               </div>
             </motion.div>
           ))}
@@ -85,9 +90,11 @@ const Vagas = () => {
               <tr className="bg-accent text-accent-foreground text-xs font-heading">
                 <th className="px-4 py-3 text-left">Qtd</th>
                 <th className="px-4 py-3 text-left">Cargo</th>
+                <th className="px-4 py-3 text-left">Empresa</th>
                 <th className="px-4 py-3 text-left">Escolaridade</th>
                 <th className="px-4 py-3 text-left">Experiência</th>
-                <th className="px-4 py-3 text-left">Descrição</th>
+                <th className="px-4 py-3 text-left">Nº Vaga</th>
+                <th className="px-4 py-3 text-left">Observações</th>
               </tr>
             </thead>
             <tbody>
@@ -95,9 +102,11 @@ const Vagas = () => {
                 <tr key={vaga.id} className="border-t border-border text-sm hover:bg-accent/50 transition-colors">
                   <td className="px-4 py-3 font-bold text-secondary">{vaga.qtd}</td>
                   <td className="px-4 py-3 font-medium text-foreground">{vaga.cargo}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{vaga.empresa}</td>
                   <td className="px-4 py-3 text-muted-foreground">{vaga.escolaridade}</td>
                   <td className="px-4 py-3 text-muted-foreground">{vaga.experiencia}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{vaga.descricao}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{vaga.num_vaga}</td>
+                  <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{vaga.observacoes}</td>
                 </tr>
               ))}
             </tbody>

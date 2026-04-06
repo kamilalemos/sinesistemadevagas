@@ -60,9 +60,12 @@ export type Database = {
           cbo: string | null
           created_at: string
           descricao: string
+          empresa: string
           escolaridade: string
           experiencia: string
           id: string
+          num_vaga: string
+          observacoes: string
           qtd: number
           tipo: string
           updated_at: string
@@ -73,9 +76,12 @@ export type Database = {
           cbo?: string | null
           created_at?: string
           descricao?: string
+          empresa?: string
           escolaridade?: string
           experiencia?: string
           id?: string
+          num_vaga?: string
+          observacoes?: string
           qtd: number
           tipo?: string
           updated_at?: string
@@ -86,9 +92,12 @@ export type Database = {
           cbo?: string | null
           created_at?: string
           descricao?: string
+          empresa?: string
           escolaridade?: string
           experiencia?: string
           id?: string
+          num_vaga?: string
+          observacoes?: string
           qtd?: number
           tipo?: string
           updated_at?: string
