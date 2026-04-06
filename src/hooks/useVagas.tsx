@@ -12,6 +12,9 @@ export interface VagaDB {
   descricao: string;
   categoria: string;
   tipo: string;
+  empresa: string;
+  num_vaga: string;
+  observacoes: string;
 }
 
 const fetchVagas = async (tipo: "semana" | "feirao"): Promise<VagaDB[]> => {
