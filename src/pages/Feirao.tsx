@@ -12,8 +12,26 @@ const Feirao = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
 
+  const feiraoAtivo = config?.feirao_ativo !== "false";
   const categoriaFiltro = searchParams.get("categoria") || "";
   const totalVagas = calcTotalVagas(vagas, config?.feirao_total_vagas);
+
+  if (!feiraoAtivo) {
+    return (
+      <div className="pt-14 min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="bg-card rounded-2xl shadow-card p-8 max-w-md w-full border border-border text-center space-y-4">
+          <Rocket className="w-12 h-12 text-muted-foreground mx-auto" />
+          <h1 className="font-heading font-bold text-xl text-foreground">Feirão da Empregabilidade</h1>
+          <p className="text-muted-foreground text-sm">
+            O Feirão da Empregabilidade não está ativo no momento. Fique atento, em breve teremos um novo evento!
+          </p>
+          <Link to="/" className="inline-block text-primary text-sm font-medium hover:underline">
+            ← Voltar ao painel
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const vagasFiltradas = vagas.filter((v) => {
     const matchBusca =
