@@ -1,10 +1,52 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, ArrowLeft, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useVagasSemana, useConfiguracoes, calcTotalVagas } from "@/hooks/useVagas";
+import { useVagasSemana, useConfiguracoes, calcTotalVagas, VagaDB } from "@/hooks/useVagas";
 import { motion } from "framer-motion";
+
+interface VagaAgrupada {
+  cargo: string;
+  totalQtd: number;
+  empresas: string[];
+  numVagas: string[];
+  escolaridade: string;
+  experiencia: string;
+  descricao: string;
+  categoria: string;
+}
+
+function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
+  const map = new Map<string, VagaAgrupada>();
+
+  for (const v of vagas) {
+    const key = v.cargo.trim().toLowerCase();
+    const existing = map.get(key);
+
+    if (existing) {
+      existing.totalQtd += v.qtd;
+      if (v.empresa && !existing.empresas.includes(v.empresa)) {
+        existing.empresas.push(v.empresa);
+      }
+      if (v.num_vaga && !existing.numVagas.includes(v.num_vaga)) {
+        existing.numVagas.push(v.num_vaga);
+      }
+    } else {
+      map.set(key, {
+        cargo: v.cargo,
+        totalQtd: v.qtd,
+        empresas: v.empresa ? [v.empresa] : [],
+        numVagas: v.num_vaga ? [v.num_vaga] : [],
+        escolaridade: v.escolaridade,
+        experiencia: v.experiencia,
+        descricao: v.descricao,
+        categoria: v.categoria,
+      });
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => a.cargo.localeCompare(b.cargo));
+}
 
 const Vagas = () => {
   const { data: vagas = [] } = useVagasSemana();
@@ -31,6 +73,8 @@ const Vagas = () => {
     return matchBusca && matchCategoria;
   });
 
+  const vagasAgrupadas = useMemo(() => agruparVagas(vagasFiltradas), [vagasFiltradas]);
+
   const limparFiltro = () => {
     setSearchParams({});
   };
@@ -55,7 +99,7 @@ const Vagas = () => {
                 <X className="w-3.5 h-3.5" />
               </button>
             </span>
-            <span className="text-muted-foreground text-xs">{vagasFiltradas.length} cargos</span>
+            <span className="text-muted-foreground text-xs">{vagasAgrupadas.length} cargos</span>
           </div>
         )}
 
@@ -64,56 +108,57 @@ const Vagas = () => {
           <Input placeholder="Buscar por cargo, empresa..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 rounded-xl bg-card border-border" />
         </div>
 
-        {/* Mobile cards */}
-        <div className="md:hidden space-y-3">
-          {vagasFiltradas.map((vaga, i) => (
-            <motion.div key={vaga.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="bg-card rounded-xl p-4 shadow-card border border-border">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-heading font-bold text-sm text-foreground">{vaga.cargo}</span>
-                <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">{vaga.qtd} vaga{vaga.qtd > 1 ? "s" : ""}</span>
+        <div className="space-y-3">
+          {vagasAgrupadas.map((vaga, i) => (
+            <motion.div
+              key={vaga.cargo}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.02 }}
+              className="bg-card rounded-xl p-4 md:p-5 shadow-card border border-border"
+            >
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <h3 className="font-heading font-bold text-sm md:text-base text-foreground">
+                  {vaga.cargo}
+                </h3>
+                <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">
+                  {vaga.totalQtd} vaga{vaga.totalQtd > 1 ? "s" : ""}
+                </span>
               </div>
-              <div className="space-y-1 text-xs text-muted-foreground">
-                <p><strong className="text-foreground">Empresa:</strong> {vaga.empresa}</p>
-                <p><strong className="text-foreground">Escolaridade:</strong> {vaga.escolaridade}</p>
-                <p><strong className="text-foreground">Experiência:</strong> {vaga.experiencia}</p>
-                <p><strong className="text-foreground">Nº Vaga:</strong> {vaga.num_vaga}</p>
-                {vaga.observacoes && <p><strong className="text-foreground">Observações:</strong> {vaga.observacoes}</p>}
+
+              <div className="space-y-1.5 text-xs md:text-sm text-muted-foreground">
+                {vaga.empresas.length > 0 && (
+                  <p>
+                    <strong className="text-foreground">Empresa(s):</strong>{" "}
+                    {vaga.empresas.join(", ")}
+                  </p>
+                )}
+                {vaga.numVagas.length > 0 && (
+                  <p>
+                    <strong className="text-foreground">Nº da(s) vaga(s):</strong>{" "}
+                    {vaga.numVagas.join(", ")}
+                  </p>
+                )}
+                <p>
+                  <strong className="text-foreground">Escolaridade:</strong>{" "}
+                  {vaga.escolaridade}
+                </p>
+                <p>
+                  <strong className="text-foreground">Experiência:</strong>{" "}
+                  {vaga.experiencia}
+                </p>
+                {vaga.descricao && (
+                  <p>
+                    <strong className="text-foreground">Descrição:</strong>{" "}
+                    {vaga.descricao}
+                  </p>
+                )}
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Desktop table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full bg-card rounded-xl shadow-card border border-border overflow-hidden">
-            <thead>
-              <tr className="bg-accent text-accent-foreground text-xs font-heading">
-                <th className="px-4 py-3 text-left">Qtd</th>
-                <th className="px-4 py-3 text-left">Cargo</th>
-                <th className="px-4 py-3 text-left">Empresa</th>
-                <th className="px-4 py-3 text-left">Escolaridade</th>
-                <th className="px-4 py-3 text-left">Experiência</th>
-                <th className="px-4 py-3 text-left">Nº Vaga</th>
-                <th className="px-4 py-3 text-left">Observações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vagasFiltradas.map((vaga) => (
-                <tr key={vaga.id} className="border-t border-border text-sm hover:bg-accent/50 transition-colors">
-                  <td className="px-4 py-3 font-bold text-secondary">{vaga.qtd}</td>
-                  <td className="px-4 py-3 font-medium text-foreground">{vaga.cargo}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{vaga.empresa}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{vaga.escolaridade}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{vaga.experiencia}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{vaga.num_vaga}</td>
-                  <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{vaga.observacoes}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {vagasFiltradas.length === 0 && (
+        {vagasAgrupadas.length === 0 && (
           <p className="text-center text-muted-foreground py-8 text-sm">
             {busca || categoriaFiltro ? "Nenhuma vaga encontrada para este filtro." : "Nenhuma vaga cadastrada ainda."}
           </p>
