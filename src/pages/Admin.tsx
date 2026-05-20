@@ -120,6 +120,52 @@ const Admin = () => {
     const { error } = await signIn(email, password);
     setLoginLoading(false);
     if (error) toast.error("Email ou senha incorretos");
+    else {
+      // Se o setup for necessário, tenta inicializar após o login bem sucedido
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session?.user) {
+        const { data: setupData } = await supabase.rpc("is_setup_needed");
+        if (setupData) {
+          const { error: initError } = await supabase.rpc("initialize_admin", { _user_id: sessionData.session.user.id });
+          if (!initError) {
+            toast.success("Primeiro administrador configurado com sucesso!");
+            setSetupNeeded(false);
+            // Refresh to update isAdmin state in useAuth
+            window.location.reload();
+          }
+        }
+      }
+    }
+  };
+
+  const handleCreateInitialAccount = async () => {
+    if (!email || !password) { toast.error("Preencha email e senha"); return; }
+    setSetupLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        // Se o erro for que o usuário já existe, tenta fazer login e promover
+        if (error.message.includes("already registered")) {
+           await handleLogin();
+        } else {
+          toast.error(error.message);
+        }
+      } else if (data.user) {
+        // Tenta inicializar
+        const { error: initError } = await supabase.rpc("initialize_admin", { _user_id: data.user.id });
+        if (!initError) {
+          toast.success("Conta criada e configurada como administrador!");
+          setSetupNeeded(false);
+          // O hook useAuth deve detectar a sessão e isAdmin mudará
+          window.location.reload();
+        } else {
+          toast.info("Conta criada! Por favor, faça login para ativar o acesso admin.");
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar conta inicial");
+    }
+    setSetupLoading(false);
   };
 
   const callEdgeFunction = async (body: Record<string, unknown>) => {
