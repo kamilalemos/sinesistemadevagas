@@ -394,6 +394,7 @@ const Admin = () => {
         <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
           <SectionVisibilidade semanaAtiva={semanaAtiva} feiraoAtivo={feiraoAtivo} onToggle={handleToggleSection} />
           <SectionPeriodo periodoInicio={periodoInicio} periodoFim={periodoFim} setPeriodoInicio={setPeriodoInicio} setPeriodoFim={setPeriodoFim} onUpdate={handleUpdatePeriodo} />
+          <SectionCadastroManual />
           <SectionUpload tipo="semana" label="Vagas da Semana" totalVagas={calcTotalVagas(vagasSemana)} totalCargos={vagasSemana.length} uploadLoading={uploadLoading} progressInfo={progressInfo} onUpload={handleFileUpload} />
           <SectionUpload tipo="feirao" label="Feirão da Empregabilidade" totalVagas={calcTotalVagas(vagasFeirao)} totalCargos={vagasFeirao.length} uploadLoading={uploadLoading} progressInfo={progressInfo} onUpload={handleFileUpload} variant="secondary" />
           <SectionEstatisticas vagasSemana={vagasSemana} vagasFeirao={vagasFeirao} historico={historico} statsAno={statsAno} setStatsAno={setStatsAno} onSalvarEstatistica={handleSalvarEstatistica} />
