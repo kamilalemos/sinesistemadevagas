@@ -37,9 +37,11 @@ const navigationItems: NavigationItem[] = [
 interface AdminSidebarProps {
   userEmail?: string;
   onSignOut: () => void;
+  activeItem: string;
+  onItemClick: (itemId: string) => void;
 }
 
-export function AdminSidebar({ userEmail, onSignOut }: AdminSidebarProps) {
+export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState("visibilidade");
