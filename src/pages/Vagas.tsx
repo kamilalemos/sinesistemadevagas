@@ -16,6 +16,7 @@ interface VagaAgrupada {
   categoria: string;
   salario: string[];
   beneficios: string[];
+  periodos: string[];
 }
 
 function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
@@ -34,6 +35,7 @@ function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
       if (v.escolaridade && !existing.escolaridade.includes(v.escolaridade)) existing.escolaridade.push(v.escolaridade);
       if (v.experiencia && !existing.experiencia.includes(v.experiencia)) existing.experiencia.push(v.experiencia);
       if (v.descricao && !existing.descricoes.includes(v.descricao)) existing.descricoes.push(v.descricao);
+      if (v.periodo && !existing.periodos.includes(v.periodo)) existing.periodos.push(v.periodo);
     } else {
       map.set(key, {
         cargo: v.descricao,
@@ -46,6 +48,7 @@ function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
         categoria: v.categoria,
         salario: v.salario ? [v.salario] : [],
         beneficios: v.beneficios ? [v.beneficios] : [],
+        periodos: v.periodo ? [v.periodo] : [],
       });
     }
   }
@@ -136,8 +139,8 @@ const Vagas = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
                 <InfoItem icon={Hash} label="CBO" value={vaga.cbos.join(", ")} />
-                <InfoItem icon={Tag} label="Nº da(s) vaga(s)" value={vaga.numVagas.join(", ")} />
-                <InfoItem icon={Calendar} label="Período" value={periodo} />
+                <InfoItem icon={Tag} label="ID da vaga" value={vaga.numVagas.join(", ")} />
+                <InfoItem icon={Calendar} label="Período" value={vaga.periodos.length > 0 ? vaga.periodos.join(", ") : periodo} />
                 <InfoItem icon={DollarSign} label="Salário" value={vaga.salario.join(", ") || "A combinar"} />
                 <InfoItem icon={Gift} label="Benefícios" value={vaga.beneficios.join(", ") || "Não informado"} />
                 <InfoItem icon={GraduationCap} label="Escolaridade" value={vaga.escolaridade.join(", ")} />

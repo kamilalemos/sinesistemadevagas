@@ -32,6 +32,7 @@ export const VagasTabContent = ({ tipo }: Props) => {
     salario: "",
     empresa: "",
     categoria: "Serviços",
+    periodo: periodo || "",
     publicada: true,
   });
 
@@ -52,7 +53,7 @@ export const VagasTabContent = ({ tipo }: Props) => {
     setFormData({
       quantidade: 1, cbo: "", descricao: "", escolaridade: "Não informado",
       experiencia: "Não informada", codigo: "", beneficios: "", salario: "",
-      empresa: "", categoria: "Serviços", publicada: true,
+      empresa: "", categoria: "Serviços", periodo: periodo || "", publicada: true,
     });
   };
 
@@ -61,7 +62,7 @@ export const VagasTabContent = ({ tipo }: Props) => {
       quantidade: vaga.quantidade, cbo: vaga.cbo, descricao: vaga.descricao,
       escolaridade: vaga.escolaridade, experiencia: vaga.experiencia,
       codigo: vaga.codigo, beneficios: vaga.beneficios, salario: vaga.salario,
-      empresa: vaga.empresa, categoria: vaga.categoria, publicada: vaga.publicada,
+      empresa: vaga.empresa, categoria: vaga.categoria, periodo: vaga.periodo || periodo, publicada: vaga.publicada,
     });
     setEditingId(vaga.id);
   };
@@ -93,14 +94,56 @@ export const VagasTabContent = ({ tipo }: Props) => {
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2"><Label>Descrição *</Label><Input value={formData.descricao} onChange={(e) => setFormData({...formData, descricao: e.target.value})} className="rounded-xl" /></div>
-          <div className="space-y-2"><Label>Quantidade</Label><Input type="number" value={formData.quantidade} onChange={(e) => setFormData({...formData, quantidade: parseInt(e.target.value)||0})} className="rounded-xl" /></div>
-          <div className="space-y-2"><Label>CBO</Label><Input value={formData.cbo} onChange={(e) => setFormData({...formData, cbo: e.target.value})} className="rounded-xl" /></div>
-          <div className="space-y-2"><Label>Escolaridade</Label><Input value={formData.escolaridade} onChange={(e) => setFormData({...formData, escolaridade: e.target.value})} className="rounded-xl" /></div>
-          <div className="space-y-2"><Label>Experiência</Label><Input value={formData.experiencia} onChange={(e) => setFormData({...formData, experiencia: e.target.value})} className="rounded-xl" /></div>
-          <div className="space-y-2"><Label>Código</Label><Input value={formData.codigo} onChange={(e) => setFormData({...formData, codigo: e.target.value})} className="rounded-xl" /></div>
-          <div className="space-y-2"><Label>Salário</Label><Input value={formData.salario} onChange={(e) => setFormData({...formData, salario: e.target.value})} className="rounded-xl" /></div>
-          <div className="space-y-2"><Label>Benefícios</Label><Input value={formData.beneficios} onChange={(e) => setFormData({...formData, beneficios: e.target.value})} className="rounded-xl" /></div>
+          <div className="space-y-2">
+            <Label>Quantidade de vagas</Label>
+            <Input type="number" value={formData.quantidade} onChange={(e) => setFormData({...formData, quantidade: parseInt(e.target.value)||0})} className="rounded-xl" />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>CBO</Label>
+            <Input value={formData.cbo} onChange={(e) => setFormData({...formData, cbo: e.target.value})} className="rounded-xl" />
+          </div>
+
+          <div className="md:col-span-2 space-y-2">
+            <Label>Descrição da vaga *</Label>
+            <Input value={formData.descricao} onChange={(e) => setFormData({...formData, descricao: e.target.value})} className="rounded-xl" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Escolaridade</Label>
+            <Input value={formData.escolaridade} onChange={(e) => setFormData({...formData, escolaridade: e.target.value})} className="rounded-xl" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Experiência</Label>
+            <Input value={formData.experiencia} onChange={(e) => setFormData({...formData, experiencia: e.target.value})} className="rounded-xl" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>ID da vaga</Label>
+            <Input value={formData.codigo} onChange={(e) => setFormData({...formData, codigo: e.target.value})} className="rounded-xl" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Benefícios</Label>
+            <Input value={formData.beneficios} onChange={(e) => setFormData({...formData, beneficios: e.target.value})} className="rounded-xl" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Salário</Label>
+            <Input value={formData.salario} onChange={(e) => setFormData({...formData, salario: e.target.value})} className="rounded-xl" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Empresa (interno)</Label>
+            <Input value={formData.empresa} onChange={(e) => setFormData({...formData, empresa: e.target.value})} className="rounded-xl" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Período</Label>
+            <Input value={formData.periodo} onChange={(e) => setFormData({...formData, periodo: e.target.value})} className="rounded-xl" />
+          </div>
+
           <div className="space-y-2">
             <Label>Categoria</Label>
             <Select 
@@ -120,8 +163,9 @@ export const VagasTabContent = ({ tipo }: Props) => {
 
           <div className="flex items-center space-x-2 pt-8">
             <Switch checked={formData.publicada} onCheckedChange={(val) => setFormData({...formData, publicada: val})} />
-            <Label>Vaga Publicada</Label>
+            <Label>Publicada? (sim/não)</Label>
           </div>
+
           <div className="md:col-span-2 pt-2">
             <Button type="submit" className="w-full rounded-xl py-6 font-heading font-bold text-base shadow-lg">
                 {editingId ? "Salvar Alterações" : "Cadastrar Vaga"}
@@ -136,18 +180,30 @@ export const VagasTabContent = ({ tipo }: Props) => {
             <table className="w-full text-sm">
                 <thead>
                     <tr className="border-b border-border text-left font-medium text-muted-foreground">
-                        <th className="pb-3 pr-4">Cargo</th>
+                        <th className="pb-3 pr-4">Descrição</th>
                         <th className="pb-3 pr-4">Empresa</th>
+                        <th className="pb-3 pr-4">Quantidade</th>
                         <th className="pb-3 pr-4">Salário</th>
+                        <th className="pb-3 pr-4">ID da Vaga</th>
+                        <th className="pb-3 pr-4">Status</th>
                         <th className="pb-3 text-right">Ações</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                     {vagas.map((vaga) => (
                         <tr key={vaga.id} className="hover:bg-muted/30">
-                            <td className="py-4 pr-4">{vaga.descricao}</td>
-                            <td className="py-4 pr-4">{vaga.empresa}</td>
-                            <td className="py-4 pr-4">{vaga.salario}</td>
+                            <td className="py-4 pr-4 font-medium">{vaga.descricao}</td>
+                            <td className="py-4 pr-4">{vaga.empresa || "-"}</td>
+                            <td className="py-4 pr-4">{vaga.quantidade}</td>
+                            <td className="py-4 pr-4">{vaga.salario || "A combinar"}</td>
+                            <td className="py-4 pr-4 text-xs font-mono">{vaga.codigo}</td>
+                            <td className="py-4 pr-4">
+                                {vaga.publicada ? (
+                                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200">Publicada</Badge>
+                                ) : (
+                                    <Badge variant="outline" className="bg-slate-100 text-slate-500 border-slate-200">Oculta</Badge>
+                                )}
+                            </td>
                             <td className="py-4 text-right">
                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(vaga)}><Edit className="h-4 w-4" /></Button>
                                 <Button variant="ghost" size="icon" onClick={() => deleteVaga(tipo, vaga.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
