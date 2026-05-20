@@ -55,6 +55,7 @@ export type Database = {
       }
       vagas: {
         Row: {
+          beneficios: string | null
           cargo: string
           categoria: string
           cbo: string | null
@@ -66,11 +67,14 @@ export type Database = {
           id: string
           num_vaga: string
           observacoes: string
+          publicada: boolean | null
           qtd: number
+          salario: string | null
           tipo: string
           updated_at: string
         }
         Insert: {
+          beneficios?: string | null
           cargo: string
           categoria?: string
           cbo?: string | null
@@ -82,11 +86,14 @@ export type Database = {
           id?: string
           num_vaga?: string
           observacoes?: string
+          publicada?: boolean | null
           qtd: number
+          salario?: string | null
           tipo?: string
           updated_at?: string
         }
         Update: {
+          beneficios?: string | null
           cargo?: string
           categoria?: string
           cbo?: string | null
@@ -98,7 +105,9 @@ export type Database = {
           id?: string
           num_vaga?: string
           observacoes?: string
+          publicada?: boolean | null
           qtd?: number
+          salario?: string | null
           tipo?: string
           updated_at?: string
         }

@@ -15,6 +15,9 @@ export interface VagaDB {
   empresa: string;
   num_vaga: string;
   observacoes: string;
+  salario?: string;
+  beneficios?: string;
+  publicada?: boolean;
 }
 
 const fetchVagas = async (tipo: "semana" | "feirao"): Promise<VagaDB[]> => {

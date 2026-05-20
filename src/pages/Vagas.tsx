@@ -14,6 +14,8 @@ interface VagaAgrupada {
   experiencia: string;
   descricao: string;
   categoria: string;
+  salario: string[];
+  beneficios: string[];
 }
 
 function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
@@ -31,6 +33,12 @@ function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
       if (v.num_vaga && !existing.numVagas.includes(v.num_vaga)) {
         existing.numVagas.push(v.num_vaga);
       }
+      if (v.salario && !existing.salario.includes(v.salario)) {
+        existing.salario.push(v.salario);
+      }
+      if (v.beneficios && !existing.beneficios.includes(v.beneficios)) {
+        existing.beneficios.push(v.beneficios);
+      }
     } else {
       map.set(key, {
         cargo: v.cargo,
@@ -41,6 +49,8 @@ function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
         experiencia: v.experiencia,
         descricao: v.descricao,
         categoria: v.categoria,
+        salario: v.salario ? [v.salario] : [],
+        beneficios: v.beneficios ? [v.beneficios] : [],
       });
     }
   }
@@ -105,7 +115,7 @@ const Vagas = () => {
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar por cargo, empresa..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 rounded-xl bg-card border-border" />
+          <Input placeholder="Buscar por cargo..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 rounded-xl bg-card border-border" />
         </div>
 
         <div className="space-y-3">
@@ -127,16 +137,22 @@ const Vagas = () => {
               </div>
 
               <div className="space-y-1.5 text-xs md:text-sm text-muted-foreground">
-                {vaga.empresas.length > 0 && (
-                  <p>
-                    <strong className="text-foreground">Empresa(s):</strong>{" "}
-                    {vaga.empresas.join(", ")}
-                  </p>
-                )}
                 {vaga.numVagas.length > 0 && (
                   <p>
                     <strong className="text-foreground">Nº da(s) vaga(s):</strong>{" "}
                     {vaga.numVagas.join(", ")}
+                  </p>
+                )}
+                {vaga.salario.length > 0 && (
+                  <p>
+                    <strong className="text-foreground">Salário:</strong>{" "}
+                    {vaga.salario.join(", ")}
+                  </p>
+                )}
+                {vaga.beneficios.length > 0 && (
+                  <p>
+                    <strong className="text-foreground">Benefícios:</strong>{" "}
+                    {vaga.beneficios.join(", ")}
                   </p>
                 )}
                 <p>
