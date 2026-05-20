@@ -16,6 +16,7 @@ import { SectionUpload } from "@/components/admin/SectionUpload";
 import { SectionEstatisticas } from "@/components/admin/SectionEstatisticas";
 import { SectionSenha } from "@/components/admin/SectionSenha";
 import { SectionAdmins } from "@/components/admin/SectionAdmins";
+import { SectionCadastroManual } from "@/components/admin/SectionCadastroManual";
 
 interface HistoricoEntry {
   id: string;
