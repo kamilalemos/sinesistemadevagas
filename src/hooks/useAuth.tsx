@@ -1,56 +1,36 @@
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import { useState, useEffect } from "react";
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const checkAdmin = useCallback(async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    setIsAdmin(!!data);
+  useEffect(() => {
+    const savedUser = localStorage.getItem("sine_admin_user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsAdmin(true);
+    }
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await checkAdmin(session.user.id);
-        } else {
-          setIsAdmin(false);
-        }
-        setLoading(false);
-      }
-    );
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await checkAdmin(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [checkAdmin]);
-
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    // Simulação simples de login local
+    if (email && password) {
+      const mockUser = { email };
+      setUser(mockUser);
+      setIsAdmin(true);
+      localStorage.setItem("sine_admin_user", JSON.stringify(mockUser));
+      return { error: null };
+    }
+    return { error: new Error("Credenciais inválidas") };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setUser(null);
     setIsAdmin(false);
+    localStorage.removeItem("sine_admin_user");
   };
 
-  return { user, session, loading, isAdmin, signIn, signOut };
+  return { user, loading, isAdmin, signIn, signOut };
 };
