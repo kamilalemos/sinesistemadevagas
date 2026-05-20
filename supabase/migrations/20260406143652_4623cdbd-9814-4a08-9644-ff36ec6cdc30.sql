@@ -1,1 +1,0 @@
-DELETE FROM vagas WHERE tipo = 'semana' AND empresa = '';

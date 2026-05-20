@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin, X } from "lucide-react";
+import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin, X, Hash, Tag, DollarSign, Gift, GraduationCap, Briefcase, FileText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useVagasLocalStore } from "@/store/vagasStorage";
@@ -7,7 +7,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 
 const Feirao = () => {
-  const { vagas_feirao, feirao_ativa } = useVagasLocalStore();
+  const { vagas_feirao, feirao_ativa, periodo_feirao } = useVagasLocalStore();
   const vagas = vagas_feirao.filter(v => v.publicada);
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
@@ -15,6 +15,7 @@ const Feirao = () => {
   const feiraoAtivo = feirao_ativa;
   const categoriaFiltro = searchParams.get("categoria") || "";
   const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
+  const periodo = periodo_feirao;
 
   if (!feiraoAtivo) {
     return (
@@ -93,21 +94,41 @@ const Feirao = () => {
           <Input placeholder="Buscar vagas do feirão..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 rounded-xl bg-card border-border" />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {vagasFiltradas.map((vaga, i) => (
-            <motion.div key={vaga.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-card rounded-xl p-4 shadow-card border border-border">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-heading font-bold text-sm text-foreground">{vaga.descricao}</span>
-                <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">{vaga.quantidade} vagas</span>
+            <motion.div 
+              key={vaga.id} 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: i * 0.05 }} 
+              className="bg-card rounded-2xl p-5 md:p-6 shadow-card border border-border hover:border-secondary/30 transition-all"
+            >
+              <div className="flex items-start justify-between gap-4 mb-5 pb-4 border-b border-border/50">
+                <div className="space-y-1">
+                  <h3 className="font-heading font-bold text-lg md:text-xl text-foreground leading-tight">
+                    {vaga.descricao}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs font-medium text-secondary">
+                    <span className="bg-secondary/10 px-2 py-0.5 rounded uppercase tracking-wider">{vaga.categoria}</span>
+                  </div>
+                </div>
+                <div className="bg-secondary text-secondary-foreground text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow-lg shadow-secondary/20 shrink-0 flex flex-col items-center justify-center min-w-[70px]">
+                  <span className="text-lg md:text-xl leading-none">{vaga.quantidade}</span>
+                  <span className="text-[10px] md:text-[11px] uppercase opacity-90">{vaga.quantidade > 1 ? "Vagas" : "Vaga"}</span>
+                </div>
               </div>
-              <div className="space-y-1 text-xs text-muted-foreground">
-                <p><strong className="text-foreground">CBO:</strong> {vaga.cbo}</p>
-                <p><strong className="text-foreground">Salário:</strong> {vaga.salario}</p>
-                <p><strong className="text-foreground">Benefícios:</strong> {vaga.beneficios}</p>
-                <p><strong className="text-foreground">Código:</strong> {vaga.codigo}</p>
-                <p><strong className="text-foreground">Escolaridade:</strong> {vaga.escolaridade}</p>
-                <p><strong className="text-foreground">Experiência:</strong> {vaga.experiencia}</p>
-                <p><strong className="text-foreground">Descrição:</strong> {vaga.descricao}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
+                <InfoItem icon={Hash} label="CBO" value={vaga.cbo} />
+                <InfoItem icon={Tag} label="Nº da(s) vaga(s)" value={vaga.codigo} />
+                <InfoItem icon={Calendar} label="Período" value={periodo} />
+                <InfoItem icon={DollarSign} label="Salário" value={vaga.salario || "A combinar"} />
+                <InfoItem icon={Gift} label="Benefícios" value={vaga.beneficios || "Não informado"} />
+                <InfoItem icon={GraduationCap} label="Escolaridade" value={vaga.escolaridade} />
+                <InfoItem icon={Briefcase} label="Experiência" value={vaga.experiencia} />
+                <div className="md:col-span-2">
+                  <InfoItem icon={FileText} label="Descrição" value={vaga.descricao} />
+                </div>
               </div>
             </motion.div>
           ))}
@@ -122,5 +143,17 @@ const Feirao = () => {
     </div>
   );
 };
+
+const InfoItem = ({ icon: Icon, label, value }: { icon: any, label: string, value: string }) => (
+  <div className="flex items-start gap-2.5 group">
+    <div className="mt-0.5 p-1.5 rounded-lg bg-muted/50 text-muted-foreground group-hover:bg-secondary/10 group-hover:text-secondary transition-colors">
+      <Icon className="w-3.5 h-3.5" />
+    </div>
+    <div className="space-y-0.5">
+      <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider">{label}</span>
+      <p className="text-sm md:text-base text-foreground font-medium leading-tight">{value || "Não informado"}</p>
+    </div>
+  </div>
+);
 
 export default Feirao;
