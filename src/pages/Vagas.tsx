@@ -33,6 +33,12 @@ function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
       if (v.num_vaga && !existing.numVagas.includes(v.num_vaga)) {
         existing.numVagas.push(v.num_vaga);
       }
+      if (v.salario && !existing.salario.includes(v.salario)) {
+        existing.salario.push(v.salario);
+      }
+      if (v.beneficios && !existing.beneficios.includes(v.beneficios)) {
+        existing.beneficios.push(v.beneficios);
+      }
     } else {
       map.set(key, {
         cargo: v.cargo,
@@ -43,6 +49,8 @@ function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
         experiencia: v.experiencia,
         descricao: v.descricao,
         categoria: v.categoria,
+        salario: v.salario ? [v.salario] : [],
+        beneficios: v.beneficios ? [v.beneficios] : [],
       });
     }
   }
