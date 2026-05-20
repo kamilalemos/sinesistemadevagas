@@ -13,8 +13,23 @@ import { categorias } from "@/store/vagasStore";
 
 export const SectionCadastroManual = () => {
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [vagas, setVagas] = useState<any[]>([]);
   const queryClient = useQueryClient();
   
+  const fetchVagas = async () => {
+    const { data } = await supabase
+      .from("vagas")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setVagas(data);
+  };
+
+  useEffect(() => {
+    fetchVagas();
+  }, []);
+
   const [formData, setFormData] = useState({
     cargo: "",
     qtd: "1",
