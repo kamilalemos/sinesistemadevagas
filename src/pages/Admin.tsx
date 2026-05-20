@@ -67,11 +67,22 @@ const Admin = () => {
   const [adminList, setAdminList] = useState<{ user_id: string; email: string; created_at: string | null }[]>([]);
   const [adminListLoading, setAdminListLoading] = useState(false);
   const [deleteAdminLoading, setDeleteAdminLoading] = useState<string | null>(null);
+  
+  const [setupNeeded, setSetupNeeded] = useState(false);
+  const [setupLoading, setSetupLoading] = useState(false);
 
   const { data: vagasSemana = [] } = useVagasSemana();
   const { data: vagasFeirao = [] } = useVagasFeirao();
   const { data: config } = useConfiguracoes();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const checkSetup = async () => {
+      const { data, error } = await supabase.rpc("is_setup_needed");
+      if (!error) setSetupNeeded(!!data);
+    };
+    checkSetup();
+  }, []);
 
   const { data: historico = [] } = useQuery<HistoricoEntry[]>({
     queryKey: ["vagas_historico", statsAno],
