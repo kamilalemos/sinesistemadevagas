@@ -4,7 +4,9 @@ import { ArrowRight, Flame, Rocket, MapPin, FileText, CheckCircle, Clock, Phone,
 import { Button } from "@/components/ui/button";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import CategoryCard from "@/components/CategoryCard";
-import { useVagasSemana, useVagasFeirao, useConfiguracoes, calcTotalVagas, calcCategoriasComQtd } from "@/hooks/useVagas";
+import { useConfiguracoes } from "@/hooks/useVagas";
+import { useVagasLocalStore } from "@/store/vagasStorage";
+import { categorias as categoriasMeta } from "@/store/vagasStore";
 
 const CandidatarSection = () => {
   const documentos = [
@@ -67,14 +69,22 @@ const CandidatarSection = () => {
 };
 
 const Index = () => {
-  const { data: vagasSemana = [] } = useVagasSemana();
-  const { data: vagasFeirao = [] } = useVagasFeirao();
+  const { vagas_semana, vagas_feirao } = useVagasLocalStore();
+  const vSemana = vagas_semana.filter(v => v.publicada);
+  const vFeirao = vagas_feirao.filter(v => v.publicada);
   const { data: config } = useConfiguracoes();
 
-  const totalSemana = calcTotalVagas(vagasSemana, config?.semana_total_vagas);
-  const totalFeirao = calcTotalVagas(vagasFeirao, config?.feirao_total_vagas);
-  const categoriasComQtdSemana = calcCategoriasComQtd(vagasSemana);
-  const categoriasComQtdFeirao = calcCategoriasComQtd(vagasFeirao);
+  const totalSemana = vSemana.reduce((sum, v) => sum + v.quantidade, 0);
+  const totalFeirao = vFeirao.reduce((sum, v) => sum + v.quantidade, 0);
+
+  const calcCatLocal = (vagas: any[]) => 
+    categoriasMeta.map(cat => ({
+      ...cat,
+      quantidade: vagas.filter(v => v.categoria === cat.nome).reduce((sum, v) => sum + v.quantidade, 0)
+    }));
+
+  const categoriasComQtdSemana = calcCatLocal(vSemana);
+  const categoriasComQtdFeirao = calcCatLocal(vFeirao);
   const periodoInicio = config?.periodo_inicio ?? "";
   const periodoFim = config?.periodo_fim ?? "";
   const semanaAtiva = config?.semana_ativa !== "false";

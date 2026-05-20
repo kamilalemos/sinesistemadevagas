@@ -2,19 +2,21 @@ import { useState } from "react";
 import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { useVagasFeirao, useConfiguracoes, calcTotalVagas } from "@/hooks/useVagas";
+import { useConfiguracoes } from "@/hooks/useVagas";
+import { useVagasLocalStore } from "@/store/vagasStorage";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 
 const Feirao = () => {
-  const { data: vagas = [] } = useVagasFeirao();
+  const { vagas_feirao } = useVagasLocalStore();
+  const vagas = vagas_feirao.filter(v => v.publicada);
   const { data: config } = useConfiguracoes();
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
 
   const feiraoAtivo = config?.feirao_ativo !== "false";
   const categoriaFiltro = searchParams.get("categoria") || "";
-  const totalVagas = calcTotalVagas(vagas, config?.feirao_total_vagas);
+  const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
 
   if (!feiraoAtivo) {
     return (
@@ -36,7 +38,6 @@ const Feirao = () => {
   const vagasFiltradas = vagas.filter((v) => {
     const matchBusca =
       !busca ||
-      v.cargo.toLowerCase().includes(busca.toLowerCase()) ||
       v.descricao.toLowerCase().includes(busca.toLowerCase());
     const matchCategoria = !categoriaFiltro || v.categoria === categoriaFiltro;
     return matchBusca && matchCategoria;
@@ -98,10 +99,14 @@ const Feirao = () => {
           {vagasFiltradas.map((vaga, i) => (
             <motion.div key={vaga.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-card rounded-xl p-4 shadow-card border border-border">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-heading font-bold text-sm text-foreground">{vaga.cargo}</span>
-                <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">{vaga.qtd} vagas</span>
+                <span className="font-heading font-bold text-sm text-foreground">{vaga.descricao}</span>
+                <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">{vaga.quantidade} vagas</span>
               </div>
               <div className="space-y-1 text-xs text-muted-foreground">
+                <p><strong className="text-foreground">CBO:</strong> {vaga.cbo}</p>
+                <p><strong className="text-foreground">Salário:</strong> {vaga.salario}</p>
+                <p><strong className="text-foreground">Benefícios:</strong> {vaga.beneficios}</p>
+                <p><strong className="text-foreground">Código:</strong> {vaga.codigo}</p>
                 <p><strong className="text-foreground">Escolaridade:</strong> {vaga.escolaridade}</p>
                 <p><strong className="text-foreground">Experiência:</strong> {vaga.experiencia}</p>
                 <p><strong className="text-foreground">Descrição:</strong> {vaga.descricao}</p>
