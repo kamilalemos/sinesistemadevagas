@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { Search, ArrowLeft, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { useConfiguracoes } from "@/hooks/useVagas";
 import { useVagasLocalStore, VagaLocal } from "@/store/vagasStorage";
 import { motion } from "framer-motion";
 

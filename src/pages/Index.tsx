@@ -4,7 +4,6 @@ import { ArrowRight, Flame, Rocket, MapPin, FileText, CheckCircle, Clock, Phone,
 import { Button } from "@/components/ui/button";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import CategoryCard from "@/components/CategoryCard";
-import { useConfiguracoes } from "@/hooks/useVagas";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { categorias as categoriasMeta } from "@/store/vagasStore";
 
