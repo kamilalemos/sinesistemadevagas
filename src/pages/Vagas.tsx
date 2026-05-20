@@ -14,6 +14,8 @@ interface VagaAgrupada {
   experiencia: string;
   descricao: string;
   categoria: string;
+  salario: string[];
+  beneficios: string[];
 }
 
 function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
