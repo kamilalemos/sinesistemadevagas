@@ -8,13 +8,12 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 
 const Feirao = () => {
-  const { vagas_feirao } = useVagasLocalStore();
+  const { vagas_feirao, feirao_ativa } = useVagasLocalStore();
   const vagas = vagas_feirao.filter(v => v.publicada);
-  const { data: config } = useConfiguracoes();
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
 
-  const feiraoAtivo = config?.feirao_ativo !== "false";
+  const feiraoAtivo = feirao_ativa;
   const categoriaFiltro = searchParams.get("categoria") || "";
   const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
 

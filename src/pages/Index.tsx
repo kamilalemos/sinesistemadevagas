@@ -69,10 +69,9 @@ const CandidatarSection = () => {
 };
 
 const Index = () => {
-  const { vagas_semana, vagas_feirao } = useVagasLocalStore();
+  const { vagas_semana, vagas_feirao, semana_ativa, feirao_ativa, periodo_semana } = useVagasLocalStore();
   const vSemana = vagas_semana.filter(v => v.publicada);
   const vFeirao = vagas_feirao.filter(v => v.publicada);
-  const { data: config } = useConfiguracoes();
 
   const totalSemana = vSemana.reduce((sum, v) => sum + v.quantidade, 0);
   const totalFeirao = vFeirao.reduce((sum, v) => sum + v.quantidade, 0);
@@ -85,10 +84,9 @@ const Index = () => {
 
   const categoriasComQtdSemana = calcCatLocal(vSemana);
   const categoriasComQtdFeirao = calcCatLocal(vFeirao);
-  const periodoInicio = config?.periodo_inicio ?? "";
-  const periodoFim = config?.periodo_fim ?? "";
-  const semanaAtiva = config?.semana_ativa !== "false";
-  const feiraoAtivo = config?.feirao_ativo !== "false";
+  const periodo = periodo_semana;
+  const sAtiva = semana_ativa;
+  const fAtiva = feirao_ativa;
 
   return (
     <div className="pt-14">
@@ -108,7 +106,7 @@ const Index = () => {
       </section>
 
       {/* Vagas da Semana */}
-      {semanaAtiva && (
+      {sAtiva && (
         <>
           <section className="px-4 -mt-6">
             <div className="container mx-auto">
@@ -121,7 +119,7 @@ const Index = () => {
                   <AnimatedCounter target={totalSemana} />
                 </div>
                 <p className="text-muted-foreground text-xs mt-2">
-                  Período: {periodoInicio} a {periodoFim}
+                  Período: {periodo}
                 </p>
               </motion.div>
             </div>
@@ -160,7 +158,7 @@ const Index = () => {
       )}
 
       {/* Feirão */}
-      {feiraoAtivo && (
+      {fAtiva && (
         <section className="px-4 py-8 bg-accent">
           <div className="container mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-card rounded-2xl shadow-card p-6 text-center border border-border">
