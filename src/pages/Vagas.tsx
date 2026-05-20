@@ -137,16 +137,22 @@ const Vagas = () => {
               </div>
 
               <div className="space-y-1.5 text-xs md:text-sm text-muted-foreground">
-                {vaga.empresas.length > 0 && (
-                  <p>
-                    <strong className="text-foreground">Empresa(s):</strong>{" "}
-                    {vaga.empresas.join(", ")}
-                  </p>
-                )}
                 {vaga.numVagas.length > 0 && (
                   <p>
                     <strong className="text-foreground">Nº da(s) vaga(s):</strong>{" "}
                     {vaga.numVagas.join(", ")}
+                  </p>
+                )}
+                {vaga.salario.length > 0 && (
+                  <p>
+                    <strong className="text-foreground">Salário:</strong>{" "}
+                    {vaga.salario.join(", ")}
+                  </p>
+                )}
+                {vaga.beneficios.length > 0 && (
+                  <p>
+                    <strong className="text-foreground">Benefícios:</strong>{" "}
+                    {vaga.beneficios.join(", ")}
                   </p>
                 )}
                 <p>
