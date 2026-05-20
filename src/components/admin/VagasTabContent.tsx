@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useVagasLocalStore, VagaLocal } from "@/store/vagasStorage";
+import { categorias } from "@/store/vagasStore";
 import { Badge } from "@/components/ui/badge";
 
 interface Props {
@@ -100,7 +101,23 @@ export const VagasTabContent = ({ tipo }: Props) => {
           <div className="space-y-2"><Label>Código</Label><Input value={formData.codigo} onChange={(e) => setFormData({...formData, codigo: e.target.value})} className="rounded-xl" /></div>
           <div className="space-y-2"><Label>Salário</Label><Input value={formData.salario} onChange={(e) => setFormData({...formData, salario: e.target.value})} className="rounded-xl" /></div>
           <div className="space-y-2"><Label>Benefícios</Label><Input value={formData.beneficios} onChange={(e) => setFormData({...formData, beneficios: e.target.value})} className="rounded-xl" /></div>
-          <div className="space-y-2"><Label>Empresa (Interno)</Label><Input value={formData.empresa} onChange={(e) => setFormData({...formData, empresa: e.target.value})} className="rounded-xl" /></div>
+          <div className="space-y-2">
+            <Label>Categoria</Label>
+            <Select 
+              value={formData.categoria} 
+              onValueChange={(val) => setFormData({...formData, categoria: val})}
+            >
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {categorias.map((cat) => (
+                  <SelectItem key={cat.nome} value={cat.nome}>{cat.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="flex items-center space-x-2 pt-8">
             <Switch checked={formData.publicada} onCheckedChange={(val) => setFormData({...formData, publicada: val})} />
             <Label>Vaga Publicada</Label>
