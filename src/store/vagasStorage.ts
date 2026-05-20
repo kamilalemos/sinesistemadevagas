@@ -14,6 +14,7 @@ export interface VagaLocal {
   empresa: string;
   publicada: boolean;
   categoria: string;
+  periodo: string;
   createdAt: string;
 }
 
