@@ -260,7 +260,7 @@ export const SectionCadastroManual = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm truncate">{vaga.cargo}</span>
                     <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{vaga.qtd}v</span>
-                    {vaga.publicada ? <Globe className="w-3 h-3 text-green-500" title="Pública" /> : <GlobeLock className="w-3 h-3 text-muted-foreground" title="Privada" />}
+                    {vaga.publicada ? <Globe className="w-3 h-3 text-green-500" /> : <GlobeLock className="w-3 h-3 text-muted-foreground" />}
                   </div>
                   <p className="text-[10px] text-muted-foreground truncate">
                     {vaga.empresa ? `Empresa: ${vaga.empresa} • ` : ""}{vaga.num_vaga ? `Cod: ${vaga.num_vaga}` : ""}
