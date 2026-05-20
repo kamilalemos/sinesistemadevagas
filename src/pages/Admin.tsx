@@ -339,6 +339,32 @@ const Admin = () => {
   }
 
   if (!user || !isAdmin) {
+    if (setupNeeded) {
+      return (
+        <div className="pt-14 min-h-screen bg-background flex items-center justify-center px-4">
+          <div className="bg-card rounded-2xl shadow-card p-6 w-full max-w-sm border border-border space-y-4">
+            <div className="text-center">
+              <UserPlus className="w-10 h-10 text-primary mx-auto mb-2" />
+              <h1 className="font-heading font-bold text-lg text-foreground">Configuração Inicial</h1>
+              <p className="text-muted-foreground text-xs text-balance">
+                Nenhum administrador detectado. Crie a primeira conta para gerenciar o portal.
+              </p>
+            </div>
+            <Input type="email" placeholder="Seu e-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-xl" />
+            <Input type="password" placeholder="Sua senha (mín. 6 caracteres)" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleCreateInitialAccount()} className="rounded-xl" />
+            <Button onClick={handleCreateInitialAccount} disabled={setupLoading} className="w-full rounded-xl font-heading font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
+              {setupLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
+              Criar Primeiro Admin
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center px-2">
+              Se você já tem uma conta mas não é admin, faça o login acima para se tornar o primeiro administrador.
+            </p>
+            <Link to="/" className="block text-center text-xs text-muted-foreground hover:text-foreground">← Voltar ao site</Link>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="pt-14 min-h-screen bg-background flex items-center justify-center px-4">
         <div className="bg-card rounded-2xl shadow-card p-6 w-full max-w-sm border border-border space-y-4">
