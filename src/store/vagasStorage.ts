@@ -20,9 +20,15 @@ export interface VagaLocal {
 interface VagasState {
   vagas_semana: VagaLocal[];
   vagas_feirao: VagaLocal[];
+  semana_ativa: boolean;
+  feirao_ativa: boolean;
+  periodo_semana: string;
+  periodo_feirao: string;
   addVaga: (tipo: 'semana' | 'feirao', vaga: Omit<VagaLocal, 'id' | 'createdAt'>) => void;
   updateVaga: (tipo: 'semana' | 'feirao', id: string, vaga: Partial<VagaLocal>) => void;
   deleteVaga: (tipo: 'semana' | 'feirao', id: string) => void;
+  setVisibilidade: (tipo: 'semana' | 'feirao', ativa: boolean) => void;
+  setPeriodo: (tipo: 'semana' | 'feirao', periodo: string) => void;
 }
 
 export const useVagasLocalStore = create<VagasState>()(
@@ -30,6 +36,10 @@ export const useVagasLocalStore = create<VagasState>()(
     (set) => ({
       vagas_semana: [],
       vagas_feirao: [],
+      semana_ativa: true,
+      feirao_ativa: true,
+      periodo_semana: "Próxima Semana",
+      periodo_feirao: "Próximo Feirão",
       addVaga: (tipo, vagaData) => set((state) => {
         const newVaga: VagaLocal = {
           ...vagaData,
@@ -51,6 +61,12 @@ export const useVagasLocalStore = create<VagasState>()(
           [key]: state[key].filter((v) => v.id !== id),
         };
       }),
+      setVisibilidade: (tipo, ativa) => set((state) => ({
+        [tipo === 'semana' ? 'semana_ativa' : 'feirao_ativa']: ativa
+      })),
+      setPeriodo: (tipo, periodo) => set((state) => ({
+        [tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao']: periodo
+      })),
     }),
     {
       name: 'vagas-storage-local',

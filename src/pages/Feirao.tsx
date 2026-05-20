@@ -2,19 +2,17 @@ import { useState } from "react";
 import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { useConfiguracoes } from "@/hooks/useVagas";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 
 const Feirao = () => {
-  const { vagas_feirao } = useVagasLocalStore();
+  const { vagas_feirao, feirao_ativa } = useVagasLocalStore();
   const vagas = vagas_feirao.filter(v => v.publicada);
-  const { data: config } = useConfiguracoes();
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
 
-  const feiraoAtivo = config?.feirao_ativo !== "false";
+  const feiraoAtivo = feirao_ativa;
   const categoriaFiltro = searchParams.get("categoria") || "";
   const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
 
