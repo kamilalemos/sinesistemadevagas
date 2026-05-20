@@ -1,3 +1,0 @@
-ALTER TABLE public.vagas ADD COLUMN IF NOT EXISTS empresa text NOT NULL DEFAULT '';
-ALTER TABLE public.vagas ADD COLUMN IF NOT EXISTS num_vaga text NOT NULL DEFAULT '';
-ALTER TABLE public.vagas ADD COLUMN IF NOT EXISTS observacoes text NOT NULL DEFAULT '';
