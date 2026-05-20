@@ -1,15 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import {
-  Home,
+  LayoutDashboard,
   Eye,
-  Calendar,
-  Upload,
   Briefcase,
-  BarChart3,
-  KeyRound,
-  UserPlus,
-  Users,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -25,13 +20,10 @@ interface NavigationItem {
 }
 
 const navigationItems: NavigationItem[] = [
-  { id: "visibilidade", name: "Visibilidade", icon: Eye },
-  { id: "periodo", name: "Período", icon: Calendar },
+  { id: "dashboard", name: "Dashboard", icon: LayoutDashboard },
   { id: "cadastro-vagas", name: "Cadastro de Vagas", icon: Briefcase },
-  { id: "estatisticas", name: "Estatísticas", icon: BarChart3 },
-  { id: "alterar-senha", name: "Alterar Senha", icon: KeyRound },
-  { id: "criar-admin", name: "Criar Admin", icon: UserPlus },
-  { id: "listar-admins", name: "Administradores", icon: Users },
+  { id: "visibilidade", name: "Visibilidade", icon: Eye },
+  { id: "configuracoes", name: "Configurações", icon: Settings },
 ];
 
 interface AdminSidebarProps {
@@ -44,7 +36,6 @@ interface AdminSidebarProps {
 export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeItem, setActiveItem] = useState("visibilidade");
 
   useEffect(() => {
     const handleResize = () => {
@@ -60,11 +51,7 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
   }, []);
 
   const handleItemClick = (itemId: string) => {
-    setActiveItem(itemId);
-    const el = document.getElementById(`section-${itemId}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    onItemClick(itemId);
     if (window.innerWidth < 1024) {
       setIsOpen(false);
     }
@@ -72,7 +59,6 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
 
   return (
     <>
-      {/* Mobile hamburger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-[72px] left-3 z-50 lg:hidden bg-card border border-border rounded-lg p-2 shadow-card"
@@ -80,7 +66,6 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
         {isOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
       </button>
 
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-30 lg:hidden"
@@ -88,7 +73,6 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           fixed top-14 left-0 bottom-0 z-40 bg-card border-r border-border
@@ -98,7 +82,6 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
           lg:translate-x-0 lg:static lg:z-auto
         `}
       >
-        {/* Header */}
         <div className="flex items-center gap-3 px-4 py-4 border-b border-border">
           {!isCollapsed && (
             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -124,7 +107,6 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -148,7 +130,6 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
                 {!isCollapsed && (
                   <span className="text-sm truncate">{item.name}</span>
                 )}
-                {/* Tooltip for collapsed */}
                 {isCollapsed && (
                   <span className="
                     absolute left-full ml-2 px-2 py-1 rounded-md text-xs font-medium
@@ -163,7 +144,6 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
           })}
         </nav>
 
-        {/* Bottom: user + logout */}
         <div className="border-t border-border p-3 space-y-2">
           {!isCollapsed ? (
             <div className="flex items-center gap-2 px-1">
