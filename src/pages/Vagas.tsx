@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { Search, ArrowLeft, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { useVagasSemana, useConfiguracoes, calcTotalVagas, VagaDB } from "@/hooks/useVagas";
+import { useConfiguracoes } from "@/hooks/useVagas";
+import { useVagasLocalStore, VagaLocal } from "@/store/vagasStorage";
 import { motion } from "framer-motion";
 
 interface VagaAgrupada {
@@ -18,20 +19,17 @@ interface VagaAgrupada {
   beneficios: string[];
 }
 
-function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
+function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
   const map = new Map<string, VagaAgrupada>();
 
   for (const v of vagas) {
-    const key = v.cargo.trim().toLowerCase();
+    const key = v.descricao.trim().toLowerCase();
     const existing = map.get(key);
 
     if (existing) {
-      existing.totalQtd += v.qtd;
-      if (v.empresa && !existing.empresas.includes(v.empresa)) {
-        existing.empresas.push(v.empresa);
-      }
-      if (v.num_vaga && !existing.numVagas.includes(v.num_vaga)) {
-        existing.numVagas.push(v.num_vaga);
+      existing.totalQtd += v.quantidade;
+      if (v.codigo && !existing.numVagas.includes(v.codigo)) {
+        existing.numVagas.push(v.codigo);
       }
       if (v.salario && !existing.salario.includes(v.salario)) {
         existing.salario.push(v.salario);
@@ -41,10 +39,10 @@ function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
       }
     } else {
       map.set(key, {
-        cargo: v.cargo,
-        totalQtd: v.qtd,
-        empresas: v.empresa ? [v.empresa] : [],
-        numVagas: v.num_vaga ? [v.num_vaga] : [],
+        cargo: v.descricao,
+        totalQtd: v.quantidade,
+        empresas: [], // Oculto por regra
+        numVagas: v.codigo ? [v.codigo] : [],
         escolaridade: v.escolaridade,
         experiencia: v.experiencia,
         descricao: v.descricao,
@@ -59,14 +57,15 @@ function agruparVagas(vagas: VagaDB[]): VagaAgrupada[] {
 }
 
 const Vagas = () => {
-  const { data: vagas = [] } = useVagasSemana();
+  const { vagas_semana } = useVagasLocalStore();
+  const vagas = vagas_semana.filter(v => v.publicada);
   const { data: config } = useConfiguracoes();
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
 
   const categoriaFiltro = searchParams.get("categoria") || "";
 
-  const totalVagas = calcTotalVagas(vagas);
+  const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
   const periodoInicio = config?.periodo_inicio ?? "";
   const periodoFim = config?.periodo_fim ?? "";
 
@@ -74,11 +73,9 @@ const Vagas = () => {
     const termo = busca.toLowerCase();
     const matchBusca =
       !busca ||
-      v.cargo.toLowerCase().includes(termo) ||
       v.descricao.toLowerCase().includes(termo) ||
       v.categoria?.toLowerCase().includes(termo) ||
-      v.empresa?.toLowerCase().includes(termo) ||
-      v.observacoes?.toLowerCase().includes(termo);
+      v.cbo?.toLowerCase().includes(termo);
     const matchCategoria = !categoriaFiltro || v.categoria === categoriaFiltro;
     return matchBusca && matchCategoria;
   });

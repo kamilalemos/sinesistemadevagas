@@ -5,6 +5,7 @@ import {
   Eye,
   Calendar,
   Upload,
+  Briefcase,
   BarChart3,
   KeyRound,
   UserPlus,
@@ -26,8 +27,7 @@ interface NavigationItem {
 const navigationItems: NavigationItem[] = [
   { id: "visibilidade", name: "Visibilidade", icon: Eye },
   { id: "periodo", name: "Período", icon: Calendar },
-  { id: "upload-semana", name: "Vagas da Semana", icon: Upload },
-  { id: "upload-feirao", name: "Feirão", icon: Upload },
+  { id: "cadastro-vagas", name: "Cadastro de Vagas", icon: Briefcase },
   { id: "estatisticas", name: "Estatísticas", icon: BarChart3 },
   { id: "alterar-senha", name: "Alterar Senha", icon: KeyRound },
   { id: "criar-admin", name: "Criar Admin", icon: UserPlus },
