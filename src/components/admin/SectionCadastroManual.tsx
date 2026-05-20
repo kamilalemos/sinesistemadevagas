@@ -85,10 +85,27 @@ export const SectionCadastroManual = () => {
         publicada: true,
       });
       queryClient.invalidateQueries({ queryKey: ["vagas"] });
+      fetchVagas();
     } catch (error: any) {
       toast.error("Erro ao cadastrar vaga: " + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta vaga?")) return;
+    setDeleteLoading(id);
+    try {
+      const { error } = await supabase.from("vagas").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Vaga excluída com sucesso!");
+      fetchVagas();
+      queryClient.invalidateQueries({ queryKey: ["vagas"] });
+    } catch (error: any) {
+      toast.error("Erro ao excluir: " + error.message);
+    } finally {
+      setDeleteLoading(null);
     }
   };
 
