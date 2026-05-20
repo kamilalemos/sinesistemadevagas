@@ -12,11 +12,11 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 import { SectionVisibilidade } from "@/components/admin/SectionVisibilidade";
 import { SectionPeriodo } from "@/components/admin/SectionPeriodo";
-import { SectionUpload } from "@/components/admin/SectionUpload";
 import { SectionEstatisticas } from "@/components/admin/SectionEstatisticas";
 import { SectionSenha } from "@/components/admin/SectionSenha";
 import { SectionAdmins } from "@/components/admin/SectionAdmins";
-import { SectionCadastroManual } from "@/components/admin/SectionCadastroManual";
+import { SectionCadastroVagas } from "@/components/admin/SectionCadastroVagas";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface HistoricoEntry {
   id: string;
@@ -391,22 +391,51 @@ const Admin = () => {
     <div className="pt-14 min-h-screen bg-background flex">
       <AdminSidebar userEmail={user?.email} onSignOut={signOut} />
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-          <SectionVisibilidade semanaAtiva={semanaAtiva} feiraoAtivo={feiraoAtivo} onToggle={handleToggleSection} />
-          <SectionPeriodo periodoInicio={periodoInicio} periodoFim={periodoFim} setPeriodoInicio={setPeriodoInicio} setPeriodoFim={setPeriodoFim} onUpdate={handleUpdatePeriodo} />
-          <SectionCadastroManual />
-          <SectionUpload tipo="semana" label="Vagas da Semana" totalVagas={calcTotalVagas(vagasSemana)} totalCargos={vagasSemana.length} uploadLoading={uploadLoading} progressInfo={progressInfo} onUpload={handleFileUpload} />
-          <SectionUpload tipo="feirao" label="Feirão da Empregabilidade" totalVagas={calcTotalVagas(vagasFeirao)} totalCargos={vagasFeirao.length} uploadLoading={uploadLoading} progressInfo={progressInfo} onUpload={handleFileUpload} variant="secondary" />
-          <SectionEstatisticas vagasSemana={vagasSemana} vagasFeirao={vagasFeirao} historico={historico} statsAno={statsAno} setStatsAno={setStatsAno} onSalvarEstatistica={handleSalvarEstatistica} />
-          <SectionSenha userEmail={user?.email || ""} newPassword={newPassword} setNewPassword={setNewPassword} loading={changePasswordLoading} onChangePassword={handleChangePassword} />
-          <SectionAdmins
-            currentUserId={user?.id || ""}
-            newAdminEmail={newAdminEmail} setNewAdminEmail={setNewAdminEmail}
-            newAdminPassword={newAdminPassword} setNewAdminPassword={setNewAdminPassword}
-            createLoading={createAdminLoading} onCreateAdmin={handleCreateAdmin}
-            adminList={adminList} adminListLoading={adminListLoading} deleteAdminLoading={deleteAdminLoading}
-            onFetchAdminList={fetchAdminList} onDeleteAdmin={handleDeleteAdmin}
-          />
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          <div id="section-visibilidade">
+            <SectionVisibilidade semanaAtiva={semanaAtiva} feiraoAtivo={feiraoAtivo} onToggle={handleToggleSection} />
+          </div>
+          
+          <div id="section-periodo">
+            <SectionPeriodo periodoInicio={periodoInicio} periodoFim={periodoFim} setPeriodoInicio={setPeriodoInicio} setPeriodoFim={setPeriodoFim} onUpdate={handleUpdatePeriodo} />
+          </div>
+
+          <div id="section-cadastro-vagas" className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="font-heading font-bold text-xl text-foreground">Gerenciamento de Vagas</h2>
+            </div>
+            <Tabs defaultValue="semana" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="semana">Vagas da Semana</TabsTrigger>
+                <TabsTrigger value="feirao">Feirão da Empregabilidade</TabsTrigger>
+              </TabsList>
+              <TabsContent value="semana">
+                <SectionCadastroVagas tipo="semana" />
+              </TabsContent>
+              <TabsContent value="feirao">
+                <SectionCadastroVagas tipo="feirao" />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          <div id="section-estatisticas">
+            <SectionEstatisticas vagasSemana={vagasSemana} vagasFeirao={vagasFeirao} historico={historico} statsAno={statsAno} setStatsAno={setStatsAno} onSalvarEstatistica={handleSalvarEstatistica} />
+          </div>
+          
+          <div id="section-alterar-senha">
+            <SectionSenha userEmail={user?.email || ""} newPassword={newPassword} setNewPassword={setNewPassword} loading={changePasswordLoading} onChangePassword={handleChangePassword} />
+          </div>
+
+          <div id="section-criar-admin">
+            <SectionAdmins
+              currentUserId={user?.id || ""}
+              newAdminEmail={newAdminEmail} setNewAdminEmail={setNewAdminEmail}
+              newAdminPassword={newAdminPassword} setNewAdminPassword={setNewAdminPassword}
+              createLoading={createAdminLoading} onCreateAdmin={handleCreateAdmin}
+              adminList={adminList} adminListLoading={adminListLoading} deleteAdminLoading={deleteAdminLoading}
+              onFetchAdminList={fetchAdminList} onDeleteAdmin={handleDeleteAdmin}
+            />
+          </div>
         </div>
       </div>
     </div>

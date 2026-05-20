@@ -6,6 +6,7 @@ import {
   Calendar,
   Upload,
   Briefcase,
+  BarChart3,
   KeyRound,
   UserPlus,
   Users,
