@@ -149,6 +149,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      initialize_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_setup_needed: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"

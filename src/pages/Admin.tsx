@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Lock, Loader2 } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Lock, Loader2, ShieldCheck, UserPlus } from "lucide-react";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -67,11 +67,22 @@ const Admin = () => {
   const [adminList, setAdminList] = useState<{ user_id: string; email: string; created_at: string | null }[]>([]);
   const [adminListLoading, setAdminListLoading] = useState(false);
   const [deleteAdminLoading, setDeleteAdminLoading] = useState<string | null>(null);
+  
+  const [setupNeeded, setSetupNeeded] = useState(false);
+  const [setupLoading, setSetupLoading] = useState(false);
 
   const { data: vagasSemana = [] } = useVagasSemana();
   const { data: vagasFeirao = [] } = useVagasFeirao();
   const { data: config } = useConfiguracoes();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const checkSetup = async () => {
+      const { data, error } = await supabase.rpc("is_setup_needed");
+      if (!error) setSetupNeeded(!!data);
+    };
+    checkSetup();
+  }, []);
 
   const { data: historico = [] } = useQuery<HistoricoEntry[]>({
     queryKey: ["vagas_historico", statsAno],
@@ -109,6 +120,52 @@ const Admin = () => {
     const { error } = await signIn(email, password);
     setLoginLoading(false);
     if (error) toast.error("Email ou senha incorretos");
+    else {
+      // Se o setup for necessário, tenta inicializar após o login bem sucedido
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session?.user) {
+        const { data: setupData } = await supabase.rpc("is_setup_needed");
+        if (setupData) {
+          const { error: initError } = await supabase.rpc("initialize_admin", { _user_id: sessionData.session.user.id });
+          if (!initError) {
+            toast.success("Primeiro administrador configurado com sucesso!");
+            setSetupNeeded(false);
+            // Refresh to update isAdmin state in useAuth
+            window.location.reload();
+          }
+        }
+      }
+    }
+  };
+
+  const handleCreateInitialAccount = async () => {
+    if (!email || !password) { toast.error("Preencha email e senha"); return; }
+    setSetupLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        // Se o erro for que o usuário já existe, tenta fazer login e promover
+        if (error.message.includes("already registered")) {
+           await handleLogin();
+        } else {
+          toast.error(error.message);
+        }
+      } else if (data.user) {
+        // Tenta inicializar
+        const { error: initError } = await supabase.rpc("initialize_admin", { _user_id: data.user.id });
+        if (!initError) {
+          toast.success("Conta criada e configurada como administrador!");
+          setSetupNeeded(false);
+          // O hook useAuth deve detectar a sessão e isAdmin mudará
+          window.location.reload();
+        } else {
+          toast.info("Conta criada! Por favor, faça login para ativar o acesso admin.");
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar conta inicial");
+    }
+    setSetupLoading(false);
   };
 
   const callEdgeFunction = async (body: Record<string, unknown>) => {
@@ -282,6 +339,32 @@ const Admin = () => {
   }
 
   if (!user || !isAdmin) {
+    if (setupNeeded) {
+      return (
+        <div className="pt-14 min-h-screen bg-background flex items-center justify-center px-4">
+          <div className="bg-card rounded-2xl shadow-card p-6 w-full max-w-sm border border-border space-y-4">
+            <div className="text-center">
+              <UserPlus className="w-10 h-10 text-primary mx-auto mb-2" />
+              <h1 className="font-heading font-bold text-lg text-foreground">Configuração Inicial</h1>
+              <p className="text-muted-foreground text-xs text-balance">
+                Nenhum administrador detectado. Crie a primeira conta para gerenciar o portal.
+              </p>
+            </div>
+            <Input type="email" placeholder="Seu e-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-xl" />
+            <Input type="password" placeholder="Sua senha (mín. 6 caracteres)" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleCreateInitialAccount()} className="rounded-xl" />
+            <Button onClick={handleCreateInitialAccount} disabled={setupLoading} className="w-full rounded-xl font-heading font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
+              {setupLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
+              Criar Primeiro Admin
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center px-2">
+              Se você já tem uma conta mas não é admin, faça o login acima para se tornar o primeiro administrador.
+            </p>
+            <Link to="/" className="block text-center text-xs text-muted-foreground hover:text-foreground">← Voltar ao site</Link>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="pt-14 min-h-screen bg-background flex items-center justify-center px-4">
         <div className="bg-card rounded-2xl shadow-card p-6 w-full max-w-sm border border-border space-y-4">
