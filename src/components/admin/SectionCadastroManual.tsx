@@ -249,6 +249,37 @@ export const SectionCadastroManual = () => {
           </Button>
         </div>
       </form>
+
+      {vagas.length > 0 && (
+        <div className="pt-6 border-t border-border mt-6">
+          <h3 className="font-heading font-bold text-sm mb-4 text-foreground">Últimas Vagas Cadastradas</h3>
+          <div className="space-y-3">
+            {vagas.map((vaga) => (
+              <div key={vaga.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border group">
+                <div className="flex-1 min-w-0 pr-4">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm truncate">{vaga.cargo}</span>
+                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{vaga.qtd}v</span>
+                    {vaga.publicada ? <Globe className="w-3 h-3 text-green-500" title="Pública" /> : <GlobeLock className="w-3 h-3 text-muted-foreground" title="Privada" />}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {vaga.empresa ? `Empresa: ${vaga.empresa} • ` : ""}{vaga.num_vaga ? `Cod: ${vaga.num_vaga}` : ""}
+                  </p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleDelete(vaga.id)}
+                  disabled={deleteLoading === vaga.id}
+                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  {deleteLoading === vaga.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
