@@ -8,8 +8,15 @@ import { usePopupStore } from '@/store/popupStorage';
 export const PopupInformativo = () => {
   const { config } = usePopupStore();
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
+    // Não exibir dentro da área administrativa
+    if (location.pathname.startsWith('/admin')) {
+      setIsOpen(false);
+      return;
+    }
+
     // Verificar se o popup está ativo
     if (config.ativo) {
       // Verificar se já foi visto nesta sessão para evitar loop/incômodo
