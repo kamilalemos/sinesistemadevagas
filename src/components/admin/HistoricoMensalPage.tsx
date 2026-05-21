@@ -6,9 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const HistoricoMensalPage = () => {
-  const { getHistórico } = useVagasLocalStore();
-  const historico = getHistórico();
+  const { getHistórico, triggerManualBackup } = useVagasLocalStore();
+  const [historico, setHistorico] = useState<BackupMensal[]>(getHistórico());
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const handleManualBackup = () => {
+    triggerManualBackup();
+    setHistorico(getHistórico());
+  };
 
   const getMonthName = (monthStr: string) => {
     const months = [
