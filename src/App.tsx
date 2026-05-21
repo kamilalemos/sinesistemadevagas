@@ -21,6 +21,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PopupInformativo />
         <Header />
         <main className="min-h-screen">
           <Routes>
