@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlusCircle, Trash2, Edit, Save, X, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,12 @@ interface Props {
 }
 
 export const VagasTabContent = ({ tipo }: Props) => {
-  const { vagas_semana, vagas_feirao, addVaga, updateVaga, deleteVaga, periodo_semana, periodo_feirao, setPeriodo } = useVagasLocalStore();
+  const { vagas_semana, vagas_feirao, addVaga, updateVaga, deleteVaga, periodo_semana, periodo_feirao, setPeriodo, refreshFromStorage } = useVagasLocalStore();
+  
+  useEffect(() => {
+    refreshFromStorage();
+  }, [refreshFromStorage]);
+
   const vagas = tipo === "semana" ? vagas_semana : vagas_feirao;
   const periodo = tipo === "semana" ? periodo_semana : periodo_feirao;
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, ArrowLeft, X, Hash, Tag, Calendar, DollarSign, Gift, GraduationCap, Briefcase, FileText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -57,7 +57,12 @@ function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
 }
 
 const Vagas = () => {
-  const { vagas_semana, periodo_semana } = useVagasLocalStore();
+  const { vagas_semana, periodo_semana, refreshFromStorage } = useVagasLocalStore();
+  
+  useEffect(() => {
+    refreshFromStorage();
+  }, [refreshFromStorage]);
+
   const vagas = vagas_semana.filter(v => v.publicada);
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
