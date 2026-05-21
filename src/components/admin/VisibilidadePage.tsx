@@ -13,7 +13,8 @@ import { toast } from "sonner";
 import { PopupInformativo } from "../PopupInformativo";
 
 export function VisibilidadePage() {
-  const { semana_ativa, feirao_ativa, setVisibilidade } = useVagasLocalStore();
+  const { semana_ativa, setSemanaAtiva } = useVagasLocalStore();
+
   const { config, setAtivo, updateConfig } = usePopupStore();
   const [isUploading, setIsUploading] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -70,27 +71,23 @@ export function VisibilidadePage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-primary" />
-              <CardTitle>Vagas da Semana</CardTitle>
+              <CardTitle>Semana Ativa</CardTitle>
             </div>
-            <CardDescription>Controla se esta seção aparece no site público</CardDescription>
+            <CardDescription>Qual semana deve aparecer no portal agora?</CardDescription>
           </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <span className="text-sm font-medium">Status: {semana_ativa ? "Visível" : "Oculto"}</span>
-            <Switch checked={semana_ativa} onCheckedChange={(v) => setVisibilidade("semana", v)} />
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-xl shadow-card">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <EyeOff className="w-5 h-5 text-secondary" />
-              <CardTitle>Feirão da Empregabilidade</CardTitle>
-            </div>
-            <CardDescription>Controla se esta seção aparece no site público</CardDescription>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <span className="text-sm font-medium">Status: {feirao_ativa ? "Visível" : "Oculto"}</span>
-            <Switch checked={feirao_ativa} onCheckedChange={(v) => setVisibilidade("feirao", v)} />
+          <CardContent className="space-y-4">
+            <Select value={semana_ativa} onValueChange={(val) => setSemanaAtiva(val as any)}>
+                <SelectTrigger className="rounded-xl">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="semana1">Semana 1</SelectItem>
+                    <SelectItem value="semana2">Semana 2</SelectItem>
+                    <SelectItem value="semana3">Semana 3</SelectItem>
+                    <SelectItem value="semana4">Semana 4</SelectItem>
+                    <SelectItem value="feirao">Feirão</SelectItem>
+                </SelectContent>
+            </Select>
           </CardContent>
         </Card>
       </div>

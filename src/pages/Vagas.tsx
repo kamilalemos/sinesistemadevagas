@@ -57,17 +57,19 @@ function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
 }
 
 const Vagas = () => {
-  const { vagas_semana, periodo_semana } = useVagasLocalStore();
-  const vagas = vagas_semana.filter(v => v.publicada);
+  const { vagas, semana_ativa, periodos } = useVagasLocalStore();
+  const currentSemana = semana_ativa || 'semana1';
+  const vagasDaSemana = (vagas[currentSemana] || []).filter(v => v.publicada);
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
 
   const categoriaFiltro = searchParams.get("categoria") || "";
 
-  const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
-  const periodo = periodo_semana;
+  const totalVagas = vagasDaSemana.reduce((sum, v) => sum + v.quantidade, 0);
+  const periodo = periodos[currentSemana];
 
-  const vagasFiltradas = vagas.filter((v) => {
+
+  const vagasFiltradas = vagasDaSemana.filter((v) => {
     const termo = busca.toLowerCase();
     const matchBusca =
       !busca ||
