@@ -38,10 +38,14 @@ export const getWeekInfo = () => {
   };
 };
 
-export const saveVagasToLocalStorage = (tipo: 'semana' | 'feirao', vagas: VagaLocal[]) => {
+export const saveVagasToLocalStorage = (tipo: 'semana' | 'feirao', vagas: VagaLocal[], periodo: string) => {
   const info = getWeekInfo();
   const key = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
-  localStorage.setItem(key, JSON.stringify(vagas));
+  const dataToSave = {
+    vagas,
+    periodo
+  };
+  localStorage.setItem(key, JSON.stringify(dataToSave));
   
   // If it's week 4 and we are saving semana, also trigger/update backup
   if (info.week === 4) {
@@ -49,11 +53,22 @@ export const saveVagasToLocalStorage = (tipo: 'semana' | 'feirao', vagas: VagaLo
   }
 };
 
-export const loadVagasFromLocalStorage = (tipo: 'semana' | 'feirao'): VagaLocal[] => {
+export const loadVagasFromLocalStorage = (tipo: 'semana' | 'feirao'): { vagas: VagaLocal[], periodo: string } => {
   const info = getWeekInfo();
   const key = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
   const saved = localStorage.getItem(key);
-  return saved ? JSON.parse(saved) : [];
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    // Support old format or just array
+    if (Array.isArray(parsed)) {
+      return { vagas: parsed, periodo: tipo === 'semana' ? "Próxima Semana" : "Próximo Feirão" };
+    }
+    return { 
+      vagas: parsed.vagas || [], 
+      periodo: parsed.periodo || (tipo === 'semana' ? "Próxima Semana" : "Próximo Feirão")
+    };
+  }
+  return { vagas: [], periodo: tipo === 'semana' ? "Próxima Semana" : "Próximo Feirão" };
 };
 
 export const performMonthlyBackup = (year: number | string, month: string) => {
