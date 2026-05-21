@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 
 export const HistoricoMensalPage = () => {
   const { getHistórico, triggerManualBackup } = useVagasLocalStore();
@@ -13,6 +14,7 @@ export const HistoricoMensalPage = () => {
   const handleManualBackup = () => {
     triggerManualBackup();
     setHistorico(getHistórico());
+    toast.success("Backup manual gerado com sucesso!");
   };
 
   const getMonthName = (monthStr: string) => {
@@ -25,9 +27,14 @@ export const HistoricoMensalPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-heading font-bold text-foreground">Histórico Mensal</h1>
-        <p className="text-muted-foreground text-sm">Consulte backups e vagas de meses anteriores.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-heading font-bold text-foreground">Histórico Mensal</h1>
+          <p className="text-muted-foreground text-sm">Consulte backups e vagas de meses anteriores.</p>
+        </div>
+        <Button onClick={handleManualBackup} variant="secondary" size="sm" className="rounded-lg gap-2">
+            <History className="w-4 h-4" /> Gerar Backup Agora
+        </Button>
       </div>
 
       {historico.length === 0 ? (
@@ -47,7 +54,7 @@ export const HistoricoMensalPage = () => {
           {historico.map((backup) => {
             const id = `${backup.ano}-${backup.mes}`;
             const isExpanded = expandedId === id;
-            const totalVagas = Object.values(backup.vagas_semanas).reduce((acc, current) => acc + current.length, 0) + backup.vagas_feirao.length;
+            const totalVagas = Object.values(backup.vagas_semanas).reduce((acc, current) => acc + (current?.length || 0), 0) + (backup.vagas_feirao?.length || 0);
 
             return (
               <div key={id} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all hover:border-primary/30">
@@ -104,7 +111,7 @@ export const HistoricoMensalPage = () => {
                           {Object.entries(backup.vagas_semanas).map(([sem, vagas]) => (
                             <div key={sem} className="space-y-2">
                               <h5 className="text-[11px] font-bold text-primary uppercase tracking-widest">{sem.replace('_', ' ')}</h5>
-                              {vagas.length === 0 ? (
+                              {!vagas || vagas.length === 0 ? (
                                 <p className="text-xs text-muted-foreground italic px-2">Sem vagas nesta semana.</p>
                               ) : (
                                 <div className="space-y-1">
@@ -122,7 +129,7 @@ export const HistoricoMensalPage = () => {
                           
                           <div className="space-y-2 mt-4">
                             <h5 className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest">Feirão do Emprego</h5>
-                            {backup.vagas_feirao.length === 0 ? (
+                            {!backup.vagas_feirao || backup.vagas_feirao.length === 0 ? (
                               <p className="text-xs text-muted-foreground italic px-2">Sem vagas no feirão.</p>
                             ) : (
                               <div className="space-y-1">
