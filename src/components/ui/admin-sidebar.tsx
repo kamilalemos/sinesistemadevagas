@@ -24,6 +24,7 @@ const navigationItems: NavigationItem[] = [
   { id: "dashboard", name: "Dashboard", icon: LayoutDashboard },
   { id: "cadastro-vagas", name: "Cadastro de Vagas", icon: Briefcase },
   { id: "visibilidade", name: "Visibilidade", icon: Eye },
+  { id: "historico", name: "Histórico Mensal", icon: History },
   { id: "configuracoes", name: "Configurações", icon: Settings },
 ];
 
