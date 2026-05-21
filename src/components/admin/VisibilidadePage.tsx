@@ -1,4 +1,5 @@
-import { Eye, EyeOff, Layout, Bell, Image as ImageIcon, Link as LinkIcon, Type, FileText } from "lucide-react";
+import { useState } from "react";
+import { Eye, EyeOff, Layout, Bell, Image as ImageIcon, Link as LinkIcon, Type, FileText, Upload, Loader2, Play } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { usePopupStore } from "@/store/popupStorage";
@@ -6,10 +7,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { PopupInformativo } from "../PopupInformativo";
 
 export function VisibilidadePage() {
   const { semana_ativa, feirao_ativa, setVisibilidade } = useVagasLocalStore();
   const { config, setAtivo, updateConfig } = usePopupStore();
+  const [isUploading, setIsUploading] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, selecione uma imagem válida.");
+      return;
+    }
+
+    // Validar tamanho (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 2MB.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `popup-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('portal_assets')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('portal_assets')
+        .getPublicUrl(filePath);
+
+      updateConfig({ imagem: publicUrl });
+      toast.success("Imagem enviada com sucesso!");
+    } catch (error: any) {
+      console.error("Erro no upload:", error);
+      toast.error("Erro ao enviar imagem: " + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -112,14 +162,59 @@ export function VisibilidadePage() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-muted-foreground" />
-                  URL da Imagem (Opcional)
+                  Imagem do Pop-up
                 </Label>
-                <Input 
-                  value={config.imagem} 
-                  onChange={(e) => updateConfig({ imagem: e.target.value })}
-                  placeholder="https://exemplo.com/imagem.jpg"
-                  className="rounded-xl"
-                />
+                <div className="flex flex-col gap-3">
+                  {config.imagem && (
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border group">
+                      <img src={config.imagem} alt="Preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          className="h-8 rounded-lg"
+                          onClick={() => updateConfig({ imagem: "" })}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input 
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="popup-image-upload"
+                        disabled={isUploading}
+                      />
+                      <Label 
+                        htmlFor="popup-image-upload"
+                        className={`flex items-center justify-center gap-2 w-full h-10 px-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 cursor-pointer transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {isUploading ? 'Enviando...' : 'Fazer upload de imagem'}
+                        </span>
+                      </Label>
+                    </div>
+                    <div className="flex-[2]">
+                      <Input 
+                        value={config.imagem} 
+                        onChange={(e) => updateConfig({ imagem: e.target.value })}
+                        placeholder="Ou cole uma URL aqui..."
+                        className="rounded-xl h-10"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic">Recomendado: 800x600px, máx 2MB.</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -146,9 +241,24 @@ export function VisibilidadePage() {
                 </div>
               </div>
             </div>
+            
+            <div className="pt-4 border-t border-border/50">
+              <Button 
+                onClick={() => setIsPreviewOpen(true)}
+                variant="outline"
+                className="w-full rounded-xl gap-2 font-heading font-semibold hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+              >
+                <Play className="w-4 h-4" />
+                Pré-visualizar Pop-up no Site
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {isPreviewOpen && (
+        <PopupInformativo forcedOpen={true} onClose={() => setIsPreviewOpen(false)} />
+      )}
     </div>
   );
 }
