@@ -75,7 +75,6 @@ const loadFromLocal = (key: string) => {
   return data ? JSON.parse(data) : null;
 };
 
-// Função para consolidar backup do mês
 const createMonthlyBackup = (mes: string, ano: string): BackupMensal => {
   const backup: BackupMensal = {
     mes,
@@ -113,10 +112,10 @@ export const useVagasLocalStore = create<VagasState>()(
         const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
         const storageKey = tipo === 'semana' ? semanaKey : feiraoKey;
         
-        const newState = { [key]: [newVaga, ...state[key]] };
+        const currentVagas = state[key];
+        const newState = { [key]: [newVaga, ...currentVagas] };
         saveToLocal(storageKey, newState[key]);
 
-        // Auto backup se for a última semana
         if (semana === 4) {
           const backup = createMonthlyBackup(mes, String(ano));
           saveToLocal(`sine_backup_${ano}_${mes}`, backup);
@@ -160,8 +159,12 @@ export const useVagasLocalStore = create<VagasState>()(
         const keys = Object.keys(localStorage);
         for (const key of keys) {
           if (key.startsWith('sine_backup_')) {
-            const data = loadFromLocal(key);
-            if (data) backups.push(data);
+            try {
+              const data = loadFromLocal(key);
+              if (data && data.mes && data.ano) backups.push(data);
+            } catch (e) {
+              console.error("Erro ao carregar backup:", key, e);
+            }
           }
         }
         return backups.sort((a, b) => {
@@ -182,13 +185,25 @@ export const useVagasLocalStore = create<VagasState>()(
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          // Quando hidratar o store, carregar os dados da semana/mês atual se existirem
-          const { semanaKey, feiraoKey } = getStorageKeys();
+          const { semanaKey, feiraoKey, mes, ano, semana } = getStorageKeys();
+          
           const savedSemana = loadFromLocal(semanaKey);
           const savedFeirao = loadFromLocal(feiraoKey);
           
           if (savedSemana) state.vagas_semana = savedSemana;
+          else state.vagas_semana = []; // Limpa se for nova semana e não houver dados
+          
           if (savedFeirao) state.vagas_feirao = savedFeirao;
+          // Não limpa o feirão pois ele é mensal
+
+          // Verificar se precisa de backup inicial na última semana
+          if (semana === 4) {
+            const existingBackup = loadFromLocal(`sine_backup_${ano}_${mes}`);
+            if (!existingBackup) {
+              const backup = createMonthlyBackup(mes, String(ano));
+              saveToLocal(`sine_backup_${ano}_${mes}`, backup);
+            }
+          }
         }
       }
     }
