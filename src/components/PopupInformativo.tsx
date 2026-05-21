@@ -50,7 +50,7 @@ export const PopupInformativo = ({ forcedOpen = false, onClose }: { forcedOpen?:
 
   return (
     <AnimatePresence>
-      {isOpen && config.ativo && (
+      {(isOpen && (config.ativo || forcedOpen)) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           {/* Overlay */}
           <motion.div
