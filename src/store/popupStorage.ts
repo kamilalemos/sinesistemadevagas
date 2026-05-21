@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface PopupConfig {
   ativo: boolean;
@@ -16,6 +15,8 @@ interface PopupState {
   updateConfig: (config: Partial<PopupConfig>) => void;
 }
 
+const STORAGE_KEY = 'popup_informativo';
+
 const DEFAULT_CONFIG: PopupConfig = {
   ativo: false,
   titulo: "Aviso Importante",
@@ -25,16 +26,30 @@ const DEFAULT_CONFIG: PopupConfig = {
   botaoLink: "",
 };
 
-export const usePopupStore = create<PopupState>()(
-  persist(
-    (set) => ({
-      config: DEFAULT_CONFIG,
-      setAtivo: (ativo) => set((state) => ({ config: { ...state.config, ativo } })),
-      updateConfig: (newConfig) => set((state) => ({ config: { ...state.config, ...newConfig } })),
-    }),
-    {
-      name: 'popup_informativo', // Key specified by the user
-      storage: createJSONStorage(() => localStorage),
+const getInitialState = (): PopupConfig => {
+  if (typeof window === 'undefined') return DEFAULT_CONFIG;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error("Error parsing popup config", e);
+      return DEFAULT_CONFIG;
     }
-  )
-);
+  }
+  return DEFAULT_CONFIG;
+};
+
+export const usePopupStore = create<PopupState>((set) => ({
+  config: getInitialState(),
+  setAtivo: (ativo) => set((state) => {
+    const newConfig = { ...state.config, ativo };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig));
+    return { config: newConfig };
+  }),
+  updateConfig: (newConfig) => set((state) => {
+    const updated = { ...state.config, ...newConfig };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    return { config: updated };
+  }),
+}));
