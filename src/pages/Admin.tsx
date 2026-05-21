@@ -68,6 +68,7 @@ const Admin = () => {
       case "dashboard": return <DashboardPage />;
       case "cadastro-vagas": return <CadastroVagasPage />;
       case "visibilidade": return <VisibilidadePage />;
+      case "historico": return <HistoricoPage />;
       case "configuracoes": return <ConfiguracoesPage />;
       default: return <DashboardPage />;
     }
