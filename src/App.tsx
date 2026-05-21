@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { PopupInformativo } from "@/components/PopupInformativo";
 import Index from "./pages/Index";
 import Vagas from "./pages/Vagas";
 import Feirao from "./pages/Feirao";
@@ -20,6 +21,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PopupInformativo />
         <Header />
         <main className="min-h-screen">
           <Routes>
