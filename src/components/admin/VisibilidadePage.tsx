@@ -1,7 +1,11 @@
-import { Eye, EyeOff, Layout } from "lucide-react";
+import { Eye, EyeOff, Layout, Bell, Image as ImageIcon, Link as LinkIcon, Type, FileText } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useVagasLocalStore } from "@/store/vagasStorage";
+import { usePopupStore } from "@/store/popupStorage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export function VisibilidadePage() {
   const { semana_ativa, feirao_ativa, setVisibilidade } = useVagasLocalStore();
