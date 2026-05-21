@@ -11,6 +11,7 @@ import { DashboardPage } from "@/components/admin/DashboardPage";
 import { CadastroVagasPage } from "@/components/admin/CadastroVagasPage";
 import { VisibilidadePage } from "@/components/admin/VisibilidadePage";
 import { ConfiguracoesPage } from "@/components/admin/ConfiguracoesPage";
+import { HistoricoPage } from "@/components/admin/HistoricoPage";
 
 const Admin = () => {
   const { user, loading, isAdmin, signIn, signOut } = useAuth();
