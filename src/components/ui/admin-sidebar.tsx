@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
+  History,
 } from "lucide-react";
 
 interface NavigationItem {
@@ -24,6 +25,7 @@ const navigationItems: NavigationItem[] = [
   { id: "cadastro-vagas", name: "Cadastro de Vagas", icon: Briefcase },
   { id: "visibilidade", name: "Visibilidade", icon: Eye },
   { id: "configuracoes", name: "Configurações", icon: Settings },
+  { id: "historico", name: "Histórico Mensal", icon: History },
 ];
 
 interface AdminSidebarProps {
