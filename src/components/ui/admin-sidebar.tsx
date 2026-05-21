@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
+  History,
 } from "lucide-react";
 
 interface NavigationItem {
