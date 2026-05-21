@@ -113,42 +113,67 @@ const Vagas = () => {
           <Input placeholder="Buscar por cargo..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 rounded-xl bg-card border-border" />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {vagasAgrupadas.map((vaga, i) => (
             <motion.div
               key={vaga.cargo}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02 }}
-              className="bg-card rounded-2xl p-5 md:p-6 shadow-card border border-border hover:border-primary/30 transition-all"
+              className="bg-card rounded-xl p-4 md:p-5 shadow-sm border border-border hover:border-primary/40 transition-all group"
             >
-              <div className="flex items-start justify-between gap-4 mb-5 pb-4 border-b border-border/50">
+              <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="space-y-1">
-                  <h3 className="font-heading font-bold text-lg md:text-xl text-foreground leading-tight">
-                    {vaga.cargo}
-                  </h3>
-                  <div className="flex items-center gap-2 text-xs font-medium text-primary">
-                    <span className="bg-primary/10 px-2 py-0.5 rounded uppercase tracking-wider">{vaga.categoria}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-heading font-bold text-base md:text-lg text-foreground leading-tight">
+                      {vaga.cargo}
+                    </h3>
+                    <span className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      {vaga.categoria}
+                    </span>
+                  </div>
+                  
+                  {/* Linha compacta 1: CBO, ID, Período */}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs text-muted-foreground font-medium">
+                    <span className="flex items-center gap-1">
+                      <Hash className="w-3 h-3" /> CBO: {vaga.cbos.join(", ")}
+                    </span>
+                    <span className="hidden md:inline text-muted-foreground/30">•</span>
+                    <span className="flex items-center gap-1">
+                      <Tag className="w-3 h-3" /> ID: {vaga.numVagas.join(", ")}
+                    </span>
+                    <span className="hidden md:inline text-muted-foreground/30">•</span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" /> {vaga.periodos.length > 0 ? vaga.periodos.join(", ") : periodo}
+                    </span>
                   </div>
                 </div>
-                <div className="bg-primary text-primary-foreground text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow-lg shadow-primary/20 shrink-0 flex flex-col items-center justify-center min-w-[70px]">
-                  <span className="text-lg md:text-xl leading-none">{vaga.totalQtd}</span>
-                  <span className="text-[10px] md:text-[11px] uppercase opacity-90">{vaga.totalQtd > 1 ? "Vagas" : "Vaga"}</span>
+
+                <div className="bg-primary/5 group-hover:bg-primary/10 text-primary px-3 py-1.5 rounded-lg border border-primary/20 shrink-0 flex flex-col items-center justify-center min-w-[60px] transition-colors">
+                  <span className="text-base md:text-lg font-bold leading-none">{vaga.totalQtd}</span>
+                  <span className="text-[9px] uppercase font-bold opacity-80">{vaga.totalQtd > 1 ? "Vagas" : "Vaga"}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
-                <InfoItem icon={Hash} label="CBO" value={vaga.cbos.join(", ")} />
-                <InfoItem icon={Tag} label="ID da vaga" value={vaga.numVagas.join(", ")} />
-                <InfoItem icon={Calendar} label="Período" value={vaga.periodos.length > 0 ? vaga.periodos.join(", ") : periodo} />
-                <InfoItem icon={DollarSign} label="Salário" value={vaga.salario.join(", ") || "A combinar"} />
-                <InfoItem icon={Gift} label="Benefícios" value={vaga.beneficios.join(", ") || "Não informado"} />
-                <InfoItem icon={GraduationCap} label="Escolaridade" value={vaga.escolaridade.join(", ")} />
-                <InfoItem icon={Briefcase} label="Experiência" value={vaga.experiencia.join(", ")} />
-                <div className="md:col-span-2">
-                  <InfoItem icon={FileText} label="Descrição" value={vaga.descricoes.join(", ")} />
-                </div>
+              {/* Linha compacta 2: Salário, Escolaridade, Experiência */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
+                <CompactInfo icon={DollarSign} value={vaga.salario.join(", ") || "À combinar"} prefix="💰" />
+                <CompactInfo icon={GraduationCap} value={vaga.escolaridade.join(", ")} prefix="🎓" />
+                <CompactInfo icon={Briefcase} value={vaga.experiencia.join(", ")} prefix="💼" />
               </div>
+
+              {/* Linha compacta 3: Benefícios */}
+              <div className="flex items-center gap-1.5 text-[11px] md:text-xs text-foreground/80 bg-muted/30 p-2 rounded-lg border border-border/50">
+                <span className="text-sm">🎁</span>
+                <span className="font-medium line-clamp-1">{vaga.beneficios.join(", ") || "Sem benefícios informados"}</span>
+              </div>
+
+              {/* Descrição truncada */}
+              {vaga.descricoes.length > 0 && (
+                <p className="mt-2 text-[11px] md:text-xs text-muted-foreground line-clamp-2 leading-relaxed italic">
+                  "{vaga.descricoes[0]}"
+                </p>
+              )}
             </motion.div>
           ))}
         </div>
@@ -163,15 +188,10 @@ const Vagas = () => {
   );
 };
 
-const InfoItem = ({ icon: Icon, label, value }: { icon: any, label: string, value: string }) => (
-  <div className="flex items-start gap-2.5 group">
-    <div className="mt-0.5 p-1.5 rounded-lg bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-      <Icon className="w-3.5 h-3.5" />
-    </div>
-    <div className="space-y-0.5">
-      <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider">{label}</span>
-      <p className="text-sm md:text-base text-foreground font-medium leading-tight">{value || "Não informado"}</p>
-    </div>
+const CompactInfo = ({ value, prefix }: { icon: any, value: string, prefix?: string }) => (
+  <div className="flex items-center gap-1 text-[11px] md:text-xs font-semibold text-foreground/90">
+    <span>{prefix}</span>
+    <span>{value || "Não informado"}</span>
   </div>
 );
 
