@@ -7,15 +7,16 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 
 const Feirao = () => {
-  const { vagas_feirao, feirao_ativa, periodo_feirao } = useVagasLocalStore();
-  const vagas = vagas_feirao.filter(v => v.publicada);
+  const { vagas, semana_ativa, periodos } = useVagasLocalStore();
+  const vFeirao = (vagas.feirao || []).filter(v => v.publicada);
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
 
-  const feiraoAtivo = feirao_ativa;
+  const feiraoAtivo = semana_ativa === 'feirao';
   const categoriaFiltro = searchParams.get("categoria") || "";
-  const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
-  const periodo = periodo_feirao;
+  const totalVagas = vFeirao.reduce((sum, v) => sum + v.quantidade, 0);
+  const periodo = periodos.feirao;
+
 
   if (!feiraoAtivo) {
     return (
@@ -34,7 +35,7 @@ const Feirao = () => {
     );
   }
 
-  const vagasFiltradas = vagas.filter((v) => {
+  const vagasFiltradas = vFeirao.filter((v) => {
     const matchBusca =
       !busca ||
       v.descricao.toLowerCase().includes(busca.toLowerCase());
