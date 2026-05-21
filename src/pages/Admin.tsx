@@ -11,6 +11,7 @@ import { DashboardPage } from "@/components/admin/DashboardPage";
 import { CadastroVagasPage } from "@/components/admin/CadastroVagasPage";
 import { VisibilidadePage } from "@/components/admin/VisibilidadePage";
 import { ConfiguracoesPage } from "@/components/admin/ConfiguracoesPage";
+import { HistoricoMensalPage } from "@/components/admin/HistoricoMensalPage";
 
 const Admin = () => {
   const { user, loading, isAdmin, signIn, signOut } = useAuth();
@@ -68,6 +69,7 @@ const Admin = () => {
       case "cadastro-vagas": return <CadastroVagasPage />;
       case "visibilidade": return <VisibilidadePage />;
       case "configuracoes": return <ConfiguracoesPage />;
+      case "historico": return <HistoricoMensalPage />;
       default: return <DashboardPage />;
     }
   };
