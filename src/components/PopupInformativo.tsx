@@ -24,20 +24,36 @@ export const PopupInformativo = ({ forcedOpen = false, onClose }: { forcedOpen?:
 
     // Verificar se o popup está ativo
     if (config.ativo) {
-      // Verificar se já foi visto nesta sessão para evitar loop/incômodo
-      const jaVisto = sessionStorage.getItem('popup_visto');
-      if (!jaVisto) {
+      const frequency = config.frequencia || 'sessao';
+      
+      if (frequency === 'sempre') {
         setIsOpen(true);
+      } else if (frequency === 'sessao') {
+        const jaVistoSessao = sessionStorage.getItem('popup_visto');
+        if (!jaVistoSessao) {
+          setIsOpen(true);
+        }
+      } else if (frequency === 'diario') {
+        const lastSeen = localStorage.getItem('popup_last_seen');
+        const today = new Date().toDateString();
+        if (lastSeen !== today) {
+          setIsOpen(true);
+        }
       }
     }
-  }, [config.ativo]);
+  }, [config.ativo, config.frequencia]);
 
   const handleClose = () => {
     setIsOpen(false);
     if (onClose) {
       onClose();
     } else {
-      sessionStorage.setItem('popup_visto', 'true');
+      const frequency = config.frequencia || 'sessao';
+      if (frequency === 'sessao') {
+        sessionStorage.setItem('popup_visto', 'true');
+      } else if (frequency === 'diario') {
+        localStorage.setItem('popup_last_seen', new Date().toDateString());
+      }
     }
   };
 

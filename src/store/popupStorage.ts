@@ -7,6 +7,7 @@ export interface PopupConfig {
   imagem: string;
   botaoTexto: string;
   botaoLink: string;
+  frequencia: 'sempre' | 'sessao' | 'diario';
 }
 
 interface PopupState {
@@ -24,6 +25,7 @@ const DEFAULT_CONFIG: PopupConfig = {
   imagem: "",
   botaoTexto: "Entendi",
   botaoLink: "",
+  frequencia: 'sessao',
 };
 
 const getInitialState = (): PopupConfig => {

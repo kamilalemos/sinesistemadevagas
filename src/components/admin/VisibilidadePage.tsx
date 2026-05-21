@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, Layout, Bell, Image as ImageIcon, Link as LinkIcon, Type, FileText, Upload, Loader2, Play } from "lucide-react";
+import { Eye, EyeOff, Layout, Bell, Image as ImageIcon, Link as LinkIcon, Type, FileText, Upload, Loader2, Play, Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { usePopupStore } from "@/store/popupStorage";
@@ -133,6 +133,36 @@ export function VisibilidadePage() {
             </div>
 
             <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  Frequência de Exibição
+                </Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant={config.frequencia === 'sessao' || !config.frequencia ? "secondary" : "outline"}
+                    className="rounded-xl text-xs h-9"
+                    onClick={() => updateConfig({ frequencia: 'sessao' })}
+                  >
+                    Uma vez por sessão
+                  </Button>
+                  <Button
+                    variant={config.frequencia === 'diario' ? "secondary" : "outline"}
+                    className="rounded-xl text-xs h-9"
+                    onClick={() => updateConfig({ frequencia: 'diario' })}
+                  >
+                    Uma vez por dia
+                  </Button>
+                  <Button
+                    variant={config.frequencia === 'sempre' ? "secondary" : "outline"}
+                    className="rounded-xl text-xs h-9"
+                    onClick={() => updateConfig({ frequencia: 'sempre' })}
+                  >
+                    Sempre (cada recarga)
+                  </Button>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Type className="w-4 h-4 text-muted-foreground" />
