@@ -5,12 +5,17 @@ import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { usePopupStore } from '@/store/popupStorage';
 
-export const PopupInformativo = () => {
+export const PopupInformativo = ({ forcedOpen = false, onClose }: { forcedOpen?: boolean, onClose?: () => void }) => {
   const { config } = usePopupStore();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
+    if (forcedOpen) {
+      setIsOpen(true);
+      return;
+    }
+
     // Não exibir dentro da área administrativa
     if (location.pathname.startsWith('/admin')) {
       setIsOpen(false);
@@ -29,7 +34,11 @@ export const PopupInformativo = () => {
 
   const handleClose = () => {
     setIsOpen(false);
-    sessionStorage.setItem('popup_visto', 'true');
+    if (onClose) {
+      onClose();
+    } else {
+      sessionStorage.setItem('popup_visto', 'true');
+    }
   };
 
   const handleAction = () => {
@@ -41,7 +50,7 @@ export const PopupInformativo = () => {
 
   return (
     <AnimatePresence>
-      {isOpen && config.ativo && (
+      {(isOpen && (config.ativo || forcedOpen)) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           {/* Overlay */}
           <motion.div
