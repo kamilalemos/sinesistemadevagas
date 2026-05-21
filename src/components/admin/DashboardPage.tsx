@@ -3,17 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 
 export const DashboardPage = () => {
-  const { vagas } = useVagasLocalStore();
+  const { vagas_semana, vagas_feirao } = useVagasLocalStore();
   
-  const totalVagas = Object.values(vagas).reduce((acc, lista) => 
-    acc + lista.reduce((sum, v) => sum + v.quantidade, 0), 0
-  );
+  const totalVagas = vagas_semana.reduce((acc, v) => acc + v.quantidade, 0) + 
+                     vagas_feirao.reduce((acc, v) => acc + v.quantidade, 0);
 
   const stats = [
     { title: "Total de Vagas", value: totalVagas, icon: Briefcase, color: "text-blue-500" },
-    { title: "Vagas Semana 1", value: (vagas.semana1 || []).length, icon: TrendingUp, color: "text-green-500" },
-    { title: "Vagas no Feirão", value: (vagas.feirao || []).length, icon: Users, color: "text-purple-500" },
-    { title: "Semanas Ativas", value: "4", icon: BarChart3, color: "text-orange-500" },
+    { title: "Vagas da Semana", value: vagas_semana.length, icon: TrendingUp, color: "text-green-500" },
+    { title: "Vagas no Feirão", value: vagas_feirao.length, icon: Users, color: "text-purple-500" },
+    { title: "Taxa de Ocupação", value: "84%", icon: BarChart3, color: "text-orange-500" },
   ];
 
   return (

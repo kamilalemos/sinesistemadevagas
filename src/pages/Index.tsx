@@ -68,11 +68,9 @@ const CandidatarSection = () => {
 };
 
 const Index = () => {
-  const { vagas, semana_ativa, periodos } = useVagasLocalStore();
-  const currentSemana = (semana_ativa === 'feirao' ? 'semana1' : semana_ativa) || 'semana1';
-  const vSemana = (vagas[currentSemana] || []).filter(v => v.publicada);
-  const vFeirao = (vagas.feirao || []).filter(v => v.publicada);
-
+  const { vagas_semana, vagas_feirao, semana_ativa, feirao_ativa, periodo_semana } = useVagasLocalStore();
+  const vSemana = vagas_semana.filter(v => v.publicada);
+  const vFeirao = vagas_feirao.filter(v => v.publicada);
 
   const totalSemana = vSemana.reduce((sum, v) => sum + v.quantidade, 0);
   const totalFeirao = vFeirao.reduce((sum, v) => sum + v.quantidade, 0);
@@ -85,9 +83,9 @@ const Index = () => {
 
   const categoriasComQtdSemana = calcCatLocal(vSemana);
   const categoriasComQtdFeirao = calcCatLocal(vFeirao);
-  const periodo = periodos[currentSemana];
-  const sAtiva = semana_ativa !== 'feirao';
-  const fAtiva = semana_ativa === 'feirao';
+  const periodo = periodo_semana;
+  const sAtiva = semana_ativa;
+  const fAtiva = feirao_ativa;
 
   return (
     <div className="pt-14">
