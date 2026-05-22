@@ -40,7 +40,7 @@ const Header = () => {
       )}
     >
       <div className="container mx-auto flex items-center justify-between px-4 lg:px-8">
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to="/" className="flex items-center gap-4 group">
           <div className={cn(
             "p-1.5 rounded-lg transition-colors",
             scrolled ? "bg-primary/5" : "bg-white/10"
