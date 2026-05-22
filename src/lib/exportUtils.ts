@@ -104,13 +104,12 @@ export const exportToJSON = (data: any, filename: string) => {
 };
 
 /**
- * Generates and downloads a PDF file with institutional branding (Landscape A4).
+ * Generates institutional PDF blob or dataURL for preview or download.
  */
-export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string) => {
+export const generatePDF = (vagas: VagaLocal[], title: string) => {
   try {
     if (!vagas || vagas.length === 0) {
-      toast.error("Nenhuma vaga disponível para exportar.");
-      return;
+      return null;
     }
 
     // Configuração Landscape A4
@@ -118,13 +117,13 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
       orientation: "landscape",
       unit: "mm",
       format: "a4"
-    }) as any; // Usar any para evitar erros de tipagem com métodos internos do jsPDF
+    }) as any;
 
     const now = new Date();
     const dateStr = now.toLocaleDateString('pt-BR');
     const timeStr = now.toLocaleTimeString('pt-BR');
 
-    // Cabeçalho Institucional Azul SINE (Ocupa largura total landscape)
+    // Cabeçalho Institucional Azul SINE
     doc.setFillColor(0, 56, 147);
     doc.rect(0, 0, 297, 35, 'F');
     
@@ -141,13 +140,13 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(9);
     doc.text(`Exportado em: ${dateStr} às ${timeStr}`, 15, 42);
-    doc.text(`Total de Oportunidades: ${vagas.length}`, 15, 47);
+    doc.text(`Total de Oportunidades Filtradas: ${vagas.length}`, 15, 47);
     
     doc.setDrawColor(200, 200, 200);
     doc.line(15, 52, 282, 52);
 
     // Tabela Horizontal Profissional (Landscape)
-    const tableHeaders = [["ID", "Descrição do Cargo", "Qtd", "CBO", "Escolaridade", "Experiência", "Salário", "Benefícios", "Empresa", "Status"]];
+    const tableHeaders = [["ID", "Cargo", "Qtd", "CBO", "Escolaridade", "Experiência", "Salário", "Benefícios", "Empresa", "Status"]];
     
     const tableData = vagas.map(v => [
       v.codigo || "-",
@@ -156,10 +155,10 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
       v.cbo || "-",
       v.escolaridade || "-",
       v.experiencia || "-",
-      v.salario || "-",
+      v.salario || "A combinar",
       v.beneficios || "-",
       v.empresa || "-",
-      v.publicada ? "Publicada" : "Pausada"
+      v.publicada ? "Ativa" : "Pausada"
     ]);
 
     doc.autoTable({
@@ -183,20 +182,19 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
       },
       columnStyles: {
         0: { cellWidth: 15, halign: 'center' }, // ID/Código
-        1: { cellWidth: 50, overflow: 'linebreak' }, // Descrição
+        1: { cellWidth: 45, overflow: 'linebreak' }, // Cargo
         2: { cellWidth: 10, halign: 'center' }, // Qtd
         3: { cellWidth: 18, halign: 'center' }, // CBO
         4: { cellWidth: 35, overflow: 'linebreak' }, // Escolaridade
         5: { cellWidth: 25, overflow: 'linebreak' }, // Experiência
         6: { cellWidth: 25 },                   // Salário
-        7: { cellWidth: 45, overflow: 'linebreak' }, // Benefícios
+        7: { cellWidth: 50, overflow: 'linebreak' }, // Benefícios
         8: { cellWidth: 30, overflow: 'linebreak' }, // Empresa
-        9: { cellWidth: 20, halign: 'center' }  // Status
+        9: { cellWidth: 15, halign: 'center' }  // Status
       },
       alternateRowStyles: { fillColor: [245, 248, 255] },
       margin: { left: 10, right: 10 },
       didDrawPage: (data: any) => {
-        // Footer em cada página
         doc.setFontSize(7);
         doc.setTextColor(150, 150, 150);
         const str = `Página ${doc.internal.getNumberOfPages()} - Relatório Oficial SINE João Pessoa`;
@@ -204,10 +202,22 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
       }
     });
 
-    doc.save(`${filename}.pdf`);
-    toast.success("Relatório PDF gerado (A4 Horizontal)");
+    return doc;
   } catch (error) {
-    console.error("Erro ao exportar PDF:", error);
+    console.error("Erro ao gerar PDF:", error);
+    return null;
+  }
+};
+
+/**
+ * Generates and downloads a PDF file with institutional branding (Landscape A4).
+ */
+export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string) => {
+  const doc = generatePDF(vagas, title);
+  if (doc) {
+    doc.save(`${filename}.pdf`);
+    toast.success("Relatório PDF exportado com sucesso");
+  } else {
     toast.error("Falha ao gerar o relatório PDF.");
   }
 };
