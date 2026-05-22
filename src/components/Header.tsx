@@ -86,7 +86,17 @@ const Header = () => {
               {item.label}
             </Link>
           ))}
-          <div className="w-px h-6 mx-2 bg-white/20" />
+          {showInstallBtn && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleInstallClick}
+              className="hidden xl:flex items-center gap-2 rounded-full bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white mr-2"
+            >
+              <Download className="w-4 h-4" />
+              Instalar App
+            </Button>
+          )}
           <Link
             to="/admin"
             className="p-2.5 rounded-full transition-all duration-200 text-white/70 hover:text-white hover:bg-white/10"
