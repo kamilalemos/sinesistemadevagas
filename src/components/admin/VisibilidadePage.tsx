@@ -344,55 +344,54 @@ export function VisibilidadePage() {
 
           {/* Pop-up Preview Area */}
           <div className="space-y-2">
-            <Label className="text-xs uppercase font-bold text-muted-foreground tracking-wider ml-1">Preview do Pop-up (Simulação)</Label>
+            <Label className="text-xs uppercase font-bold text-muted-foreground tracking-wider ml-1">Preview do Pop-up (Simulação Real)</Label>
             <div className={cn(
-              "border rounded-2xl overflow-hidden bg-muted/20 shadow-inner p-4 transition-all duration-300 relative flex items-center justify-center",
-              previewDevice === 'mobile' ? "max-w-[375px] mx-auto h-[500px]" : "w-full h-[500px]"
+              "border rounded-[2.5rem] overflow-hidden bg-muted/20 shadow-inner p-4 transition-all duration-500 relative flex items-center justify-center",
+              previewDevice === 'mobile' ? "max-w-[375px] mx-auto min-h-[600px]" : "w-full min-h-[600px]"
             )}>
               {/* Overlay simulation */}
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-0 rounded-2xl" />
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-0 rounded-[2rem]" />
               
               {/* Modal simulation */}
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                key={`${popupConfig.titulo}-${popupConfig.imagemBase64}`}
+                key={`${popupConfig.titulo}-${popupConfig.imagemBase64}-${popupConfig.descricao}`}
                 className={cn(
-                  "relative z-10 bg-card rounded-2xl shadow-2xl overflow-hidden border border-border transition-all duration-300",
-                  previewDevice === 'mobile' ? "w-full max-w-[280px]" : "w-full max-w-[360px]"
+                  "relative z-10 bg-card rounded-[2rem] shadow-2xl overflow-hidden border border-border/50 transition-all duration-500 flex flex-col items-center",
+                  previewDevice === 'mobile' ? "w-full max-w-[280px]" : "w-full max-w-[380px]"
                 )}
               >
-                <button className="absolute top-2 right-2 p-1.5 rounded-full bg-black/5 hover:bg-black/10 z-10">
+                <button className="absolute top-3 right-3 p-1.5 rounded-full bg-black/5 hover:bg-black/10 z-20">
                   <X className="w-3.5 h-3.5" />
                 </button>
 
                 {popupConfig.imagemBase64 && (
-                  <div className="w-full aspect-video bg-muted overflow-hidden">
+                  <div className="w-full aspect-square bg-muted overflow-hidden shrink-0">
                     <img src={popupConfig.imagemBase64} alt="Preview" className="w-full h-full object-cover" />
                   </div>
                 )}
 
-                <div className="p-4 space-y-2">
+                <div className="p-6 space-y-4 text-center">
                   <div className="space-y-1">
-                    <h4 className="font-heading font-extrabold text-foreground text-sm md:text-base leading-tight">
+                    <h4 className="font-heading font-black text-foreground text-sm md:text-lg leading-tight tracking-tight">
                       {popupConfig.titulo || "Título do Comunicado"}
                     </h4>
-                    <div className="w-8 h-0.5 bg-primary rounded-full" />
+                    <div className="w-10 h-1 bg-primary rounded-full mx-auto" />
                   </div>
                   
-                  <p className="text-muted-foreground text-[11px] md:text-xs leading-relaxed line-clamp-4">
+                  <p className="text-muted-foreground text-[10px] md:text-sm leading-relaxed line-clamp-4 font-medium">
                     {popupConfig.descricao || "O texto do seu comunicado aparecerá aqui de forma clara e organizada para o cidadão."}
                   </p>
 
-                  <div className="pt-2 flex flex-col gap-2">
+                  <div className="pt-2 w-full flex flex-col gap-2">
                     {popupConfig.botaoTexto && (
-                      <Button className="w-full h-8 rounded-lg text-[10px] md:text-xs font-bold bg-primary hover:bg-primary/90 gap-1 pointer-events-none">
+                      <Button className="w-full h-10 rounded-xl text-[10px] md:text-xs font-black bg-secondary hover:bg-secondary/90 gap-1 pointer-events-none shadow-lg shadow-secondary/10">
                         {popupConfig.botaoTexto}
-                        {popupConfig.botaoLink && <ExternalLink className="w-3 h-3" />}
                       </Button>
                     )}
-                    <Button variant="outline" className="w-full h-8 rounded-lg text-[10px] md:text-xs font-semibold pointer-events-none">
-                      Fechar
+                    <Button className="w-full h-10 rounded-xl text-[10px] md:text-xs font-black bg-primary hover:bg-primary/90 gap-1 pointer-events-none shadow-lg shadow-primary/10">
+                      Li e entendi
                     </Button>
                   </div>
                 </div>
