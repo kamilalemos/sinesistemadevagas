@@ -104,7 +104,7 @@ export const exportToJSON = (data: any, filename: string) => {
 };
 
 /**
- * Generates and downloads a PDF file with institutional branding.
+ * Generates and downloads a PDF file with institutional branding (Landscape A4).
  */
 export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string) => {
   try {
@@ -113,88 +113,101 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
       return;
     }
 
-    const doc = new jsPDF();
+    // Configuração Landscape A4
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4"
+    }) as any; // Usar any para evitar erros de tipagem com métodos internos do jsPDF
+
     const now = new Date();
     const dateStr = now.toLocaleDateString('pt-BR');
     const timeStr = now.toLocaleTimeString('pt-BR');
 
-    // Branding / Header
-    doc.setFillColor(0, 56, 147); // SINE Blue
-    doc.rect(0, 0, 210, 40, 'F');
+    // Cabeçalho Institucional Azul SINE (Ocupa largura total landscape)
+    doc.setFillColor(0, 56, 147);
+    doc.rect(0, 0, 297, 35, 'F');
     
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
+    doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
-    doc.text("SINE JOÃO PESSOA", 105, 18, { align: 'center' });
+    doc.text("SINE JOÃO PESSOA - PAINEL DA EMPREGABILIDADE", 148.5, 15, { align: 'center' });
     
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(title.toUpperCase(), 105, 28, { align: 'center' });
+    doc.text(title.toUpperCase(), 148.5, 25, { align: 'center' });
     
-    // Metadata
+    // Metadados do Relatório
     doc.setTextColor(60, 60, 60);
-    doc.setFontSize(10);
-    doc.text(`Data da Exportação: ${dateStr} às ${timeStr}`, 15, 50);
-    doc.text(`Total de Vagas: ${vagas.length}`, 15, 56);
+    doc.setFontSize(9);
+    doc.text(`Exportado em: ${dateStr} às ${timeStr}`, 15, 42);
+    doc.text(`Total de Oportunidades: ${vagas.length}`, 15, 47);
+    
     doc.setDrawColor(200, 200, 200);
-    doc.line(15, 60, 195, 60);
+    doc.line(15, 52, 282, 52);
 
-    // Table
-    const tableHeaders = [["Descrição", "CBO", "Escolaridade", "Qtd", "Empresa"]];
+    // Tabela Horizontal Profissional (Landscape)
+    const tableHeaders = [["ID", "Descrição do Cargo", "Qtd", "CBO", "Escolaridade", "Experiência", "Salário", "Benefícios", "Empresa", "Status"]];
+    
     const tableData = vagas.map(v => [
+      v.codigo || "-",
       v.descricao || "-",
+      v.quantidade || "0",
       v.cbo || "-",
       v.escolaridade || "-",
-      v.quantidade || "0",
-      v.empresa || "-"
+      v.experiencia || "-",
+      v.salario || "-",
+      v.beneficios || "-",
+      v.empresa || "-",
+      v.publicada ? "Publicada" : "Pausada"
     ]);
 
     doc.autoTable({
-      startY: 65,
+      startY: 55,
       head: tableHeaders,
       body: tableData,
       theme: 'striped',
       headStyles: { 
         fillColor: [0, 56, 147],
         textColor: [255, 255, 255],
-        fontSize: 10,
-        fontStyle: 'bold'
+        fontSize: 8,
+        fontStyle: 'bold',
+        halign: 'center'
       },
       styles: { 
-        fontSize: 9, 
-        cellPadding: 4,
-        overflow: 'linebreak'
+        fontSize: 7, 
+        cellPadding: 2,
+        overflow: 'linebreak',
+        font: 'helvetica'
       },
       columnStyles: {
-        0: { cellWidth: 60 }, // Descrição
-        1: { cellWidth: 25 }, // CBO
-        2: { cellWidth: 40 }, // Escolaridade
-        3: { cellWidth: 15 }, // Qtd
-        4: { cellWidth: 40 }  // Empresa
+        0: { cellWidth: 15, halign: 'center' }, // ID/Código
+        1: { cellWidth: 50 },                   // Descrição
+        2: { cellWidth: 10, halign: 'center' }, // Qtd
+        3: { cellWidth: 18, halign: 'center' }, // CBO
+        4: { cellWidth: 35 },                   // Escolaridade
+        5: { cellWidth: 25 },                   // Experiência
+        6: { cellWidth: 25 },                   // Salário
+        7: { cellWidth: 45 },                   // Benefícios
+        8: { cellWidth: 30 },                   // Empresa
+        9: { cellWidth: 20, halign: 'center' }  // Status
       },
       alternateRowStyles: { fillColor: [245, 248, 255] },
-      margin: { left: 15, right: 15 }
+      margin: { left: 10, right: 10 },
+      didDrawPage: (data: any) => {
+        // Footer em cada página
+        doc.setFontSize(7);
+        doc.setTextColor(150, 150, 150);
+        const str = `Página ${doc.internal.getNumberOfPages()} - Relatório Oficial SINE João Pessoa`;
+        doc.text(str, 148.5, 205, { align: 'center' });
+      }
     });
 
-    // Footer on each page
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text(
-        `Página ${i} de ${pageCount} - Painel da Empregabilidade SINE JP`,
-        105, 
-        285, 
-        { align: 'center' }
-      );
-    }
-
     doc.save(`${filename}.pdf`);
-    toast.success("PDF gerado com sucesso!");
+    toast.success("Relatório PDF gerado (A4 Horizontal)");
   } catch (error) {
     console.error("Erro ao exportar PDF:", error);
-    toast.error("Falha ao gerar o arquivo PDF.");
+    toast.error("Falha ao gerar o relatório PDF.");
   }
 };
 
@@ -205,7 +218,6 @@ export const exportHistoryToPDF = (item: HistoricoMensal) => {
   try {
     const allPublishedVagas: VagaLocal[] = [];
     
-    // Collect all published vagas from the month
     if (item.weeks) {
       [1, 2, 3, 4].forEach(w => {
         const weekKey = `semana_${w}` as keyof typeof item.weeks;
@@ -224,18 +236,17 @@ export const exportHistoryToPDF = (item: HistoricoMensal) => {
       "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     ];
     
-    // If month is a number (1-12), convert to name, otherwise use as is
     const monthLabel = typeof item.month === 'number' 
       ? monthNames[item.month - 1] 
       : item.month;
 
     exportToPDF(
       allPublishedVagas, 
-      `Histórico Mensal: ${monthLabel} / ${item.year}`,
-      `sine-historico-${monthLabel}-${item.year}`
+      `Relatório Consolidado: ${monthLabel} / ${item.year}`,
+      `relatorio_vagas_${monthLabel.toLowerCase()}_${item.year}`
     );
   } catch (error) {
     console.error("Erro ao exportar histórico:", error);
-    toast.error("Falha ao exportar histórico.");
+    toast.error("Falha ao exportar relatório histórico.");
   }
 };
