@@ -63,18 +63,40 @@ export const ConfiguracoesPage = () => {
   const handleExportPDF = () => {
     try {
       const todasVagas = [...vagas_semana, ...vagas_feirao].filter(v => v.publicada);
+      if (todasVagas.length === 0) {
+        toast.error("Nenhuma vaga publicada para exportar.");
+        return;
+      }
+
       const now = new Date();
       const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
       const monthName = monthNames[now.getMonth()];
+      const title = `Relatório de Vagas - ${monthName} / ${now.getFullYear()}`;
+      const filename = `sine-vagas-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       
-      exportToPDF(
-        todasVagas, 
-        `Relatório de Vagas - ${monthName} / ${now.getFullYear()}`, 
-        `sine-vagas-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-      );
+      const doc = generatePDF(todasVagas, title);
+      if (doc) {
+        const pdfDataUri = doc.output('datauristring');
+        setPdfPreviewData(pdfDataUri);
+        setCurrentFilename(filename);
+        setIsPreviewOpen(true);
+      }
     } catch (error) {
       console.error("Erro no export PDF:", error);
       toast.error("Erro ao preparar exportação PDF.");
+    }
+  };
+
+  const confirmDownloadPDF = () => {
+    try {
+      const link = document.createElement('a');
+      link.href = pdfPreviewData!;
+      link.download = `${currentFilename}.pdf`;
+      link.click();
+      setIsPreviewOpen(false);
+      toast.success("PDF baixado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao baixar PDF.");
     }
   };
 
