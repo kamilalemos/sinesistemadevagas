@@ -17,6 +17,7 @@ import { useVagasLocalStore } from "@/store/vagasStorage";
 import { getHistory } from "@/lib/vagasPersistence";
 import { exportToCSV, exportToJSON, exportToPDF, generatePDF } from "@/lib/exportUtils";
 import { saveData } from "@/services/storage";
+import { VagaLocal } from "@/types";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
