@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { 
-  VagaLocal, 
   loadVagasFromLocalStorage, 
   saveVagasToLocalStorage 
 } from '@/lib/vagasPersistence';
+import { VagaLocal } from '@/types';
 
 export type { VagaLocal };
 

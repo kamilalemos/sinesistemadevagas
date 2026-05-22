@@ -1,13 +1,6 @@
 import { create } from 'zustand';
-
-export interface PopupConfig {
-  ativo: boolean;
-  titulo: string;
-  descricao: string;
-  imagemBase64: string;
-  botaoTexto: string;
-  botaoLink: string;
-}
+import { PopupConfig } from '@/types';
+import { saveData, loadData } from '@/services/storage';
 
 interface PopupState {
   config: PopupConfig;
@@ -27,35 +20,28 @@ const DEFAULT_CONFIG: PopupConfig = {
 };
 
 const getInitialState = (): PopupConfig => {
-  if (typeof window === 'undefined') return DEFAULT_CONFIG;
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      // Migração de campo antigo 'imagem' para 'imagemBase64' se necessário
-      if (parsed.imagem && !parsed.imagemBase64) {
-        parsed.imagemBase64 = parsed.imagem;
-        delete parsed.imagem;
-      }
-      return parsed;
-    } catch (e) {
-      console.error("Error parsing popup config", e);
-      return DEFAULT_CONFIG;
-    }
+  const saved = loadData<PopupConfig | null>(STORAGE_KEY, null);
+  if (!saved) return DEFAULT_CONFIG;
+
+  // Migração de campo antigo 'imagem' para 'imagemBase64' se necessário
+  const config = { ...saved } as any;
+  if (config.imagem && !config.imagemBase64) {
+    config.imagemBase64 = config.imagem;
+    delete config.imagem;
   }
-  return DEFAULT_CONFIG;
+  return config as PopupConfig;
 };
 
 export const usePopupStore = create<PopupState>((set) => ({
   config: getInitialState(),
   setAtivo: (ativo) => set((state) => {
     const newConfig = { ...state.config, ativo };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig));
+    saveData(STORAGE_KEY, newConfig);
     return { config: newConfig };
   }),
   updateConfig: (newConfig) => set((state) => {
     const updated = { ...state.config, ...newConfig };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    saveData(STORAGE_KEY, updated);
     return { config: updated };
   }),
 }));
