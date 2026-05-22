@@ -350,4 +350,3 @@ export const VagasTabContent = ({ tipo }: Props) => {
     </div>
   );
 };
-};
