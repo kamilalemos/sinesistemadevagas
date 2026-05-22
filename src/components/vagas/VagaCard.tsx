@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Hash, Tag, Calendar, DollarSign, GraduationCap, Briefcase } from "lucide-react";
+import { Hash, Tag, Calendar, DollarSign, GraduationCap, Briefcase, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface VagaCardProps {
   cargo: string;
@@ -17,10 +18,10 @@ interface VagaCardProps {
   index: number;
 }
 
-const CompactInfo = ({ value, prefix }: { value: string; prefix?: string }) => (
-  <div className="flex items-center gap-1 text-[11px] md:text-xs font-semibold text-foreground/90">
-    <span>{prefix}</span>
-    <span>{value || "Não informado"}</span>
+const CompactInfo = ({ value, prefix, icon: Icon }: { value: string; prefix?: string; icon: any }) => (
+  <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold text-muted-foreground/80 bg-muted/50 px-2 py-1 rounded-full border border-border/40">
+    <Icon className="w-3 h-3 text-primary/60" />
+    <span className="truncate max-w-[120px]">{value || "Não informado"}</span>
   </div>
 );
 
@@ -41,58 +42,72 @@ export const VagaCard = ({
 }: VagaCardProps) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.02 }}
-      className="bg-card rounded-xl p-4 md:p-5 shadow-sm border border-border hover:border-primary/40 transition-all group"
+      transition={{ delay: index * 0.03, type: "spring", damping: 20, stiffness: 100 }}
+      className="bg-card rounded-2xl p-5 md:p-6 shadow-card hover:shadow-card-hover border border-border/60 hover:border-primary/30 transition-all group relative overflow-hidden"
     >
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-heading font-bold text-base md:text-lg text-foreground leading-tight">
+      {/* Decorative accent */}
+      <div className="absolute top-0 left-0 w-1.5 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+      
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-3 flex-1">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-md">
+                {categoria}
+              </Badge>
+              {index < 5 && (
+                <Badge className="bg-emerald-500 hover:bg-emerald-600 text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-md border-none">
+                  Nova
+                </Badge>
+              )}
+            </div>
+            <h3 className="font-heading font-extrabold text-lg md:text-xl text-foreground leading-tight group-hover:text-primary transition-colors">
               {cargo}
             </h3>
-            <span className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
-              {categoria}
-            </span>
           </div>
           
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs text-muted-foreground font-medium">
+          <div className="flex flex-wrap items-center gap-2">
+            <CompactInfo icon={DollarSign} value={salario.join(", ") || "À combinar"} />
+            <CompactInfo icon={GraduationCap} value={escolaridade.join(", ")} />
+            <CompactInfo icon={Briefcase} value={experiencia.join(", ")} />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground/70 font-semibold italic">
             <span className="flex items-center gap-1">
-              <Hash className="w-3 h-3" /> CBO: {cbos.join(", ")}
+              <Hash className="w-3 h-3" /> CBO {cbos.join(", ")}
             </span>
-            <span className="hidden md:inline text-muted-foreground/30">•</span>
             <span className="flex items-center gap-1">
-              <Tag className="w-3 h-3" /> ID: {numVagas.join(", ")}
+              <Tag className="w-3 h-3" /> ID {numVagas.join(", ")}
             </span>
-            <span className="hidden md:inline text-muted-foreground/30">•</span>
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" /> {periodos.length > 0 ? periodos.join(", ") : periodoGeral}
             </span>
           </div>
         </div>
 
-        <div className="bg-primary/5 group-hover:bg-primary/10 text-primary px-3 py-1.5 rounded-lg border border-primary/20 shrink-0 flex flex-col items-center justify-center min-w-[60px] transition-colors">
-          <span className="text-base md:text-lg font-bold leading-none">{totalQtd}</span>
-          <span className="text-[9px] uppercase font-bold opacity-80">{totalQtd > 1 ? "Vagas" : "Vaga"}</span>
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="bg-primary/5 group-hover:bg-primary group-hover:text-white text-primary px-4 py-3 rounded-2xl border border-primary/10 shrink-0 flex flex-col items-center justify-center min-w-[80px] transition-all duration-300 shadow-sm">
+            <span className="text-2xl md:text-3xl font-black leading-none">{totalQtd}</span>
+            <span className="text-[10px] uppercase font-black opacity-80 tracking-tighter">{totalQtd > 1 ? "Vagas" : "Vaga"}</span>
+          </div>
+          
+          <div className="hidden md:flex w-10 h-10 rounded-full bg-muted items-center justify-center group-hover:bg-primary group-hover:text-white transition-all transform group-hover:translate-x-1">
+            <ChevronRight className="w-5 h-5" />
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
-        <CompactInfo value={salario.join(", ") || "À combinar"} prefix="💰" />
-        <CompactInfo value={escolaridade.join(", ")} prefix="🎓" />
-        <CompactInfo value={experiencia.join(", ")} prefix="💼" />
-      </div>
-
-      <div className="flex items-center gap-1.5 text-[11px] md:text-xs text-foreground/80 bg-muted/30 p-2 rounded-lg border border-border/50">
-        <span className="text-sm">🎁</span>
-        <span className="font-medium line-clamp-1">{beneficios.join(", ") || "Sem benefícios informados"}</span>
-      </div>
-
-      {descricoes.length > 0 && (
-        <p className="mt-2 text-[11px] md:text-xs text-muted-foreground line-clamp-2 leading-relaxed italic">
-          "{descricoes[0]}"
-        </p>
+      {beneficios.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-dashed border-border flex items-center gap-2">
+          <div className="bg-amber-100 text-amber-700 p-1 rounded-md">
+            <span className="text-xs">🎁</span>
+          </div>
+          <span className="text-[11px] md:text-xs font-bold text-foreground/70 line-clamp-1">
+            {beneficios.join(", ")}
+          </span>
+        </div>
       )}
     </motion.div>
   );
