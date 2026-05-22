@@ -178,18 +178,19 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
         fontSize: 7, 
         cellPadding: 2,
         overflow: 'linebreak',
-        font: 'helvetica'
+        font: 'helvetica',
+        minCellHeight: 8
       },
       columnStyles: {
         0: { cellWidth: 15, halign: 'center' }, // ID/Código
-        1: { cellWidth: 50 },                   // Descrição
+        1: { cellWidth: 50, overflow: 'linebreak' }, // Descrição
         2: { cellWidth: 10, halign: 'center' }, // Qtd
         3: { cellWidth: 18, halign: 'center' }, // CBO
-        4: { cellWidth: 35 },                   // Escolaridade
-        5: { cellWidth: 25 },                   // Experiência
+        4: { cellWidth: 35, overflow: 'linebreak' }, // Escolaridade
+        5: { cellWidth: 25, overflow: 'linebreak' }, // Experiência
         6: { cellWidth: 25 },                   // Salário
-        7: { cellWidth: 45 },                   // Benefícios
-        8: { cellWidth: 30 },                   // Empresa
+        7: { cellWidth: 45, overflow: 'linebreak' }, // Benefícios
+        8: { cellWidth: 30, overflow: 'linebreak' }, // Empresa
         9: { cellWidth: 20, halign: 'center' }  // Status
       },
       alternateRowStyles: { fillColor: [245, 248, 255] },
