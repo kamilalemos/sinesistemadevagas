@@ -79,7 +79,7 @@ export const PopupInformativo = () => {
 
             {/* Content Section */}
             <div className={cn(
-              "p-8 md:p-10 space-y-6 flex flex-col items-center text-center",
+              "p-10 md:p-12 space-y-8 flex flex-col items-center text-center",
               !config.imagemBase64 && "pt-12"
             )}>
               <div className="space-y-3">
@@ -96,7 +96,7 @@ export const PopupInformativo = () => {
                 {config.descricao}
               </p>
 
-              <div className="pt-4 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="pt-6 w-full grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {config.botaoTexto && (
                   <Button
                     onClick={handleAction}

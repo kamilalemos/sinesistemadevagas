@@ -92,7 +92,7 @@ const Vagas = () => {
 
   return (
     <div className="pt-14 min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 space-y-4">
+      <div className="container mx-auto px-4 py-10 space-y-8">
         <div className="flex items-center gap-3">
           <Link to="/" className="text-primary"><ArrowLeft className="w-5 h-5" /></Link>
           <h1 className="font-heading font-bold text-lg text-foreground">Vagas da Semana</h1>
@@ -119,7 +119,7 @@ const Vagas = () => {
           <Input placeholder="Buscar por cargo..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 rounded-xl bg-card border-border" />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-5">
           {vagasAgrupadas.map((vaga, i) => (
             <VagaCard
               key={vaga.cargo}

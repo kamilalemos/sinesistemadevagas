@@ -75,8 +75,8 @@ export const VagasTabContent = ({ tipo }: Props) => {
 
   return (
     <div className="space-y-10">
-      <div className="bg-card rounded-2xl p-6 md:p-8 border border-border shadow-card space-y-6">
-        <div className="flex items-center gap-3">
+      <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-8">
+        <div className="flex items-center gap-4">
           <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
             <Calendar className="w-5 h-5" />
           </div>
@@ -86,7 +86,7 @@ export const VagasTabContent = ({ tipo }: Props) => {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-4">
           <Input 
             value={periodo} 
             onChange={(e) => setPeriodo(tipo, e.target.value)}
@@ -104,10 +104,10 @@ export const VagasTabContent = ({ tipo }: Props) => {
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl p-6 md:p-8 border border-border shadow-card space-y-8">
+      <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+            <div className="p-3 rounded-xl bg-primary/10 text-primary">
               <PlusCircle className="w-5 h-5" />
             </div>
             <div>
@@ -137,7 +137,7 @@ export const VagasTabContent = ({ tipo }: Props) => {
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div className="md:col-span-3 space-y-2">
+          <div className="md:col-span-3 space-y-3">
             <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Qtd. Vagas</Label>
             <Input 
               type="number" 
@@ -264,8 +264,8 @@ export const VagasTabContent = ({ tipo }: Props) => {
         </form>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
-        <div className="p-6 md:p-8 border-b border-border bg-muted/5 flex items-center justify-between">
+      <div className="bg-card rounded-[1.5rem] border border-border shadow-card overflow-hidden">
+        <div className="p-8 md:p-10 border-b border-border bg-muted/5 flex items-center justify-between">
           <div>
             <h3 className="font-heading font-extrabold text-xl text-foreground tracking-tight">Vagas Cadastradas</h3>
             <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Gestão e controle das vagas em exibição</p>
