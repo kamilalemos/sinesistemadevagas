@@ -70,10 +70,10 @@ export const PopupInformativo = () => {
             </button>
 
             {/* Image (if exists) */}
-            {config.imagem && (
+            {config.imagemBase64 && (
               <div className="w-full h-48 sm:h-64 overflow-hidden bg-muted">
                 <img
-                  src={config.imagem}
+                  src={config.imagemBase64}
                   alt={config.titulo}
                   className="w-full h-full object-cover"
                 />
