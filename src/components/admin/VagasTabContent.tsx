@@ -70,8 +70,8 @@ export const VagasTabContent = ({ tipo }: Props) => {
       empresa: vaga.empresa, categoria: vaga.categoria, periodo: vaga.periodo || periodo, publicada: vaga.publicada,
     });
     setEditingId(vaga.id);
-  };
 
+  return (
     <div className="space-y-10">
       <div className="bg-card rounded-2xl p-6 md:p-8 border border-border shadow-card space-y-6">
         <div className="flex items-center gap-3">
