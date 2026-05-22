@@ -80,8 +80,8 @@ const Footer = () => {
       {/* Bottom bar */}
       <div className="border-t border-primary-foreground/10">
         <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-2">
-          <p className="text-primary-foreground/50 text-xs">
-            © {ano} Prefeitura de João Pessoa • SINE João Pessoa
+          <p className="text-primary-foreground/50 text-xs text-center md:text-left">
+            © {ano} Todos os direitos reservados.
           </p>
           <p className="text-primary-foreground/40 text-xs flex items-center gap-1">
             Desenvolvido por UMTI – Prefeitura de João Pessoa
