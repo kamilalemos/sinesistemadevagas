@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { History, ChevronDown, ChevronUp, Calendar, Search, FileText, Download } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Calendar, Search, FileText, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,14 @@ import { HistoricoMensal, VagaLocal } from "@/types";
 import { cn } from "@/lib/utils";
 import { exportHistoryToPDF } from "@/lib/exportUtils";
 
+import { Pagination } from "@/components/ui/pagination-custom";
+
 export const HistoricoPage = () => {
   const [history, setHistory] = useState<HistoricoMensal[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Reduzido para histórico pois os cards são grandes
 
   useEffect(() => {
     setHistory(getHistory());
@@ -63,6 +67,17 @@ export const HistoricoPage = () => {
     }).filter((item): item is HistoricoMensal => item !== null);
   }, [history, searchTerm]);
 
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+
+  const currentHistory = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredHistory.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredHistory, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
     <div className="space-y-10">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -88,7 +103,7 @@ export const HistoricoPage = () => {
       </div>
 
       <div className="grid gap-6">
-        {filteredHistory.length === 0 ? (
+        {currentHistory.length === 0 ? (
           <div className="bg-card border border-border/60 rounded-[2.5rem] p-16 md:p-24 text-center space-y-4 shadow-card">
             <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-2">
               <History className="w-10 h-10 text-muted-foreground/30" />
@@ -103,7 +118,7 @@ export const HistoricoPage = () => {
             </div>
           </div>
         ) : (
-          filteredHistory.map((item) => {
+          currentHistory.map((item) => {
             const id = `${item.year}_${item.month}`;
             const isExpanded = expandedId === id || searchTerm !== ""; // Auto-expand when searching
             
@@ -247,6 +262,11 @@ export const HistoricoPage = () => {
           })
         )}
       </div>
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage} 
+      />
     </div>
   );
 };

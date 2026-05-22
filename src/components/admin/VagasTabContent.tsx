@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { PlusCircle, Trash2, Edit, Save, X, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { useVagasLocalStore, VagaLocal } from "@/store/vagasStorage";
 import { categorias } from "@/store/vagasStore";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Pagination } from "@/components/ui/pagination-custom";
 
 interface Props {
   tipo: "semana" | "feirao";
@@ -26,6 +27,19 @@ export const VagasTabContent = ({ tipo }: Props) => {
   const periodo = tipo === "semana" ? periodo_semana : periodo_feirao;
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  const totalPages = Math.ceil(vagas.length / itemsPerPage);
+  
+  const currentVagas = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return vagas.slice(startIndex, startIndex + itemsPerPage);
+  }, [vagas, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
   
   const [formData, setFormData] = useState({
     quantidade: 1,
@@ -291,7 +305,7 @@ export const VagasTabContent = ({ tipo }: Props) => {
                         <td colSpan={6} className="py-12 text-center text-muted-foreground italic">Nenhuma vaga cadastrada neste período.</td>
                       </tr>
                     ) : (
-                      vagas.map((vaga) => (
+                      currentVagas.map((vaga) => (
                         <tr key={vaga.id} className="hover:bg-primary/[0.02] transition-colors group">
                             <td className="py-5 px-6">
                               <div className="flex flex-col">
@@ -347,6 +361,13 @@ export const VagasTabContent = ({ tipo }: Props) => {
                     )}
                 </tbody>
             </table>
+        </div>
+        <div className="px-8 pb-4">
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={handlePageChange} 
+          />
         </div>
       </div>
     </div>

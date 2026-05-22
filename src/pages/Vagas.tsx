@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { VagaLocal } from "@/types";
 import { VagaCard } from "@/components/vagas/VagaCard";
+import { Pagination } from "@/components/ui/pagination-custom";
 
 interface VagaAgrupada {
   cargo: string;
@@ -59,6 +60,8 @@ function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
 
 const Vagas = () => {
   const { vagas_semana, periodo_semana, refreshFromStorage } = useVagasLocalStore();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   
   useEffect(() => {
     refreshFromStorage();
@@ -85,6 +88,22 @@ const Vagas = () => {
   });
 
   const vagasAgrupadas = useMemo(() => agruparVagas(vagasFiltradas), [vagasFiltradas]);
+
+  const totalPages = Math.ceil(vagasAgrupadas.length / itemsPerPage);
+  
+  const currentVagas = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return vagasAgrupadas.slice(startIndex, startIndex + itemsPerPage);
+  }, [vagasAgrupadas, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [busca, categoriaFiltro]);
 
   const limparFiltro = () => {
     setSearchParams({});
@@ -120,7 +139,7 @@ const Vagas = () => {
         </div>
 
         <div className="space-y-5">
-          {vagasAgrupadas.map((vaga, i) => (
+          {currentVagas.map((vaga, i) => (
             <VagaCard
               key={vaga.cargo}
               {...vaga}
@@ -129,6 +148,12 @@ const Vagas = () => {
             />
           ))}
         </div>
+
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={handlePageChange} 
+        />
 
         {vagasAgrupadas.length === 0 && (
           <p className="text-center text-muted-foreground py-8 text-sm">
