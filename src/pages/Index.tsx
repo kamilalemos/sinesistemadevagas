@@ -7,6 +7,7 @@ import CategoryCard from "@/components/CategoryCard";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { useBannerStore } from "@/store/bannerStorage";
 import { categorias as categoriasMeta } from "@/store/vagasStore";
+import { VagaLocal } from "@/types";
 
 const CandidatarSection = () => {
   const documentos = [
@@ -77,7 +78,7 @@ const Index = () => {
   const totalSemana = vSemana.reduce((sum, v) => sum + v.quantidade, 0);
   const totalFeirao = vFeirao.reduce((sum, v) => sum + v.quantidade, 0);
 
-  const calcCatLocal = (vagas: any[]) => 
+  const calcCatLocal = (vagas: VagaLocal[]) => 
     categoriasMeta.map(cat => ({
       ...cat,
       quantidade: vagas.filter(v => v.categoria === cat.nome).reduce((sum, v) => sum + v.quantidade, 0)

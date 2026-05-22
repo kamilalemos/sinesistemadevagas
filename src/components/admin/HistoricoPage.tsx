@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { History, Search, ChevronDown, ChevronUp, ExternalLink, Calendar } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { History, ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getHistory } from "@/lib/vagasPersistence";
+import { HistoricoMensal, VagaLocal } from "@/types";
 
 export const HistoricoPage = () => {
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<HistoricoMensal[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -97,16 +97,17 @@ export const HistoricoPage = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border">
-                            {[1, 2, 3, 4].map(w => (
-                              (item.weeks[`semana_${w}`]?.vagas || []).map((v: any) => (
+                            {[1, 2, 3, 4].map(w => {
+                              const weekKey = `semana_${w}` as keyof typeof item.weeks;
+                              return (item.weeks[weekKey]?.vagas || []).map((v: VagaLocal) => (
                                 <tr key={v.id} className="hover:bg-muted/30">
                                   <td className="p-2">{v.descricao}</td>
                                   <td className="p-2 font-medium">{v.categoria}</td>
                                   <td className="p-2">Semana {w}</td>
                                 </tr>
-                              ))
-                            ))}
-                            {(item.feirao?.vagas || []).map((v: any) => (
+                              ));
+                            })}
+                            {(item.feirao?.vagas || []).map((v: VagaLocal) => (
                                <tr key={v.id} className="hover:bg-muted/30">
                                   <td className="p-2">{v.descricao}</td>
                                   <td className="p-2 font-medium text-primary">{v.categoria}</td>
