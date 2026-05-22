@@ -17,18 +17,17 @@ const MONTH_NAMES = [
 
 /**
  * Generates and downloads a CSV file from an array of vagas.
- * Handles escaping and encoding correctly.
+ * For monthly consolidation, includes the period column.
  */
-export const exportToCSV = (vagas: VagaLocal[], filename: string) => {
+export const exportToCSV = (vagas: VagaLocal[], filename: string, includePeriodColumn = true) => {
   try {
     if (!vagas || vagas.length === 0) {
       toast.error("Nenhuma vaga disponível para exportar.");
       return;
     }
 
-    // Filter to only export what's requested in the prompt
-    // Colunas: Quantidade, CBO, Descrição, Escolaridade, Experiência, ID da vaga, Benefícios, Salário, Empresa, Publicada, Data
-    const headers = ["Quantidade", "CBO", "Descrição", "Escolaridade", "Experiência", "ID da Vaga", "Benefícios", "Salário", "Empresa", "Publicada", "Data"];
+    // Colunas: Quantidade, CBO, Descrição, Escolaridade, Experiência, ID da vaga, Benefícios, Salário, Empresa, Publicada, Data, Período
+    const headers = ["Quantidade", "CBO", "Descrição", "Escolaridade", "Experiência", "ID da Vaga", "Benefícios", "Salário", "Empresa", "Publicada", "Data", "Período"];
     
     const csvRows = vagas.map(v => {
       const row = [
@@ -42,10 +41,10 @@ export const exportToCSV = (vagas: VagaLocal[], filename: string) => {
         v.salario || "",
         v.empresa || "",
         v.publicada ? "Sim" : "Não",
-        v.createdAt || ""
+        v.createdAt || "",
+        v.periodo || ""
       ];
       
-      // Escape fields that might contain commas or quotes
       return row.map(field => {
         const stringField = String(field).replace(/"/g, '""');
         return `"${stringField}"`;
