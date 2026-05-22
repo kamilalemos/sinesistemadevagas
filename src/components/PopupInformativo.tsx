@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink } from 'lucide-react';
+import { X, ExternalLink, CheckCircle } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { usePopupStore } from '@/store/popupStorage';
+import { cn } from '@/lib/utils';
 
 export const PopupInformativo = () => {
   const { config } = usePopupStore();
@@ -19,17 +20,13 @@ export const PopupInformativo = () => {
 
     // Verificar se o popup está ativo
     if (config.ativo) {
-      // Verificar se já foi visto nesta sessão para evitar loop/incômodo
-      const jaVisto = sessionStorage.getItem('popup_visto');
-      if (!jaVisto) {
-        setIsOpen(true);
-      }
+      // Aberto sempre que ativo ao carregar o portal (remover bloqueio por sessão conforme solicitado)
+      setIsOpen(true);
     }
-  }, [config.ativo]);
+  }, [config.ativo, location.pathname]);
 
   const handleClose = () => {
     setIsOpen(false);
-    sessionStorage.setItem('popup_visto', 'true');
   };
 
   const handleAction = () => {
@@ -42,14 +39,14 @@ export const PopupInformativo = () => {
   return (
     <AnimatePresence>
       {isOpen && config.ativo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6">
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
           />
 
           {/* Modal Content */}
@@ -58,20 +55,20 @@ export const PopupInformativo = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-lg bg-card rounded-2xl shadow-2xl overflow-hidden border border-border"
+            className="relative w-full max-w-xl bg-card rounded-[2rem] shadow-2xl overflow-hidden border border-border/50 flex flex-col"
           >
-            {/* Close Button */}
+            {/* Close Button (Discreto) */}
             <button
               onClick={handleClose}
-              className="absolute top-3 right-3 p-2 rounded-full bg-black/10 hover:bg-black/20 text-foreground transition-colors z-10"
+              className="absolute top-4 right-4 p-2.5 rounded-full bg-black/10 hover:bg-black/20 text-foreground transition-all z-20 hover:rotate-90"
               aria-label="Fechar"
             >
               <X className="w-5 h-5" />
             </button>
 
-            {/* Image (if exists) */}
+            {/* Image Section (1080x1080 Aspect Ratio) */}
             {config.imagemBase64 && (
-              <div className="w-full h-48 sm:h-64 overflow-hidden bg-muted">
+              <div className="w-full aspect-square overflow-hidden bg-muted flex shrink-0">
                 <img
                   src={config.imagemBase64}
                   alt={config.titulo}
@@ -80,34 +77,45 @@ export const PopupInformativo = () => {
               </div>
             )}
 
-            <div className="p-6 sm:p-8 space-y-4">
-              <div className="space-y-2">
-                <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-foreground leading-tight">
+            {/* Content Section */}
+            <div className={cn(
+              "p-8 md:p-10 space-y-6 flex flex-col items-center text-center",
+              !config.imagemBase64 && "pt-12"
+            )}>
+              <div className="space-y-3">
+                <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] uppercase font-black px-3 py-1 mx-auto mb-2">
+                  Comunicado Oficial
+                </Badge>
+                <h2 className="text-2xl md:text-3xl font-heading font-black text-foreground leading-tight tracking-tight">
                   {config.titulo}
                 </h2>
-                <div className="w-12 h-1 bg-primary rounded-full" />
+                <div className="w-16 h-1.5 bg-primary rounded-full mx-auto" />
               </div>
 
-              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+              <p className="text-muted-foreground text-base md:text-lg leading-relaxed whitespace-pre-wrap font-medium">
                 {config.descricao}
               </p>
 
-              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+              <div className="pt-4 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {config.botaoTexto && (
                   <Button
                     onClick={handleAction}
-                    className="w-full sm:flex-1 h-12 rounded-xl font-heading font-bold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+                    className="h-14 rounded-2xl font-heading font-black bg-secondary text-secondary-foreground hover:bg-secondary/90 gap-2 shadow-lg shadow-secondary/20 transition-all hover:-translate-y-1"
                   >
                     {config.botaoTexto}
                     {config.botaoLink && <ExternalLink className="w-4 h-4" />}
                   </Button>
                 )}
+                
                 <Button
-                  variant="outline"
                   onClick={handleClose}
-                  className="w-full sm:w-auto h-12 rounded-xl font-heading font-semibold"
+                  className={cn(
+                    "h-14 rounded-2xl font-heading font-black bg-primary text-primary-foreground hover:bg-primary/90 gap-2 shadow-lg shadow-primary/20 transition-all hover:-translate-y-1",
+                    !config.botaoTexto && "sm:col-span-2 max-w-sm mx-auto w-full"
+                  )}
                 >
-                  Fechar
+                  <CheckCircle className="w-5 h-5" />
+                  Li e entendi
                 </Button>
               </div>
             </div>
@@ -117,3 +125,5 @@ export const PopupInformativo = () => {
     </AnimatePresence>
   );
 };
+
+import { Badge } from "@/components/ui/badge";
