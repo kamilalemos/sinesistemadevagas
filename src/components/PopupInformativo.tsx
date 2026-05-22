@@ -18,15 +18,19 @@ export const PopupInformativo = () => {
       return;
     }
 
-    // Verificar se o popup está ativo
+    // Verificar se o popup está ativo e se ainda não foi visualizado nesta sessão
     if (config.ativo) {
-      // Aberto sempre que ativo ao carregar o portal (remover bloqueio por sessão conforme solicitado)
-      setIsOpen(true);
+      const visualizado = sessionStorage.getItem('popup_informativo_visualizado');
+      
+      if (!visualizado) {
+        setIsOpen(true);
+      }
     }
   }, [config.ativo, location.pathname]);
 
   const handleClose = () => {
     setIsOpen(false);
+    sessionStorage.setItem('popup_informativo_visualizado', 'true');
   };
 
   const handleAction = () => {
