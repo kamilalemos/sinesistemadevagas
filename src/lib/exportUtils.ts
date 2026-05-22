@@ -199,7 +199,7 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
         doc.setFontSize(7);
         doc.setTextColor(150, 150, 150);
         const str = `Página ${doc.internal.getNumberOfPages()} - Relatório Oficial SINE João Pessoa`;
-        doc.text(str, 148.5, 200, { align: 'center' });
+        doc.text(str, 148.5, 205, { align: 'center' });
       }
     });
 
