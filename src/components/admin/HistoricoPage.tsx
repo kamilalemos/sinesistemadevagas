@@ -1,21 +1,42 @@
 import { useState, useEffect, useMemo } from "react";
-import { History, ChevronDown, ChevronUp, Calendar, Search, FileText, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  History, 
+  ChevronDown, 
+  Calendar, 
+  Search, 
+  FileText, 
+  Download, 
+  Eye, 
+  FileSpreadsheet, 
+  FileJson 
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getHistory } from "@/lib/vagasPersistence";
 import { HistoricoMensal, VagaLocal } from "@/types";
 import { cn } from "@/lib/utils";
-import { exportHistoryToPDF } from "@/lib/exportUtils";
-
+import { exportToPDF, exportToCSV, exportToJSON } from "@/lib/exportUtils";
 import { Pagination } from "@/components/ui/pagination-custom";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter 
+} from "@/components/ui/dialog";
 
 export const HistoricoPage = () => {
   const [history, setHistory] = useState<HistoricoMensal[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Reduzido para histórico pois os cards são grandes
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedVagas, setSelectedVagas] = useState<VagaLocal[]>([]);
+  const [viewTitle, setViewTitle] = useState("");
+  
+  const itemsPerPage = 12;
 
   useEffect(() => {
     setHistory(getHistory());
@@ -27,44 +48,13 @@ export const HistoricoPage = () => {
 
   const filteredHistory = useMemo(() => {
     if (!searchTerm) return history;
-
     const term = searchTerm.toLowerCase();
     
-    return history.map(item => {
-      // Create a deep copy to filter within
-      const newItem = { ...item, weeks: { ...item.weeks } };
-      
-      let hasMatch = false;
-
-      // Filter each week
-      (Object.keys(newItem.weeks) as Array<keyof typeof newItem.weeks>).forEach(weekKey => {
-        const weekData = newItem.weeks[weekKey];
-        const filteredVagas = weekData.vagas.filter(v => 
-          v.publicada && (
-            v.descricao.toLowerCase().includes(term) || 
-            v.categoria.toLowerCase().includes(term) ||
-            v.cbo?.toLowerCase().includes(term)
-          )
-        );
-        
-        newItem.weeks[weekKey] = { ...weekData, vagas: filteredVagas };
-        if (filteredVagas.length > 0) hasMatch = true;
-      });
-
-      // Filter feirao
-      const filteredFeiraoVagas = newItem.feirao.vagas.filter(v => 
-        v.publicada && (
-          v.descricao.toLowerCase().includes(term) || 
-          v.categoria.toLowerCase().includes(term) ||
-          v.cbo?.toLowerCase().includes(term)
-        )
-      );
-      
-      newItem.feirao = { ...newItem.feirao, vagas: filteredFeiraoVagas };
-      if (filteredFeiraoVagas.length > 0) hasMatch = true;
-
-      return hasMatch ? newItem : null;
-    }).filter((item): item is HistoricoMensal => item !== null);
+    return history.filter(item => {
+      const monthStr = String(item.month).toLowerCase();
+      const yearStr = String(item.year);
+      return monthStr.includes(term) || yearStr.includes(term);
+    });
   }, [history, searchTerm]);
 
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
@@ -74,12 +64,34 @@ export const HistoricoPage = () => {
     return filteredHistory.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredHistory, currentPage]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+  const handleViewVagas = (vagas: VagaLocal[], title: string) => {
+    const publishedOnly = vagas.filter(v => v.publicada);
+    setSelectedVagas(publishedOnly);
+    setViewTitle(title);
+    setIsPreviewOpen(true);
+  };
+
+  const handleExport = (vagas: VagaLocal[], type: 'pdf' | 'csv' | 'json', title: string) => {
+    const publishedOnly = vagas.filter(v => v.publicada);
+    const filename = `sine-historico-${title.toLowerCase().replace(/\s+/g, '-')}`;
+    
+    if (type === 'pdf') exportToPDF(publishedOnly, title, filename);
+    else if (type === 'csv') exportToCSV(publishedOnly, filename);
+    else if (type === 'json') exportToJSON(publishedOnly, filename);
+  };
+
+  const getWeekRange = (weekNum: number, month: string | number, year: number | string) => {
+    const ranges: Record<number, string> = {
+      1: "01 a 08",
+      2: "09 a 15",
+      3: "18 a 22",
+      4: "23 a 31"
+    };
+    return `${ranges[weekNum]} de ${month}/${year}`;
+  };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -88,13 +100,13 @@ export const HistoricoPage = () => {
             </div>
             <h1 className="font-heading font-black text-3xl text-foreground tracking-tight">Histórico Mensal</h1>
           </div>
-          <p className="text-muted-foreground font-medium pl-1">Consulte backups automáticos e vagas publicadas de meses anteriores.</p>
+          <p className="text-muted-foreground font-medium pl-1">Acesse backups e relatórios simplificados de períodos anteriores.</p>
         </div>
 
         <div className="relative w-full md:max-w-md group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Buscar por cargo ou categoria..." 
+            placeholder="Filtrar por mês ou ano..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-12 h-14 rounded-2xl bg-card border-border shadow-sm focus:ring-primary/10 transition-all text-base font-medium"
@@ -102,45 +114,28 @@ export const HistoricoPage = () => {
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {currentHistory.length === 0 ? (
           <div className="bg-card border border-border/60 rounded-[2.5rem] p-16 md:p-24 text-center space-y-4 shadow-card">
             <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-2">
               <History className="w-10 h-10 text-muted-foreground/30" />
             </div>
-            <div className="space-y-1">
-              <p className="text-foreground font-black text-xl">Nenhum registro encontrado</p>
-              <p className="text-muted-foreground font-medium max-w-xs mx-auto">
-                {searchTerm 
-                  ? "Tente buscar por outro termo ou limpe o filtro atual." 
-                  : "Os backups são criados automaticamente durante a 4ª semana do mês."}
-              </p>
-            </div>
+            <p className="text-foreground font-black text-xl">Nenhum registro encontrado</p>
           </div>
         ) : (
           currentHistory.map((item) => {
             const id = `${item.year}_${item.month}`;
-            const isExpanded = expandedId === id || searchTerm !== ""; // Auto-expand when searching
+            const isExpanded = expandedId === id;
             
-            // Count only published vagas for the totals
-            const totalVagas = 
-              (item.weeks?.semana_1?.vagas?.filter(v => v.publicada).length || 0) +
-              (item.weeks?.semana_2?.vagas?.filter(v => v.publicada).length || 0) +
-              (item.weeks?.semana_3?.vagas?.filter(v => v.publicada).length || 0) +
-              (item.weeks?.semana_4?.vagas?.filter(v => v.publicada).length || 0) +
-              (item.feirao?.vagas?.filter(v => v.publicada).length || 0);
-
-            if (totalVagas === 0 && searchTerm) return null;
-
             return (
               <div key={id} className={cn(
-                "bg-card border border-border/60 rounded-[2rem] overflow-hidden transition-all duration-300",
-                isExpanded ? "shadow-xl ring-1 ring-primary/5" : "shadow-card hover:border-primary/30 hover:shadow-lg"
+                "bg-card border border-border/60 rounded-[2rem] overflow-hidden transition-all duration-300 shadow-card",
+                isExpanded && "ring-2 ring-primary/10 shadow-xl"
               )}>
                 <div 
                   className={cn(
                     "p-6 md:p-8 flex items-center justify-between cursor-pointer transition-colors",
-                    isExpanded ? "bg-muted/5" : "hover:bg-muted/30"
+                    isExpanded ? "bg-muted/10" : "hover:bg-muted/30"
                   )}
                   onClick={() => toggleExpand(id)}
                 >
@@ -149,110 +144,89 @@ export const HistoricoPage = () => {
                       <Calendar className="w-7 h-7 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-heading font-black text-xl text-foreground tracking-tight">
-                        {item.month}/{item.year}
+                      <h3 className="font-heading font-black text-2xl text-foreground tracking-tight">
+                        {item.month} / {item.year}
                       </h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest border-primary/20 text-primary/70 py-0.5">
-                          Backup Mensal
-                        </Badge>
-                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Consolidado: {new Date(item.consolidatedAt).toLocaleDateString()}</span>
-                      </div>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Consolidado em {new Date(item.consolidatedAt).toLocaleDateString()}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-4">
-                    <Badge variant="secondary" className="font-black text-sm px-4 py-1.5 rounded-xl bg-primary/5 text-primary border-primary/10">
-                      {totalVagas} {totalVagas === 1 ? 'vaga publicada' : 'vagas publicadas'}
-                    </Badge>
-                    
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-10 h-10 rounded-xl hover:bg-primary/10 text-primary transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        exportHistoryToPDF(item);
-                      }}
-                      title="Exportar PDF do mês"
-                    >
-                      <Download className="w-5 h-5" />
-                    </Button>
-
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-muted/50",
-                      isExpanded && "rotate-180 bg-primary text-white"
-                    )}>
-                      <ChevronDown className="w-5 h-5" />
-                    </div>
+                  <div className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 bg-muted/50",
+                    isExpanded && "rotate-180 bg-primary text-white"
+                  )}>
+                    <ChevronDown className="w-6 h-6" />
                   </div>
                 </div>
 
                 {isExpanded && (
-                  <div className="border-t border-border/60 p-8 space-y-10 animate-fade-in bg-white/50">
-                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="p-8 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {[1, 2, 3, 4].map(w => {
                         const weekKey = `semana_${w}` as keyof typeof item.weeks;
-                        const weekVagas = item.weeks[weekKey]?.vagas?.filter(v => v.publicada) || [];
+                        const weekVagas = item.weeks[weekKey]?.vagas || [];
+                        const count = weekVagas.filter(v => v.publicada).length;
+                        const title = `Semana ${w} - ${getWeekRange(w, item.month, item.year)}`;
+                        
                         return (
-                          <div key={w} className="bg-card border border-border/50 rounded-2xl p-5 space-y-2 shadow-sm transition-all hover:translate-y-[-2px]">
-                            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Semana {w}</p>
-                            <p className="text-2xl font-black text-foreground">{weekVagas.length}</p>
+                          <div key={w} className="bg-muted/20 border border-border/40 rounded-3xl p-6 space-y-4 hover:bg-muted/30 transition-colors group">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-1">
+                                <p className="text-[10px] font-black uppercase text-primary tracking-widest">Semana {w}</p>
+                                <p className="text-xs font-bold text-muted-foreground">{getWeekRange(w, item.month, item.year)}</p>
+                              </div>
+                              <Badge className="bg-primary/10 text-primary border-transparent font-black">{count} Vagas</Badge>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1 rounded-xl h-10 font-bold gap-2 bg-white/50"
+                                onClick={() => handleViewVagas(weekVagas, title)}
+                              >
+                                <Eye className="w-4 h-4" /> Visualizar
+                              </Button>
+                              <div className="flex gap-1">
+                                <Button size="icon" variant="ghost" className="rounded-lg h-10 w-10 text-red-500 hover:bg-red-50" onClick={() => handleExport(weekVagas, 'pdf', title)} title="PDF">
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="rounded-lg h-10 w-10 text-emerald-500 hover:bg-emerald-50" onClick={() => handleExport(weekVagas, 'csv', title)} title="CSV">
+                                  <FileSpreadsheet className="w-4 h-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="rounded-lg h-10 w-10 text-amber-500 hover:bg-amber-50" onClick={() => handleExport(weekVagas, 'json', title)} title="JSON">
+                                  <FileJson className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         );
                       })}
-                      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 space-y-2 shadow-sm col-span-2 lg:col-span-1 transition-all hover:translate-y-[-2px]">
-                        <p className="text-[10px] font-black uppercase text-primary tracking-widest">Feirão Sine</p>
-                        <p className="text-2xl font-black text-primary">{(item.feirao?.vagas?.filter(v => v.publicada) || []).length}</p>
-                      </div>
-                    </div>
 
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 px-1">
-                        <FileText className="w-4 h-4 text-primary" />
-                        <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em]">Listagem Detalhada</h4>
-                      </div>
-                      <div className="max-h-96 overflow-y-auto border border-border/60 rounded-[1.5rem] bg-card shadow-inner scrollbar-hide">
-                        <table className="w-full text-left">
-                          <thead className="sticky top-0 bg-muted/80 backdrop-blur-md border-b border-border/60 z-10">
-                            <tr>
-                              <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Descrição do Cargo</th>
-                              <th className="py-4 px-4 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Categoria</th>
-                              <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] text-muted-foreground">Origem</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-border/40">
-                            {[1, 2, 3, 4].map(w => {
-                              const weekKey = `semana_${w}` as keyof typeof item.weeks;
-                              return (item.weeks[weekKey]?.vagas || [])
-                                .filter(v => v.publicada)
-                                .map((v: VagaLocal) => (
-                                  <tr key={`${id}-w${w}-${v.id}`} className="hover:bg-primary/[0.02] transition-colors group">
-                                    <td className="py-5 px-6 font-black text-foreground group-hover:text-primary transition-colors text-sm">{v.descricao}</td>
-                                    <td className="py-5 px-4">
-                                      <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-transparent text-[9px] uppercase font-bold tracking-wider">
-                                        {v.categoria}
-                                      </Badge>
-                                    </td>
-                                    <td className="py-5 px-6 text-right font-bold text-muted-foreground/60 text-[11px] uppercase tracking-tighter italic">Semana {w}</td>
-                                  </tr>
-                                ));
-                            })}
-                            {(item.feirao?.vagas || [])
-                              .filter(v => v.publicada)
-                              .map((v: VagaLocal) => (
-                               <tr key={`${id}-f-${v.id}`} className="hover:bg-primary/[0.03] transition-colors group bg-primary/[0.01]">
-                                  <td className="py-5 px-6 font-black text-primary transition-colors text-sm">{v.descricao}</td>
-                                  <td className="py-5 px-4">
-                                    <Badge variant="secondary" className="bg-primary/10 text-primary border-transparent text-[9px] uppercase font-bold tracking-wider">
-                                      {v.categoria}
-                                    </Badge>
-                                  </td>
-                                  <td className="py-5 px-6 text-right font-black text-primary/50 text-[11px] uppercase tracking-widest">Feirão</td>
-                                </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      {/* Feirão Card */}
+                      <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 space-y-4 hover:bg-primary/10 transition-colors lg:col-span-2">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase text-primary tracking-widest">Ação Especial</p>
+                            <h4 className="font-heading font-black text-xl text-primary">Feirão da Empregabilidade</h4>
+                          </div>
+                          <Badge className="bg-primary text-white font-black">{(item.feirao?.vagas?.filter(v => v.publicada).length || 0)} Vagas</Badge>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                           <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="flex-1 rounded-xl h-10 font-black uppercase tracking-widest gap-2 shadow-lg shadow-primary/20"
+                            onClick={() => handleViewVagas(item.feirao?.vagas || [], `Feirão da Empregabilidade - ${item.month}/${item.year}`)}
+                          >
+                            <Eye className="w-4 h-4" /> Abrir Listagem
+                          </Button>
+                          <div className="flex gap-2">
+                            <Button variant="outline" className="rounded-xl h-10 bg-white border-primary/20 text-primary hover:bg-primary/5 px-4 font-bold" onClick={() => handleExport(item.feirao?.vagas || [], 'pdf', `Feirão - ${item.month}/${item.year}`)}>PDF</Button>
+                            <Button variant="outline" className="rounded-xl h-10 bg-white border-primary/20 text-primary hover:bg-primary/5 px-4 font-bold" onClick={() => handleExport(item.feirao?.vagas || [], 'csv', `Feirão - ${item.month}/${item.year}`)}>CSV</Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -262,11 +236,63 @@ export const HistoricoPage = () => {
           })
         )}
       </div>
+
       <Pagination 
         currentPage={currentPage} 
         totalPages={totalPages} 
         onPageChange={setCurrentPage} 
       />
+
+      {/* Vagas List Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-[2rem] border-none shadow-2xl">
+          <DialogHeader className="p-8 border-b bg-muted/20">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <DialogTitle className="font-heading font-black text-2xl tracking-tight text-foreground">{viewTitle}</DialogTitle>
+                <DialogDescription className="font-medium text-muted-foreground">Listagem de oportunidades publicadas neste período.</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-8 scrollbar-hide">
+            {selectedVagas.length === 0 ? (
+              <div className="py-20 text-center">
+                <p className="text-muted-foreground font-bold">Nenhuma vaga publicada neste período.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {selectedVagas.map((v) => (
+                  <div key={v.id} className="p-5 border border-border/60 rounded-2xl bg-card hover:border-primary/30 transition-all group">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-primary/50 uppercase tracking-tighter">ID: {v.codigo}</span>
+                          <Badge variant="secondary" className="text-[9px] h-4 uppercase font-bold py-0">{v.categoria}</Badge>
+                        </div>
+                        <h5 className="font-heading font-black text-lg text-foreground group-hover:text-primary transition-colors leading-tight">{v.descricao}</h5>
+                        <p className="text-xs font-bold text-muted-foreground">{v.empresa} • {v.quantidade} {v.quantidade === 1 ? 'vaga' : 'vagas'}</p>
+                      </div>
+                      <div className="text-right space-y-1">
+                        <p className="text-sm font-black text-foreground">{v.salario}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">{v.escolaridade}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="p-6 border-t bg-muted/20 flex gap-3">
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="rounded-xl font-bold px-8">Fechar</Button>
+            <Button className="rounded-xl font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20" onClick={() => handleExport(selectedVagas, 'pdf', viewTitle)}>Exportar PDF</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
