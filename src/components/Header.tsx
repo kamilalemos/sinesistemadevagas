@@ -4,6 +4,7 @@ import { Menu, X, Settings, ArrowRight, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoSine from "@/assets/logo-sine.png";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Início", path: "/" },
