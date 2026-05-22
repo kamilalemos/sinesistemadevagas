@@ -1,20 +1,7 @@
+import { VagaLocal, HistoricoMensal } from '@/types';
+import { generateStorageKey, saveData, loadData } from '@/services/storage';
 
-export interface VagaLocal {
-  id: string;
-  quantidade: number;
-  cbo: string;
-  descricao: string;
-  escolaridade: string;
-  experiencia: string;
-  codigo: string;
-  beneficios: string;
-  salario: string;
-  empresa: string;
-  publicada: boolean;
-  categoria: string;
-  periodo: string;
-  createdAt: string;
-}
+const APP_PREFIX = 'sine';
 
 export const getWeekInfo = () => {
   const now = new Date();
@@ -31,9 +18,9 @@ export const getWeekInfo = () => {
     year,
     month,
     week,
-    vagasKey: `sine_vagas_${year}_${month}_semana_${week}`,
-    feiraoKey: `sine_feirao_${year}_${month}`,
-    backupKey: `sine_backup_${year}_${month}`,
+    vagasKey: generateStorageKey(APP_PREFIX, 'vagas', year, month, 'semana', week),
+    feiraoKey: generateStorageKey(APP_PREFIX, 'feirao', year, month),
+    backupKey: generateStorageKey(APP_PREFIX, 'backup', year, month),
     monthYear: `${year}_${month}`
   };
 };
@@ -41,13 +28,10 @@ export const getWeekInfo = () => {
 export const saveVagasToLocalStorage = (tipo: 'semana' | 'feirao', vagas: VagaLocal[], periodo: string) => {
   const info = getWeekInfo();
   const key = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
-  const dataToSave = {
-    vagas,
-    periodo
-  };
-  localStorage.setItem(key, JSON.stringify(dataToSave));
+  const dataToSave = { vagas, periodo };
   
-  // If it's week 4 and we are saving semana, also trigger/update backup
+  saveData(key, dataToSave);
+  
   if (info.week === 4) {
     performMonthlyBackup(info.year, info.month);
   }
@@ -56,60 +40,57 @@ export const saveVagasToLocalStorage = (tipo: 'semana' | 'feirao', vagas: VagaLo
 export const loadVagasFromLocalStorage = (tipo: 'semana' | 'feirao'): { vagas: VagaLocal[], periodo: string } => {
   const info = getWeekInfo();
   const key = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
-  const saved = localStorage.getItem(key);
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    // Support old format or just array
-    if (Array.isArray(parsed)) {
-      return { vagas: parsed, periodo: tipo === 'semana' ? "Próxima Semana" : "Próximo Feirão" };
-    }
-    return { 
-      vagas: parsed.vagas || [], 
-      periodo: parsed.periodo || (tipo === 'semana' ? "Próxima Semana" : "Próximo Feirão")
-    };
+  const defaultPeriod = tipo === 'semana' ? "Próxima Semana" : "Próximo Feirão";
+  
+  const data = loadData<{ vagas: VagaLocal[], periodo: string } | VagaLocal[]>(key, { vagas: [], periodo: defaultPeriod });
+  
+  if (Array.isArray(data)) {
+    return { vagas: data, periodo: defaultPeriod };
   }
-  return { vagas: [], periodo: tipo === 'semana' ? "Próxima Semana" : "Próximo Feirão" };
+  
+  return { 
+    vagas: data.vagas || [], 
+    periodo: data.periodo || defaultPeriod
+  };
 };
 
 export const performMonthlyBackup = (year: number | string, month: string) => {
-  const backupKey = `sine_backup_${year}_${month}`;
+  const backupKey = generateStorageKey(APP_PREFIX, 'backup', year, month);
   
-  const week1 = JSON.parse(localStorage.getItem(`sine_vagas_${year}_${month}_semana_1`) || '[]');
-  const week2 = JSON.parse(localStorage.getItem(`sine_vagas_${year}_${month}_semana_2`) || '[]');
-  const week3 = JSON.parse(localStorage.getItem(`sine_vagas_${year}_${month}_semana_3`) || '[]');
-  const week4 = JSON.parse(localStorage.getItem(`sine_vagas_${year}_${month}_semana_4`) || '[]');
-  const feirao = JSON.parse(localStorage.getItem(`sine_feirao_${year}_${month}`) || '[]');
+  const week1 = loadData(generateStorageKey(APP_PREFIX, 'vagas', year, month, 'semana', 1), { vagas: [], periodo: "" });
+  const week2 = loadData(generateStorageKey(APP_PREFIX, 'vagas', year, month, 'semana', 2), { vagas: [], periodo: "" });
+  const week3 = loadData(generateStorageKey(APP_PREFIX, 'vagas', year, month, 'semana', 3), { vagas: [], periodo: "" });
+  const week4 = loadData(generateStorageKey(APP_PREFIX, 'vagas', year, month, 'semana', 4), { vagas: [], periodo: "" });
+  const feirao = loadData(generateStorageKey(APP_PREFIX, 'feirao', year, month), { vagas: [], periodo: "" });
   
-  const backupData = {
+  const backupData: HistoricoMensal = {
     year,
     month,
     weeks: {
-      semana_1: week1,
-      semana_2: week2,
-      semana_3: week3,
-      semana_4: week4,
+      semana_1: week1 as any,
+      semana_2: week2 as any,
+      semana_3: week3 as any,
+      semana_4: week4 as any,
     },
-    feirao,
+    feirao: feirao as any,
     consolidatedAt: new Date().toISOString()
   };
   
-  localStorage.setItem(backupKey, JSON.stringify(backupData));
+  saveData(backupKey, backupData);
 };
 
-export const getHistory = () => {
-  const history: any[] = [];
-  // Scan localStorage for backup keys
+export const getHistory = (): HistoricoMensal[] => {
+  const history: HistoricoMensal[] = [];
+  const prefix = `${APP_PREFIX}_backup_`;
+  
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key?.startsWith('sine_backup_')) {
-      try {
-        const data = JSON.parse(localStorage.getItem(key) || '{}');
-        history.push(data);
-      } catch (e) {
-        console.error("Error parsing backup data", e);
-      }
+    if (key?.startsWith(prefix)) {
+      const data = loadData<HistoricoMensal | null>(key, null);
+      if (data) history.push(data);
     }
   }
+  
   return history.sort((a, b) => {
     const dateA = `${a.year}_${a.month}`;
     const dateB = `${b.year}_${b.month}`;

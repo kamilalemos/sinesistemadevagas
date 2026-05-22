@@ -1,13 +1,6 @@
 import { create } from 'zustand';
-
-export interface BannerConfig {
-  ativo: boolean;
-  titulo: string;
-  descricao: string;
-  imagemBase64: string;
-  textoBotao: string;
-  linkBotao: string;
-}
+import { BannerConfig } from '@/types';
+import { saveData, loadData } from '@/services/storage';
 
 interface BannerState {
   config: BannerConfig;
@@ -26,30 +19,16 @@ const DEFAULT_CONFIG: BannerConfig = {
   linkBotao: "/vagas",
 };
 
-const getInitialState = (): BannerConfig => {
-  if (typeof window === 'undefined') return DEFAULT_CONFIG;
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch (e) {
-      console.error("Error parsing banner config", e);
-      return DEFAULT_CONFIG;
-    }
-  }
-  return DEFAULT_CONFIG;
-};
-
 export const useBannerStore = create<BannerState>((set) => ({
-  config: getInitialState(),
+  config: loadData<BannerConfig>(STORAGE_KEY, DEFAULT_CONFIG),
   setAtivo: (ativo) => set((state) => {
     const newConfig = { ...state.config, ativo };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig));
+    saveData(STORAGE_KEY, newConfig);
     return { config: newConfig };
   }),
   updateConfig: (newConfig) => set((state) => {
     const updated = { ...state.config, ...newConfig };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    saveData(STORAGE_KEY, updated);
     return { config: updated };
   }),
 }));

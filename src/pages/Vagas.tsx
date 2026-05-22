@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
-import { Search, ArrowLeft, X, Hash, Tag, Calendar, DollarSign, Gift, GraduationCap, Briefcase, FileText } from "lucide-react";
+import { Search, ArrowLeft, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { useVagasLocalStore, VagaLocal } from "@/store/vagasStorage";
-import { motion } from "framer-motion";
+import { useVagasLocalStore } from "@/store/vagasStorage";
+import { VagaLocal } from "@/types";
+import { VagaCard } from "@/components/vagas/VagaCard";
 
 interface VagaAgrupada {
   cargo: string;
@@ -120,66 +121,12 @@ const Vagas = () => {
 
         <div className="space-y-3">
           {vagasAgrupadas.map((vaga, i) => (
-            <motion.div
+            <VagaCard
               key={vaga.cargo}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.02 }}
-              className="bg-card rounded-xl p-4 md:p-5 shadow-sm border border-border hover:border-primary/40 transition-all group"
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-heading font-bold text-base md:text-lg text-foreground leading-tight">
-                      {vaga.cargo}
-                    </h3>
-                    <span className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
-                      {vaga.categoria}
-                    </span>
-                  </div>
-                  
-                  {/* Linha compacta 1: CBO, ID, Período */}
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs text-muted-foreground font-medium">
-                    <span className="flex items-center gap-1">
-                      <Hash className="w-3 h-3" /> CBO: {vaga.cbos.join(", ")}
-                    </span>
-                    <span className="hidden md:inline text-muted-foreground/30">•</span>
-                    <span className="flex items-center gap-1">
-                      <Tag className="w-3 h-3" /> ID: {vaga.numVagas.join(", ")}
-                    </span>
-                    <span className="hidden md:inline text-muted-foreground/30">•</span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" /> {vaga.periodos.length > 0 ? vaga.periodos.join(", ") : periodo}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-primary/5 group-hover:bg-primary/10 text-primary px-3 py-1.5 rounded-lg border border-primary/20 shrink-0 flex flex-col items-center justify-center min-w-[60px] transition-colors">
-                  <span className="text-base md:text-lg font-bold leading-none">{vaga.totalQtd}</span>
-                  <span className="text-[9px] uppercase font-bold opacity-80">{vaga.totalQtd > 1 ? "Vagas" : "Vaga"}</span>
-                </div>
-              </div>
-
-              {/* Linha compacta 2: Salário, Escolaridade, Experiência */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
-                <CompactInfo icon={DollarSign} value={vaga.salario.join(", ") || "À combinar"} prefix="💰" />
-                <CompactInfo icon={GraduationCap} value={vaga.escolaridade.join(", ")} prefix="🎓" />
-                <CompactInfo icon={Briefcase} value={vaga.experiencia.join(", ")} prefix="💼" />
-              </div>
-
-              {/* Linha compacta 3: Benefícios */}
-              <div className="flex items-center gap-1.5 text-[11px] md:text-xs text-foreground/80 bg-muted/30 p-2 rounded-lg border border-border/50">
-                <span className="text-sm">🎁</span>
-                <span className="font-medium line-clamp-1">{vaga.beneficios.join(", ") || "Sem benefícios informados"}</span>
-              </div>
-
-              {/* Descrição truncada */}
-              {vaga.descricoes.length > 0 && (
-                <p className="mt-2 text-[11px] md:text-xs text-muted-foreground line-clamp-2 leading-relaxed italic">
-                  "{vaga.descricoes[0]}"
-                </p>
-              )}
-            </motion.div>
+              {...vaga}
+              periodoGeral={periodo}
+              index={i}
+            />
           ))}
         </div>
 
@@ -192,12 +139,5 @@ const Vagas = () => {
     </div>
   );
 };
-
-const CompactInfo = ({ value, prefix }: { icon: any, value: string, prefix?: string }) => (
-  <div className="flex items-center gap-1 text-[11px] md:text-xs font-semibold text-foreground/90">
-    <span>{prefix}</span>
-    <span>{value || "Não informado"}</span>
-  </div>
-);
 
 export default Vagas;
