@@ -10,6 +10,11 @@ declare module 'jspdf' {
   }
 }
 
+const MONTH_NAMES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+];
+
 /**
  * Generates and downloads a CSV file from an array of vagas.
  * Handles escaping and encoding correctly.
