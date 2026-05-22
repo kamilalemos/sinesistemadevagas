@@ -18,10 +18,10 @@ interface VagaCardProps {
   index: number;
 }
 
-const CompactInfo = ({ value, prefix, icon: Icon }: { value: string; prefix?: string; icon: any }) => (
-  <div className="flex items-center gap-2 text-[10px] md:text-[11px] font-bold text-muted-foreground/80 bg-muted/40 px-3 py-1.5 rounded-full border border-border/40 transition-colors hover:bg-muted/60">
-    <Icon className="w-3.5 h-3.5 text-primary/70" />
-    <span className="truncate max-w-[140px]">{value || "Não informado"}</span>
+const CompactInfo = ({ value, icon: Icon, className }: { value: string; icon: any; className?: string }) => (
+  <div className={cn("flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold text-muted-foreground/80", className)}>
+    <Icon className="w-3.5 h-3.5 text-primary/60 shrink-0" />
+    <span className="truncate max-w-[200px]">{value || "Não informado"}</span>
   </div>
 );
 
