@@ -219,6 +219,53 @@ export const ConfiguracoesPage = () => {
         </Card>
       </div>
 
+      {/* PDF Preview Modal */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 overflow-hidden bg-background border-border shadow-2xl">
+          <DialogHeader className="p-6 border-b bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Eye className="w-5 h-5" />
+              </div>
+              <div>
+                <DialogTitle className="font-heading font-black text-xl">Prévia do Relatório Institucional</DialogTitle>
+                <DialogDescription className="font-medium">Confirme o layout e os dados antes de finalizar o download.</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="flex-1 bg-muted/20 p-4 md:p-8 overflow-hidden flex items-center justify-center">
+            {pdfPreviewData ? (
+              <iframe 
+                src={pdfPreviewData} 
+                className="w-full h-full rounded-lg border border-border shadow-lg bg-white"
+                title="PDF Preview"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                <p className="font-bold uppercase tracking-widest text-xs">Gerando prévia...</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="p-6 border-t bg-muted/30 flex sm:justify-between items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2 text-muted-foreground">
+              <FileText className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest">{currentFilename}.pdf</span>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="rounded-xl font-bold flex-1 sm:flex-none">
+                Cancelar
+              </Button>
+              <Button onClick={confirmDownloadPDF} className="rounded-xl font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20 flex-1 sm:flex-none">
+                Baixar PDF Oficial
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex items-center justify-center gap-2 p-4 bg-muted/20 rounded-2xl border border-border/40">
         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
         <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Sistema operando via LocalStorage com persistência isolada</span>
