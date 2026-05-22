@@ -118,7 +118,7 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
       orientation: "landscape",
       unit: "mm",
       format: "a4"
-    });
+    }) as any; // Usar any para evitar erros de tipagem com métodos internos do jsPDF
 
     const now = new Date();
     const dateStr = now.toLocaleDateString('pt-BR');
@@ -194,7 +194,7 @@ export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string)
       },
       alternateRowStyles: { fillColor: [245, 248, 255] },
       margin: { left: 10, right: 10 },
-      didDrawPage: (data) => {
+      didDrawPage: (data: any) => {
         // Footer em cada página
         doc.setFontSize(7);
         doc.setTextColor(150, 150, 150);
