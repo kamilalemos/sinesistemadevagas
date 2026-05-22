@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import { History, ChevronDown, ChevronUp, Calendar, Search, FileText } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Calendar, Search, FileText, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { getHistory } from "@/lib/vagasPersistence";
 import { HistoricoMensal, VagaLocal } from "@/types";
 import { cn } from "@/lib/utils";
+import { exportHistoryToPDF } from "@/lib/exportUtils";
 
 export const HistoricoPage = () => {
   const [history, setHistory] = useState<HistoricoMensal[]>([]);
@@ -148,6 +150,20 @@ export const HistoricoPage = () => {
                     <Badge variant="secondary" className="font-black text-sm px-4 py-1.5 rounded-xl bg-primary/5 text-primary border-primary/10">
                       {totalVagas} {totalVagas === 1 ? 'vaga publicada' : 'vagas publicadas'}
                     </Badge>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-10 h-10 rounded-xl hover:bg-primary/10 text-primary transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exportHistoryToPDF(item);
+                      }}
+                      title="Exportar PDF do mês"
+                    >
+                      <Download className="w-5 h-5" />
+                    </Button>
+
                     <div className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 bg-muted/50",
                       isExpanded && "rotate-180 bg-primary text-white"
