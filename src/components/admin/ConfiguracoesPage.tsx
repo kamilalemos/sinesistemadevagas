@@ -1,17 +1,28 @@
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, FileText, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, FileText, AlertTriangle, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter 
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { getHistory } from "@/lib/vagasPersistence";
-import { exportToCSV, exportToJSON, exportToPDF } from "@/lib/exportUtils";
+import { exportToCSV, exportToJSON, exportToPDF, generatePDF } from "@/lib/exportUtils";
 import { saveData } from "@/services/storage";
-
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [pdfPreviewData, setPdfPreviewData] = useState<string | null>(null);
+  const [currentFilename, setCurrentFilename] = useState("");
   
 
   const handleExportFullBackup = () => {
