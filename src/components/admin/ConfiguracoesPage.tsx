@@ -15,29 +15,56 @@ export const ConfiguracoesPage = () => {
   
 
   const handleExportFullBackup = () => {
-    const history = getHistory();
-    const backupData = {
-      vagas_semana,
-      vagas_feirao,
-      historico_mensal: history,
-      exportado_em: new Date().toISOString(),
-      versao: "1.0.0"
-    };
-    
-    exportToJSON(backupData, `sine-backup-completo-${new Date().toISOString().split('T')[0]}`);
-    toast.success("Backup completo JSON gerado com sucesso!");
+    try {
+      const history = getHistory();
+      const backupData = {
+        vagas_semana,
+        vagas_feirao,
+        historico_mensal: history,
+        exportado_em: new Date().toISOString(),
+        versao: "1.1.0",
+        identificacao: "Backup SINE João Pessoa"
+      };
+      
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`;
+      exportToJSON(backupData, `backup_vagas_${timestamp}`);
+    } catch (error) {
+      console.error("Erro no backup JSON:", error);
+      toast.error("Erro ao preparar backup JSON.");
+    }
   };
 
   const handleExportCSV = () => {
-    const todasVagas = [...vagas_semana, ...vagas_feirao];
-    exportToCSV(todasVagas, `sine-vagas-${new Date().toISOString().split('T')[0]}`);
-    toast.success("CSV exportado com sucesso!");
+    try {
+      const todasVagas = [...vagas_semana, ...vagas_feirao].filter(v => v.publicada);
+      const now = new Date();
+      const monthNames = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+      const monthName = monthNames[now.getMonth()];
+      
+      exportToCSV(todasVagas, `vagas_${monthName}_${now.getFullYear()}`);
+    } catch (error) {
+      console.error("Erro no export CSV:", error);
+      toast.error("Erro ao preparar exportação CSV.");
+    }
   };
 
   const handleExportPDF = () => {
-    const todasVagas = [...vagas_semana, ...vagas_feirao];
-    exportToPDF(todasVagas, "Relatório de Vagas SINE", `sine-vagas-${new Date().toISOString().split('T')[0]}`);
-    toast.success("PDF gerado com sucesso!");
+    try {
+      const todasVagas = [...vagas_semana, ...vagas_feirao].filter(v => v.publicada);
+      const now = new Date();
+      const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+      const monthName = monthNames[now.getMonth()];
+      
+      exportToPDF(
+        todasVagas, 
+        `Relatório de Vagas - ${monthName} / ${now.getFullYear()}`, 
+        `sine-vagas-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+      );
+    } catch (error) {
+      console.error("Erro no export PDF:", error);
+      toast.error("Erro ao preparar exportação PDF.");
+    }
   };
 
 
