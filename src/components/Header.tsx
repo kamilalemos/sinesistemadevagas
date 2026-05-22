@@ -33,33 +33,13 @@ const Header = () => {
   return (
     <header 
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
-        scrolled 
-          ? "bg-white/95 backdrop-blur-md py-2 shadow-sm border-border" 
-          : "bg-primary py-4 border-transparent"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b bg-primary shadow-sm border-transparent py-4",
       )}
     >
       <div className="container mx-auto flex items-center justify-between px-4 lg:px-8">
         <Link to="/" className="flex items-center gap-4 group">
-          <div className={cn(
-            "p-2 rounded-xl transition-colors",
-            scrolled ? "bg-primary/5" : "bg-white/10"
-          )}>
-            <img src={logoSine} alt="Logo SINE João Pessoa" className="h-8 md:h-9 w-auto object-contain" />
-          </div>
-          <div className="flex flex-col">
-            <span className={cn(
-              "font-heading font-extrabold text-sm md:text-base leading-none transition-colors",
-              scrolled ? "text-primary" : "text-white"
-            )}>
-              João Pessoa
-            </span>
-            <span className={cn(
-              "text-[10px] font-bold uppercase tracking-widest opacity-70",
-              scrolled ? "text-primary/70" : "text-white/70"
-            )}>
-              Sine Municipal
-            </span>
+          <div className="p-1 transition-colors">
+            <img src={logoSine} alt="Logo SINE João Pessoa" className="h-10 md:h-12 w-auto object-contain" />
           </div>
         </Link>
 
