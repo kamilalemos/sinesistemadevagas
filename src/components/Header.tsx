@@ -52,26 +52,17 @@ const Header = () => {
               className={cn(
                 "px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200",
                 location.pathname === item.path
-                  ? scrolled 
-                    ? "bg-primary text-white shadow-md shadow-primary/20" 
-                    : "bg-white text-primary shadow-lg"
-                  : scrolled
-                    ? "text-foreground/70 hover:text-primary hover:bg-primary/5"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
+                  ? "bg-white text-primary shadow-lg"
+                  : "text-white/80 hover:text-white hover:bg-white/10"
               )}
             >
               {item.label}
             </Link>
           ))}
-          <div className={cn("w-px h-6 mx-2", scrolled ? "bg-border" : "bg-white/20")} />
+          <div className="w-px h-6 mx-2 bg-white/20" />
           <Link
             to="/admin"
-            className={cn(
-              "p-2.5 rounded-full transition-all duration-200",
-              scrolled
-                ? "text-primary hover:bg-primary/10"
-                : "text-white/70 hover:text-white hover:bg-white/10"
-            )}
+            className="p-2.5 rounded-full transition-all duration-200 text-white/70 hover:text-white hover:bg-white/10"
             title="Painel Admin"
           >
             <Settings className="w-5 h-5" />
