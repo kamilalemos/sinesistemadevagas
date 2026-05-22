@@ -4,7 +4,7 @@ export interface PopupConfig {
   ativo: boolean;
   titulo: string;
   descricao: string;
-  imagem: string;
+  imagemBase64: string;
   botaoTexto: string;
   botaoLink: string;
 }
@@ -21,7 +21,7 @@ const DEFAULT_CONFIG: PopupConfig = {
   ativo: false,
   titulo: "Aviso Importante",
   descricao: "Confira as últimas novidades e oportunidades do portal.",
-  imagem: "",
+  imagemBase64: "",
   botaoTexto: "Entendi",
   botaoLink: "",
 };
@@ -31,7 +31,13 @@ const getInitialState = (): PopupConfig => {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Migração de campo antigo 'imagem' para 'imagemBase64' se necessário
+      if (parsed.imagem && !parsed.imagemBase64) {
+        parsed.imagemBase64 = parsed.imagem;
+        delete parsed.imagem;
+      }
+      return parsed;
     } catch (e) {
       console.error("Error parsing popup config", e);
       return DEFAULT_CONFIG;

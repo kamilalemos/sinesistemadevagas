@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import CategoryCard from "@/components/CategoryCard";
 import { useVagasLocalStore } from "@/store/vagasStorage";
+import { useBannerStore } from "@/store/bannerStorage";
 import { categorias as categoriasMeta } from "@/store/vagasStore";
 
 const CandidatarSection = () => {
@@ -69,6 +70,7 @@ const CandidatarSection = () => {
 
 const Index = () => {
   const { vagas_semana, vagas_feirao, semana_ativa, feirao_ativa, periodo_semana } = useVagasLocalStore();
+  const { config: bannerConfig } = useBannerStore();
   const vSemana = vagas_semana.filter(v => v.publicada);
   const vFeirao = vagas_feirao.filter(v => v.publicada);
 
@@ -90,19 +92,53 @@ const Index = () => {
   return (
     <div className="pt-14">
       {/* Hero */}
-      <section className="gradient-hero py-12 px-4">
-        <div className="container mx-auto text-center">
-          <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="font-heading font-extrabold text-2xl md:text-4xl text-primary-foreground mb-2">
-            Painel da Empregabilidade
-          </motion.h1>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-primary-foreground/80 text-sm md:text-base mb-2">
-            de João Pessoa
-          </motion.p>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-primary-foreground/60 text-xs md:text-sm">
-            Atualização semanal das vagas disponíveis no SINE João Pessoa
-          </motion.p>
-        </div>
-      </section>
+      {bannerConfig.ativo && (
+        <section 
+          className="relative py-16 md:py-24 px-4 overflow-hidden"
+          style={{
+            background: bannerConfig.imagemBase64 
+              ? `linear-gradient(rgba(0, 56, 147, 0.8), rgba(0, 56, 147, 0.9)), url(${bannerConfig.imagemBase64})` 
+              : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {!bannerConfig.imagemBase64 && <div className="absolute inset-0 gradient-hero -z-10" />}
+          
+          <div className="container mx-auto text-center relative z-10">
+            <motion.h1 
+              initial={{ opacity: 0, y: -20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              className="font-heading font-extrabold text-3xl md:text-5xl text-primary-foreground mb-4 drop-shadow-md"
+            >
+              {bannerConfig.titulo}
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              transition={{ delay: 0.2 }} 
+              className="text-primary-foreground/90 text-lg md:text-xl mb-6 max-w-2xl mx-auto drop-shadow-sm"
+            >
+              {bannerConfig.descricao}
+            </motion.p>
+            
+            {bannerConfig.textoBotao && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Link to={bannerConfig.linkBotao || "/vagas"}>
+                  <Button size="lg" className="rounded-full px-8 h-12 font-heading font-bold bg-white text-primary hover:bg-white/90 shadow-lg">
+                    {bannerConfig.textoBotao}
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
+              </motion.div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Vagas da Semana */}
       {sAtiva && (
