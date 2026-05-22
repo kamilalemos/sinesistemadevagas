@@ -10,20 +10,24 @@ declare module 'jspdf' {
   }
 }
 
+const MONTH_NAMES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+];
+
 /**
  * Generates and downloads a CSV file from an array of vagas.
- * Handles escaping and encoding correctly.
+ * For monthly consolidation, includes the period column.
  */
-export const exportToCSV = (vagas: VagaLocal[], filename: string) => {
+export const exportToCSV = (vagas: VagaLocal[], filename: string, includePeriodColumn = true) => {
   try {
     if (!vagas || vagas.length === 0) {
       toast.error("Nenhuma vaga disponível para exportar.");
       return;
     }
 
-    // Filter to only export what's requested in the prompt
-    // Colunas: Quantidade, CBO, Descrição, Escolaridade, Experiência, ID da vaga, Benefícios, Salário, Empresa, Publicada, Data
-    const headers = ["Quantidade", "CBO", "Descrição", "Escolaridade", "Experiência", "ID da Vaga", "Benefícios", "Salário", "Empresa", "Publicada", "Data"];
+    // Colunas: Quantidade, CBO, Descrição, Escolaridade, Experiência, ID da vaga, Benefícios, Salário, Empresa, Publicada, Data, Período
+    const headers = ["Quantidade", "CBO", "Descrição", "Escolaridade", "Experiência", "ID da Vaga", "Benefícios", "Salário", "Empresa", "Publicada", "Data", "Período"];
     
     const csvRows = vagas.map(v => {
       const row = [
@@ -37,10 +41,10 @@ export const exportToCSV = (vagas: VagaLocal[], filename: string) => {
         v.salario || "",
         v.empresa || "",
         v.publicada ? "Sim" : "Não",
-        v.createdAt || ""
+        v.createdAt || "",
+        v.periodo || ""
       ];
       
-      // Escape fields that might contain commas or quotes
       return row.map(field => {
         const stringField = String(field).replace(/"/g, '""');
         return `"${stringField}"`;
@@ -106,7 +110,7 @@ export const exportToJSON = (data: any, filename: string) => {
 /**
  * Generates institutional PDF blob or dataURL for preview or download.
  */
-export const generatePDF = (vagas: VagaLocal[], title: string) => {
+export const generatePDF = (vagas: VagaLocal[], title: string, isConsolidated = false) => {
   try {
     if (!vagas || vagas.length === 0) {
       return null;
@@ -145,62 +149,144 @@ export const generatePDF = (vagas: VagaLocal[], title: string) => {
     doc.setDrawColor(200, 200, 200);
     doc.line(15, 52, 282, 52);
 
-    // Tabela Horizontal Profissional (Landscape)
     const tableHeaders = [["ID", "Cargo", "Qtd", "CBO", "Escolaridade", "Experiência", "Salário", "Benefícios", "Empresa", "Status"]];
     
-    const tableData = vagas.map(v => [
-      v.codigo || "-",
-      v.descricao || "-",
-      v.quantidade || "0",
-      v.cbo || "-",
-      v.escolaridade || "-",
-      v.experiencia || "-",
-      v.salario || "A combinar",
-      v.beneficios || "-",
-      v.empresa || "-",
-      v.publicada ? "Ativa" : "Pausada"
-    ]);
+    if (isConsolidated) {
+      // Group by period if consolidated
+      const groups: Record<string, VagaLocal[]> = {};
+      vagas.forEach(v => {
+        const p = v.periodo || "Outros";
+        if (!groups[p]) groups[p] = [];
+        groups[p].push(v);
+      });
 
-    doc.autoTable({
-      startY: 55,
-      head: tableHeaders,
-      body: tableData,
-      theme: 'striped',
-      headStyles: { 
-        fillColor: [0, 56, 147],
-        textColor: [255, 255, 255],
-        fontSize: 8,
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      styles: { 
-        fontSize: 7, 
-        cellPadding: 2,
-        overflow: 'linebreak',
-        font: 'helvetica',
-        minCellHeight: 8
-      },
-      columnStyles: {
-        0: { cellWidth: 15, halign: 'center' }, // ID/Código
-        1: { cellWidth: 45, overflow: 'linebreak' }, // Cargo
-        2: { cellWidth: 10, halign: 'center' }, // Qtd
-        3: { cellWidth: 18, halign: 'center' }, // CBO
-        4: { cellWidth: 35, overflow: 'linebreak' }, // Escolaridade
-        5: { cellWidth: 25, overflow: 'linebreak' }, // Experiência
-        6: { cellWidth: 25 },                   // Salário
-        7: { cellWidth: 50, overflow: 'linebreak' }, // Benefícios
-        8: { cellWidth: 30, overflow: 'linebreak' }, // Empresa
-        9: { cellWidth: 15, halign: 'center' }  // Status
-      },
-      alternateRowStyles: { fillColor: [245, 248, 255] },
-      margin: { left: 10, right: 10 },
-      didDrawPage: (data: any) => {
-        doc.setFontSize(7);
-        doc.setTextColor(150, 150, 150);
-        const str = `Página ${doc.internal.getNumberOfPages()} - Relatório Oficial SINE João Pessoa`;
-        doc.text(str, 148.5, 205, { align: 'center' });
-      }
-    });
+      let currentY = 55;
+      Object.entries(groups).forEach(([period, groupVagas], index) => {
+        // Add group header
+        if (index > 0) currentY += 10;
+        
+        // Check for page break if header is near bottom
+        if (currentY > 180) {
+          doc.addPage();
+          currentY = 15;
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(0, 56, 147);
+        doc.text(period.toUpperCase(), 15, currentY);
+        currentY += 5;
+
+        const tableData = groupVagas.map(v => [
+          v.codigo || "-",
+          v.descricao || "-",
+          v.quantidade || "0",
+          v.cbo || "-",
+          v.escolaridade || "-",
+          v.experiencia || "-",
+          v.salario || "A combinar",
+          v.beneficios || "-",
+          v.empresa || "-",
+          v.publicada ? "Ativa" : "Pausada"
+        ]);
+
+        doc.autoTable({
+          startY: currentY,
+          head: tableHeaders,
+          body: tableData,
+          theme: 'striped',
+          headStyles: { 
+            fillColor: [0, 56, 147],
+            textColor: [255, 255, 255],
+            fontSize: 8,
+            fontStyle: 'bold',
+            halign: 'center'
+          },
+          styles: { 
+            fontSize: 7, 
+            cellPadding: 2,
+            overflow: 'linebreak',
+            font: 'helvetica',
+            minCellHeight: 8
+          },
+          columnStyles: {
+            0: { cellWidth: 15, halign: 'center' }, // ID/Código
+            1: { cellWidth: 45, overflow: 'linebreak' }, // Cargo
+            2: { cellWidth: 10, halign: 'center' }, // Qtd
+            3: { cellWidth: 18, halign: 'center' }, // CBO
+            4: { cellWidth: 35, overflow: 'linebreak' }, // Escolaridade
+            5: { cellWidth: 25, overflow: 'linebreak' }, // Experiência
+            6: { cellWidth: 25 },                   // Salário
+            7: { cellWidth: 50, overflow: 'linebreak' }, // Benefícios
+            8: { cellWidth: 30, overflow: 'linebreak' }, // Empresa
+            9: { cellWidth: 15, halign: 'center' }  // Status
+          },
+          alternateRowStyles: { fillColor: [245, 248, 255] },
+          margin: { left: 10, right: 10 },
+          didDrawPage: (data: any) => {
+            doc.setFontSize(7);
+            doc.setTextColor(150, 150, 150);
+            const str = `Página ${doc.internal.getNumberOfPages()} - Relatório Consolidado SINE João Pessoa`;
+            doc.text(str, 148.5, 205, { align: 'center' });
+          }
+        });
+        currentY = (doc as any).lastAutoTable.finalY;
+      });
+    } else {
+      const tableData = vagas.map(v => [
+        v.codigo || "-",
+        v.descricao || "-",
+        v.quantidade || "0",
+        v.cbo || "-",
+        v.escolaridade || "-",
+        v.experiencia || "-",
+        v.salario || "A combinar",
+        v.beneficios || "-",
+        v.empresa || "-",
+        v.publicada ? "Ativa" : "Pausada"
+      ]);
+
+      doc.autoTable({
+        startY: 55,
+        head: tableHeaders,
+        body: tableData,
+        theme: 'striped',
+        headStyles: { 
+          fillColor: [0, 56, 147],
+          textColor: [255, 255, 255],
+          fontSize: 8,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        styles: { 
+          fontSize: 7, 
+          cellPadding: 2,
+          overflow: 'linebreak',
+          font: 'helvetica',
+          minCellHeight: 8
+        },
+        columnStyles: {
+          0: { cellWidth: 15, halign: 'center' }, // ID/Código
+          1: { cellWidth: 45, overflow: 'linebreak' }, // Cargo
+          2: { cellWidth: 10, halign: 'center' }, // Qtd
+          3: { cellWidth: 18, halign: 'center' }, // CBO
+          4: { cellWidth: 35, overflow: 'linebreak' }, // Escolaridade
+          5: { cellWidth: 25, overflow: 'linebreak' }, // Experiência
+          6: { cellWidth: 25 },                   // Salário
+          7: { cellWidth: 50, overflow: 'linebreak' }, // Benefícios
+          8: { cellWidth: 30, overflow: 'linebreak' }, // Empresa
+          9: { cellWidth: 15, halign: 'center' }  // Status
+        },
+        alternateRowStyles: { fillColor: [245, 248, 255] },
+        margin: { left: 10, right: 10 },
+        didDrawPage: (data: any) => {
+          doc.setFontSize(7);
+          doc.setTextColor(150, 150, 150);
+          const str = `Página ${doc.internal.getNumberOfPages()} - Relatório Oficial SINE João Pessoa`;
+          doc.text(str, 148.5, 205, { align: 'center' });
+        }
+      });
+    }
 
     return doc;
   } catch (error) {
@@ -212,8 +298,8 @@ export const generatePDF = (vagas: VagaLocal[], title: string) => {
 /**
  * Generates and downloads a PDF file with institutional branding (Landscape A4).
  */
-export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string) => {
-  const doc = generatePDF(vagas, title);
+export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string, isConsolidated = false) => {
+  const doc = generatePDF(vagas, title, isConsolidated);
   if (doc) {
     doc.save(`${filename}.pdf`);
     toast.success("Relatório PDF exportado com sucesso");

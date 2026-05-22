@@ -17,6 +17,7 @@ import { useVagasLocalStore } from "@/store/vagasStorage";
 import { getHistory } from "@/lib/vagasPersistence";
 import { exportToCSV, exportToJSON, exportToPDF, generatePDF } from "@/lib/exportUtils";
 import { saveData } from "@/services/storage";
+import { VagaLocal } from "@/types";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
@@ -25,21 +26,64 @@ export const ConfiguracoesPage = () => {
   const [currentFilename, setCurrentFilename] = useState("");
   
 
+  const getConsolidatedMonthData = () => {
+    const history = getHistory();
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const monthYear = `${year}_${month}`;
+    
+    // Find current month in history if available
+    const currentHistory = history.find(h => h.year === year && String(h.month).padStart(2, '0') === month);
+    
+    const consolidatedVagas: VagaLocal[] = [];
+    
+    // Process current live data first (Week 3 as per current user setup)
+    vagas_semana.filter(v => v.publicada).forEach(v => {
+      consolidatedVagas.push({ ...v, periodo: "Semana Atual (18/05 a 22/05)" });
+    });
+    
+    vagas_feirao.filter(v => v.publicada).forEach(v => {
+      consolidatedVagas.push({ ...v, periodo: "Feirão da Empregabilidade" });
+    });
+
+    // Add other weeks from history if they exist for this month
+    if (currentHistory) {
+      Object.entries(currentHistory.weeks).forEach(([key, weekData]: [string, any]) => {
+        // Skip current week if already added or add specifically
+        const weekNum = key.split('_')[1];
+        if (weekNum !== '3') { // Example: avoiding duplicates if live is week 3
+          weekData.vagas.filter((v: any) => v.publicada).forEach((v: any) => {
+            consolidatedVagas.push({ ...v, periodo: weekData.periodo || `Semana ${weekNum}` });
+          });
+        }
+      });
+    }
+
+    return {
+      vagas: consolidatedVagas,
+      month: now.getMonth() + 1,
+      year: year,
+      monthName: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"][now.getMonth()]
+    };
+  };
+
   const handleExportFullBackup = () => {
     try {
-      const history = getHistory();
+      const data = getConsolidatedMonthData();
+      if (data.vagas.length === 0) {
+        toast.error("Nenhum dado publicado este mês para backup.");
+        return;
+      }
+
       const backupData = {
-        vagas_semana,
-        vagas_feirao,
-        historico_mensal: history,
-        exportado_em: new Date().toISOString(),
-        versao: "1.1.0",
-        identificacao: "Backup SINE João Pessoa"
+        mes: `${data.year}-${String(data.month).padStart(2, '0')}`,
+        vagas: data.vagas,
+        exportadoEm: new Date().toISOString(),
+        versao: "1.2.0"
       };
       
-      const now = new Date();
-      const timestamp = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`;
-      exportToJSON(backupData, `backup_vagas_${timestamp}`);
+      exportToJSON(backupData, `backup_mensal_${data.monthName.toLowerCase()}_${data.year}`);
     } catch (error) {
       console.error("Erro no backup JSON:", error);
       toast.error("Erro ao preparar backup JSON.");
@@ -48,12 +92,13 @@ export const ConfiguracoesPage = () => {
 
   const handleExportCSV = () => {
     try {
-      const todasVagas = [...vagas_semana, ...vagas_feirao].filter(v => v.publicada);
-      const now = new Date();
-      const monthNames = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-      const monthName = monthNames[now.getMonth()];
+      const data = getConsolidatedMonthData();
+      if (data.vagas.length === 0) {
+        toast.error("Nenhuma vaga publicada este mês para exportar.");
+        return;
+      }
       
-      exportToCSV(todasVagas, `vagas_${monthName}_${now.getFullYear()}`);
+      exportToCSV(data.vagas, `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`);
     } catch (error) {
       console.error("Erro no export CSV:", error);
       toast.error("Erro ao preparar exportação CSV.");
@@ -62,19 +107,16 @@ export const ConfiguracoesPage = () => {
 
   const handleExportPDF = () => {
     try {
-      const todasVagas = [...vagas_semana, ...vagas_feirao].filter(v => v.publicada);
-      if (todasVagas.length === 0) {
-        toast.error("Nenhuma vaga publicada para exportar.");
+      const data = getConsolidatedMonthData();
+      if (data.vagas.length === 0) {
+        toast.error("Nenhuma vaga publicada este mês para exportar.");
         return;
       }
 
-      const now = new Date();
-      const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-      const monthName = monthNames[now.getMonth()];
-      const title = `Relatório de Vagas - ${monthName} / ${now.getFullYear()}`;
-      const filename = `sine-vagas-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const title = `Relatório Mensal Consolidado - ${data.monthName} / ${data.year}`;
+      const filename = `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`;
       
-      const doc = generatePDF(todasVagas, title);
+      const doc = generatePDF(data.vagas, title, true);
       if (doc) {
         const pdfDataUri = doc.output('datauristring');
         setPdfPreviewData(pdfDataUri);
