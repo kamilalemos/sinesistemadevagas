@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useVagasLocalStore, VagaLocal } from "@/store/vagasStorage";
 import { categorias } from "@/store/vagasStore";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface Props {
   tipo: "semana" | "feirao";
