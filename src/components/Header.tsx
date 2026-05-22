@@ -33,33 +33,14 @@ const Header = () => {
   return (
     <header 
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
-        scrolled 
-          ? "bg-white/95 backdrop-blur-md py-2 shadow-sm border-border" 
-          : "bg-primary py-4 border-transparent"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b bg-primary py-3 shadow-md",
+        scrolled ? "py-2 border-primary/20" : "py-4 border-transparent"
       )}
     >
       <div className="container mx-auto flex items-center justify-between px-4 lg:px-8">
         <Link to="/" className="flex items-center gap-4 group">
-          <div className={cn(
-            "p-2 rounded-xl transition-colors",
-            scrolled ? "bg-primary/5" : "bg-white/10"
-          )}>
+          <div className="p-2 rounded-xl transition-colors bg-white/10">
             <img src={logoSine} alt="Logo SINE João Pessoa" className="h-8 md:h-9 w-auto object-contain" />
-          </div>
-          <div className="flex flex-col">
-            <span className={cn(
-              "font-heading font-extrabold text-sm md:text-base leading-none transition-colors",
-              scrolled ? "text-primary" : "text-white"
-            )}>
-              João Pessoa
-            </span>
-            <span className={cn(
-              "text-[10px] font-bold uppercase tracking-widest opacity-70",
-              scrolled ? "text-primary/70" : "text-white/70"
-            )}>
-              Sine Municipal
-            </span>
           </div>
         </Link>
 
@@ -72,26 +53,17 @@ const Header = () => {
               className={cn(
                 "px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200",
                 location.pathname === item.path
-                  ? scrolled 
-                    ? "bg-primary text-white shadow-md shadow-primary/20" 
-                    : "bg-white text-primary shadow-lg"
-                  : scrolled
-                    ? "text-foreground/70 hover:text-primary hover:bg-primary/5"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
+                  ? "bg-white text-primary shadow-lg"
+                  : "text-white/80 hover:text-white hover:bg-white/10"
               )}
             >
               {item.label}
             </Link>
           ))}
-          <div className={cn("w-px h-6 mx-2", scrolled ? "bg-border" : "bg-white/20")} />
+          <div className="w-px h-6 mx-2 bg-white/20" />
           <Link
             to="/admin"
-            className={cn(
-              "p-2.5 rounded-full transition-all duration-200",
-              scrolled
-                ? "text-primary hover:bg-primary/10"
-                : "text-white/70 hover:text-white hover:bg-white/10"
-            )}
+            className="p-2.5 rounded-full transition-all duration-200 text-white/70 hover:text-white hover:bg-white/10"
             title="Painel Admin"
           >
             <Settings className="w-5 h-5" />
@@ -101,10 +73,7 @@ const Header = () => {
         {/* Mobile menu button */}
         <button
           onClick={() => setOpen(!open)}
-          className={cn(
-            "lg:hidden p-2 rounded-xl transition-colors",
-            scrolled ? "text-primary hover:bg-primary/5" : "text-white hover:bg-white/10"
-          )}
+          className="lg:hidden p-2 rounded-xl transition-colors text-white hover:bg-white/10"
         >
           {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>

@@ -67,15 +67,17 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
   return (
     <>
       {/* Mobile Toggle Button */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-border z-[60] flex items-center px-4 lg:hidden">
+      <div className="fixed top-0 left-0 right-0 h-16 bg-primary border-b border-primary/20 z-[60] flex items-center px-4 lg:hidden">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2.5 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
+          className="p-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
         >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
-        <div className="ml-4">
-          <img src="/logo-sine.png" alt="SINE Logo" className="h-8 w-auto object-contain" />
+        <div className="ml-4 flex items-center gap-3">
+          <div className="p-1.5 bg-white/10 rounded-lg">
+            <img src="/logo-sine.png" alt="SINE Logo" className="h-7 w-auto object-contain" />
+          </div>
         </div>
       </div>
 
@@ -94,27 +96,29 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
 
       <aside
         className={cn(
-          "fixed top-0 left-0 bottom-0 z-[60] bg-white border-r border-border flex flex-col transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none",
+          "fixed top-0 left-0 bottom-0 z-[60] bg-primary border-r border-primary/20 flex flex-col transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           isCollapsed ? "lg:w-20" : "w-[280px] lg:w-72",
           "lg:z-40"
         )}
       >
         {/* Sidebar Header */}
-        <div className="h-20 lg:h-24 flex items-center gap-3 px-6 border-b border-border bg-white">
+        <div className="h-20 lg:h-24 flex items-center gap-3 px-6 border-b border-primary/10 bg-primary">
           {!isCollapsed && (
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <img src="/logo-sine.png" alt="SINE Logo" className="h-10 w-auto object-contain" />
+              <div className="p-2 bg-white/10 rounded-xl">
+                <img src="/logo-sine.png" alt="SINE Logo" className="h-10 w-auto object-contain" />
+              </div>
             </div>
           )}
           {isCollapsed && (
             <div className="flex items-center justify-center w-full">
-               <Shield className="w-6 h-6 text-primary" />
+               <Shield className="w-6 h-6 text-white" />
             </div>
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-all duration-200"
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-all duration-200"
           >
             {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
@@ -133,29 +137,29 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group relative",
                   isActive
-                    ? "bg-primary text-white shadow-md shadow-primary/20 font-bold"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground font-semibold",
+                    ? "bg-white text-primary shadow-md font-bold"
+                    : "text-white/70 hover:bg-white/10 hover:text-white font-semibold",
                   isCollapsed && "justify-center px-0"
                 )}
                 title={isCollapsed ? item.name : undefined}
               >
-                <Icon className={cn("w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105", isActive ? "text-white" : "text-muted-foreground/50 group-hover:text-primary")} />
+                <Icon className={cn("w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-105", isActive ? "text-primary" : "text-white/40 group-hover:text-white")} />
                 {!isCollapsed && (
                   <span className="text-[13px] tracking-tight">{item.name}</span>
                 )}
                 
                 {isActive && !isCollapsed && (
-                  <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white/40" />
+                  <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary/40" />
                 )}
               </button>
             );
           })}
           
-          <div className="pt-6 mt-6 border-t border-border/60">
+          <div className="pt-6 mt-6 border-t border-white/10">
             <Link 
               to="/" 
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group font-bold bg-primary/5 text-primary hover:bg-primary/10",
+                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group font-bold bg-white/10 text-white hover:bg-white/20",
                 isCollapsed && "justify-center px-0"
               )}
             >
@@ -166,23 +170,23 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
         </nav>
 
         {/* Footer / User Area */}
-        <div className="p-4 bg-white border-t border-border mt-auto space-y-2">
+        <div className="p-4 bg-primary border-t border-white/10 mt-auto space-y-2">
           {!isCollapsed ? (
             <div className="flex items-center gap-3 px-2 py-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/60">
-                <span className="text-sm font-black text-primary">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                <span className="text-sm font-black text-white">
                   {userEmail?.charAt(0).toUpperCase() || "A"}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-black text-foreground truncate tracking-tight">{userEmail || "Admin"}</p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Acesso Gestor</p>
+                <p className="text-xs font-black text-white truncate tracking-tight">{userEmail || "Admin"}</p>
+                <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Acesso Gestor</p>
               </div>
             </div>
           ) : (
             <div className="flex justify-center mb-4">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/60">
-                <span className="text-sm font-black text-primary">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                <span className="text-sm font-black text-white">
                   {userEmail?.charAt(0).toUpperCase() || "A"}
                 </span>
               </div>
@@ -193,7 +197,7 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
             onClick={onSignOut}
             className={cn(
               "w-full flex items-center rounded-xl text-left transition-all duration-200 group font-bold",
-              "text-destructive hover:bg-destructive/5",
+              "text-white hover:bg-white/10",
               isCollapsed ? "justify-center p-3" : "gap-3 px-4 py-3"
             )}
             title={isCollapsed ? "Sair" : undefined}
