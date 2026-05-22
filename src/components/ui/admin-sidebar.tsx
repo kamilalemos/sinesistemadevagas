@@ -12,7 +12,10 @@ import {
   ChevronRight,
   Shield,
   History,
+  Layout
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Link, useLocation } from "react-router-dom";
 
 interface NavigationItem {
   id: string;
@@ -61,55 +64,71 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-[72px] left-3 z-50 lg:hidden bg-card border border-border rounded-lg p-2 shadow-card"
-      >
-        {isOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
-      </button>
+      {/* Mobile Toggle Button */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-border z-[60] flex items-center px-4 lg:hidden">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2.5 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
+        >
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+        <div className="ml-3 flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Shield className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-heading font-extrabold text-sm text-foreground">Painel Admin</span>
+        </div>
+      </div>
 
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <aside
-        className={`
-          fixed top-14 left-0 bottom-0 z-40 bg-card border-r border-border
-          flex flex-col transition-all duration-300
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          ${isCollapsed ? "w-16" : "w-60"}
-          lg:translate-x-0 lg:static lg:z-auto
-        `}
+        className={cn(
+          "fixed top-0 left-0 bottom-0 z-[60] bg-white border-r border-border flex flex-col transition-all duration-400 ease-in-out shadow-2xl lg:shadow-none",
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          isCollapsed ? "lg:w-20" : "w-[280px] lg:w-64",
+          "lg:z-40"
+        )}
       >
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-border">
+        {/* Sidebar Header */}
+        <div className="h-16 lg:h-20 flex items-center gap-3 px-6 border-b border-border bg-muted/5">
           {!isCollapsed && (
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-                <Shield className="w-4 h-4 text-primary-foreground" />
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
+                <Shield className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-heading font-bold text-foreground truncate">Painel Admin</p>
-                <p className="text-[10px] text-muted-foreground truncate">SINE João Pessoa</p>
+                <p className="text-sm font-heading font-extrabold text-foreground truncate uppercase tracking-tight">João Pessoa</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Painel Admin</p>
               </div>
             </div>
           )}
           {isCollapsed && (
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center mx-auto">
-              <Shield className="w-4 h-4 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mx-auto shadow-lg shadow-primary/20">
+              <Shield className="w-5 h-5 text-white" />
             </div>
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex items-center justify-center w-6 h-6 rounded-md hover:bg-accent text-muted-foreground transition-colors"
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200"
           >
-            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+        {/* Navigation Items */}
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
@@ -118,51 +137,46 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
               <button
                 key={item.id}
                 onClick={() => handleItemClick(item.id)}
-                className={`
-                  w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all duration-200 group relative
-                  ${isActive
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                  }
-                  ${isCollapsed ? "justify-center px-2" : ""}
-                `}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all duration-300 group relative",
+                  isActive
+                    ? "bg-primary text-white shadow-lg shadow-primary/20 font-bold"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground font-semibold",
+                  isCollapsed && "justify-center px-0"
+                )}
                 title={isCollapsed ? item.name : undefined}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-primary" : ""}`} />
+                <Icon className={cn("w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-110", isActive ? "text-white" : "text-muted-foreground/60 group-hover:text-primary")} />
                 {!isCollapsed && (
-                  <span className="text-sm truncate">{item.name}</span>
+                  <span className="text-sm tracking-tight">{item.name}</span>
                 )}
-                {isCollapsed && (
-                  <span className="
-                    absolute left-full ml-2 px-2 py-1 rounded-md text-xs font-medium
-                    bg-foreground text-background whitespace-nowrap
-                    opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50
-                  ">
-                    {item.name}
-                  </span>
+                
+                {isActive && !isCollapsed && (
+                  <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white/40" />
                 )}
               </button>
             );
           })}
         </nav>
 
-        <div className="border-t border-border p-3 space-y-2">
+        {/* Footer / User Area */}
+        <div className="p-4 bg-muted/5 border-t border-border mt-auto space-y-2">
           {!isCollapsed ? (
-            <div className="flex items-center gap-2 px-1">
-              <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
-                <span className="text-xs font-bold text-foreground">
+            <div className="flex items-center gap-3 px-2 py-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/10">
+                <span className="text-sm font-black text-primary">
                   {userEmail?.charAt(0).toUpperCase() || "A"}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-foreground truncate">{userEmail || "Admin"}</p>
-                <p className="text-[10px] text-muted-foreground">Administrador</p>
+                <p className="text-xs font-black text-foreground truncate tracking-tight">{userEmail || "Admin"}</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Acesso Gestor</p>
               </div>
             </div>
           ) : (
-            <div className="flex justify-center">
-              <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-                <span className="text-xs font-bold text-foreground">
+            <div className="flex justify-center mb-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/10">
+                <span className="text-sm font-black text-primary">
                   {userEmail?.charAt(0).toUpperCase() || "A"}
                 </span>
               </div>
@@ -171,27 +185,20 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
 
           <button
             onClick={onSignOut}
-            className={`
-              w-full flex items-center rounded-lg text-left transition-all duration-200 group
-              text-destructive hover:bg-destructive/10
-              ${isCollapsed ? "justify-center p-2.5" : "gap-2.5 px-3 py-2.5"}
-            `}
+            className={cn(
+              "w-full flex items-center rounded-2xl text-left transition-all duration-200 group font-bold",
+              "text-destructive hover:bg-destructive/10",
+              isCollapsed ? "justify-center p-3.5" : "gap-3 px-4 py-3.5"
+            )}
             title={isCollapsed ? "Sair" : undefined}
           >
-            <LogOut className="w-4 h-4 shrink-0" />
-            {!isCollapsed && <span className="text-sm">Sair</span>}
-            {isCollapsed && (
-              <span className="
-                absolute left-full ml-2 px-2 py-1 rounded-md text-xs font-medium
-                bg-foreground text-background whitespace-nowrap
-                opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50
-              ">
-                Sair
-              </span>
-            )}
+            <LogOut className="w-5 h-5 shrink-0" />
+            {!isCollapsed && <span className="text-sm">Encerrar Sessão</span>}
           </button>
         </div>
       </aside>
     </>
   );
 }
+
+import { motion, AnimatePresence } from "framer-motion";
