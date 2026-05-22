@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Settings, ArrowRight } from "lucide-react";
+import { Menu, X, Settings, ArrowRight, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoSine from "@/assets/logo-sine.png";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Início", path: "/" },
@@ -15,7 +16,33 @@ const navItems = [
 const Header = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setShowInstallBtn(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,7 +87,17 @@ const Header = () => {
               {item.label}
             </Link>
           ))}
-          <div className="w-px h-6 mx-2 bg-white/20" />
+          {showInstallBtn && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleInstallClick}
+              className="hidden xl:flex items-center gap-2 rounded-full bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white mr-2"
+            >
+              <Download className="w-4 h-4" />
+              Instalar App
+            </Button>
+          )}
           <Link
             to="/admin"
             className="p-2.5 rounded-full transition-all duration-200 text-white/70 hover:text-white hover:bg-white/10"
@@ -70,13 +107,24 @@ const Header = () => {
           </Link>
         </nav>
 
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="lg:hidden p-2 rounded-xl transition-colors text-white hover:bg-white/10"
-        >
-          {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Mobile Actions */}
+        <div className="flex items-center gap-2 lg:hidden">
+          {showInstallBtn && (
+            <button
+              onClick={handleInstallClick}
+              className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+              title="Instalar Aplicativo"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+          )}
+          <button
+            onClick={() => setOpen(!open)}
+            className="p-2 rounded-xl transition-colors text-white hover:bg-white/10"
+          >
+            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile nav */}
