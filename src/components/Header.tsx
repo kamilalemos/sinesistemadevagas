@@ -96,13 +96,24 @@ const Header = () => {
           </Link>
         </nav>
 
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="lg:hidden p-2 rounded-xl transition-colors text-white hover:bg-white/10"
-        >
-          {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Mobile Actions */}
+        <div className="flex items-center gap-2 lg:hidden">
+          {showInstallBtn && (
+            <button
+              onClick={handleInstallClick}
+              className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+              title="Instalar Aplicativo"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+          )}
+          <button
+            onClick={() => setOpen(!open)}
+            className="p-2 rounded-xl transition-colors text-white hover:bg-white/10"
+          >
+            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile nav */}
