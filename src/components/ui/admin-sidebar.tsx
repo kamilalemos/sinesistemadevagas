@@ -76,7 +76,7 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
         </button>
         <div className="ml-4 flex items-center gap-3">
           <div className="p-1.5 bg-white/10 rounded-lg">
-            <img src="/logo-sine.png" alt="SINE Logo" className="h-7 w-auto object-contain" />
+            <img src="/logo-sine-mobile.png" alt="SINE Logo" className="h-9 w-auto object-contain" />
           </div>
         </div>
       </div>
