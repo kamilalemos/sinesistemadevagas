@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-420x420.png', 'pwa-512x512.png'],
       manifest: {
         name: 'SINE João Pessoa',
         short_name: 'SINE JP',
@@ -31,6 +31,11 @@ export default defineConfig(({ mode }) => ({
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-420x420.png',
+            sizes: '420x420',
             type: 'image/png'
           },
           {
