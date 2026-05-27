@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin, X, Hash, Tag, DollarSign, Gift, GraduationCap, Briefcase, FileText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useVagasLocalStore } from "@/store/vagasStorage";
-import AnimatedCounter from "@/components/AnimatedCounter";
+import AnimatedCounter from "@/components/Counter";
 import { motion } from "framer-motion";
+import { Pagination } from "@/components/ui/pagination-custom";
 
 const Feirao = () => {
   const { vagas_feirao, feirao_ativa, periodo_feirao } = useVagasLocalStore();
   const vagas = vagas_feirao.filter(v => v.publicada);
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const feiraoAtivo = feirao_ativa;
   const categoriaFiltro = searchParams.get("categoria") || "";
@@ -41,6 +44,22 @@ const Feirao = () => {
     const matchCategoria = !categoriaFiltro || v.categoria === categoriaFiltro;
     return matchBusca && matchCategoria;
   });
+
+  const totalPages = Math.ceil(vagasFiltradas.length / itemsPerPage);
+  
+  const currentVagas = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return vagasFiltradas.slice(startIndex, startIndex + itemsPerPage);
+  }, [vagasFiltradas, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [busca, categoriaFiltro]);
 
   const limparFiltro = () => {
     setSearchParams({});
@@ -95,7 +114,7 @@ const Feirao = () => {
         </div>
 
         <div className="space-y-4">
-          {vagasFiltradas.map((vaga, i) => (
+          {currentVagas.map((vaga, i) => (
             <motion.div 
               key={vaga.id} 
               initial={{ opacity: 0, y: 10 }} 
@@ -133,6 +152,12 @@ const Feirao = () => {
             </motion.div>
           ))}
         </div>
+
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={handlePageChange} 
+        />
 
         {vagasFiltradas.length === 0 && (
           <p className="text-center text-muted-foreground py-8 text-sm">
