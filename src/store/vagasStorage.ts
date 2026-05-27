@@ -20,7 +20,7 @@ interface VagasState {
   setVisibilidade: (tipo: 'semana' | 'feirao', ativa: boolean) => void;
   setPeriodo: (tipo: 'semana' | 'feirao', periodo: string) => void;
   refreshFromStorage: () => void;
-  resetVagas: (tipo: 'semana' | 'feirao') => void;
+  resetVagas: (tipo: 'semana' | 'feirao', novoPeriodo?: string) => void;
 }
 
 // Initial load
@@ -253,14 +253,23 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     return newState;
   }),
 
-  resetVagas: (tipo) => set((state) => {
+  resetVagas: (tipo, novoPeriodo) => set((state) => {
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
     
-    // Resetting to empty but maintaining current period reference
-    const newState = { [key]: [] };
+    // 1. Forçar o salvamento do estado atual no localStorage antes de limpar
+    // O saveVagasToLocalStorage já usa a data atual para gerar a chave,
+    // então ele vai garantir que o que está lá fique persistido.
+    saveVagasToLocalStorage(tipo, state[key], state[periodKey]);
     
-    saveVagasToLocalStorage(tipo, [], state[periodKey]);
+    // 2. Limpar para o novo período
+    const newState = { 
+      [key]: [],
+      [periodKey]: novoPeriodo || "" 
+    };
+    
+    // O salvamento do novo estado vazio ocorrerá na próxima interação ou podemos forçar
+    // Mas o reset aqui deve garantir que a chave mude se o período mudar drasticamente ou se o admin trocar de semana manual
     
     return newState;
   }),

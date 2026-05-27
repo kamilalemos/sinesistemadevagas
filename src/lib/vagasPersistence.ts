@@ -27,6 +27,7 @@ export const getWeekInfo = () => {
 
 export const saveVagasToLocalStorage = (tipo: 'semana' | 'feirao', vagas: VagaLocal[], periodo: string) => {
   const info = getWeekInfo();
+  // Se for semana, usamos a chave específica da semana (1, 2, 3 ou 4)
   const key = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
   const dataToSave = { vagas, periodo };
   

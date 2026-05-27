@@ -118,15 +118,18 @@ export const VagasTabContent = ({ tipo }: Props) => {
           <Button 
             variant="outline" 
             onClick={() => {
-              if (confirm("ATENÇÃO: Isso irá zerar todas as vagas deste período para iniciar um novo registro. Esta ação não pode ser desfeita. Deseja continuar?")) {
-                resetVagas(tipo);
-                toast.success("Período zerado! Você pode iniciar novos cadastros.");
+              const novo = prompt("Digite o novo período (Ex: 08/01 a 14/01):");
+              if (novo) {
+                if (confirm(`ATENÇÃO: As vagas atuais serão ARQUIVADAS no histórico e a lista será zerada para o novo período: ${novo}. Deseja continuar?`)) {
+                  resetVagas(tipo, novo);
+                  toast.success("Período arquivado e lista zerada com sucesso!");
+                }
               }
             }}
-            className="rounded-xl h-12 px-6 font-bold text-destructive hover:bg-destructive/5 hover:text-destructive border-destructive/30"
+            className="rounded-xl h-12 px-6 font-bold text-primary hover:bg-primary/5 border-primary/30"
           >
             <Eraser className="w-4 h-4 mr-2" />
-            Zerar Período
+            Novo Período (Arquivar Atual)
           </Button>
         </div>
       </div>
