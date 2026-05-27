@@ -4,6 +4,7 @@ import {
   saveVagasToLocalStorage 
 } from '@/lib/vagasPersistence';
 import { VagaLocal } from '@/types';
+import { logAudit } from '@/services/auditService';
 
 export type { VagaLocal };
 
@@ -213,6 +214,7 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     
     // Auto-save to localStorage with the correct key
     saveVagasToLocalStorage(tipo, newState[key] as VagaLocal[], state[periodKey]);
+    logAudit('create', 'vaga', newVaga.id, { tipo, descricao: newVaga.descricao });
     
     return newState;
   }),
@@ -224,6 +226,7 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const newState = { [key]: updatedVagas };
     
     saveVagasToLocalStorage(tipo, updatedVagas, state[periodKey]);
+    logAudit('update', 'vaga', id, { tipo, changes: vagaData });
     
     return newState;
   }),
@@ -235,13 +238,17 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const newState = { [key]: filteredVagas };
     
     saveVagasToLocalStorage(tipo, filteredVagas, state[periodKey]);
+    logAudit('delete', 'vaga', id, { tipo });
     
     return newState;
   }),
 
-  setVisibilidade: (tipo, ativa) => set((state) => ({
-    [tipo === 'semana' ? 'semana_ativa' : 'feirao_ativa']: ativa
-  })),
+  setVisibilidade: (tipo, ativa) => set((state) => {
+    logAudit('publish', 'periodo', tipo, { ativa });
+    return {
+      [tipo === 'semana' ? 'semana_ativa' : 'feirao_ativa']: ativa
+    };
+  }),
 
   setPeriodo: (tipo, periodo) => set((state) => {
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
@@ -261,6 +268,7 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     // O saveVagasToLocalStorage já usa a data atual para gerar a chave,
     // então ele vai garantir que o que está lá fique persistido.
     saveVagasToLocalStorage(tipo, state[key], state[periodKey]);
+    logAudit('reset', 'periodo', tipo, { novoPeriodo });
     
     // 2. Limpar para o novo período
     const newState = { 
