@@ -149,11 +149,13 @@ const Vagas = () => {
           ))}
         </div>
 
-        <Pagination 
-          currentPage={currentPage} 
-          totalPages={totalPages} 
-          onPageChange={handlePageChange} 
-        />
+        <div className="mt-8">
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={handlePageChange} 
+          />
+        </div>
 
         {vagasAgrupadas.length === 0 && (
           <p className="text-center text-muted-foreground py-8 text-sm">
