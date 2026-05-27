@@ -18,12 +18,41 @@ import { getHistory } from "@/lib/vagasPersistence";
 import { exportToCSV, exportToJSON, exportToPDF, generatePDF } from "@/lib/exportUtils";
 import { saveData } from "@/services/storage";
 import { VagaLocal } from "@/types";
+import { logAudit } from "@/services/auditService";
+import { supabase } from "@/integrations/supabase/client";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [pdfPreviewData, setPdfPreviewData] = useState<string | null>(null);
   const [currentFilename, setCurrentFilename] = useState("");
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
+  const fetchLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (error) throw error;
+      setLogs(data || []);
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+      // Load from local storage fallback
+      const localLogs = JSON.parse(localStorage.getItem('sine_local_audit_logs') || '[]');
+      setLogs(localLogs.reverse().slice(0, 20));
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
   
 
   const getConsolidatedMonthData = () => {
@@ -84,6 +113,7 @@ export const ConfiguracoesPage = () => {
       };
       
       exportToJSON(backupData, `backup_mensal_${data.monthName.toLowerCase()}_${data.year}`);
+      logAudit('export', 'periodo', 'full_backup', { format: 'JSON' });
     } catch (error) {
       console.error("Erro no backup JSON:", error);
       toast.error("Erro ao preparar backup JSON.");
@@ -99,6 +129,7 @@ export const ConfiguracoesPage = () => {
       }
       
       exportToCSV(data.vagas, `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`);
+      logAudit('export', 'periodo', 'monthly_report', { format: 'CSV' });
     } catch (error) {
       console.error("Erro no export CSV:", error);
       toast.error("Erro ao preparar exportação CSV.");
@@ -136,6 +167,7 @@ export const ConfiguracoesPage = () => {
       link.download = `${currentFilename}.pdf`;
       link.click();
       setIsPreviewOpen(false);
+      logAudit('export', 'periodo', 'monthly_report', { format: 'PDF' });
       toast.success("PDF baixado com sucesso!");
     } catch (error) {
       toast.error("Erro ao baixar PDF.");
@@ -216,6 +248,70 @@ export const ConfiguracoesPage = () => {
           </CardContent>
         </Card>
 
+
+        {/* Auditoria Card */}
+        <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
+          <CardHeader className="p-8 pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <CardTitle className="font-heading font-black text-xl tracking-tight">Logs de Auditoria</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" onClick={fetchLogs} disabled={loadingLogs} className="rounded-xl font-bold">
+                {loadingLogs ? "Atualizando..." : "Recarregar"}
+              </Button>
+            </div>
+            <CardDescription className="font-medium text-muted-foreground">Últimas 20 ações administrativas registradas.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-8 pt-4">
+            <div className="bg-muted/10 rounded-2xl border border-border/40 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/40 text-left bg-muted/20">
+                      <th className="py-3 px-4 font-black uppercase text-[10px] text-muted-foreground">Data/Hora</th>
+                      <th className="py-3 px-4 font-black uppercase text-[10px] text-muted-foreground">Ação</th>
+                      <th className="py-3 px-4 font-black uppercase text-[10px] text-muted-foreground">Entidade</th>
+                      <th className="py-3 px-4 font-black uppercase text-[10px] text-muted-foreground">Detalhes</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/20">
+                    {logs.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="py-8 text-center text-muted-foreground italic">Nenhum log encontrado.</td>
+                      </tr>
+                    ) : (
+                      logs.map((log, i) => (
+                        <tr key={log.id || i} className="hover:bg-primary/[0.01]">
+                          <td className="py-3 px-4 text-xs font-medium text-muted-foreground">
+                            {new Date(log.created_at).toLocaleString('pt-BR')}
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge variant="outline" className={cn(
+                              "text-[9px] uppercase font-black px-1.5 h-5",
+                              log.action === 'create' && "text-emerald-600 border-emerald-200 bg-emerald-50",
+                              log.action === 'update' && "text-blue-600 border-blue-200 bg-blue-50",
+                              log.action === 'delete' && "text-red-600 border-red-200 bg-red-50",
+                              log.action === 'export' && "text-amber-600 border-amber-200 bg-amber-50"
+                            )}>
+                              {log.action}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4 font-bold text-xs uppercase tracking-tighter">{log.entity_type}</td>
+                          <td className="py-3 px-4 text-xs text-muted-foreground truncate max-w-[200px]" title={JSON.stringify(log.details)}>
+                            {log.details?.descricao || log.details?.format || log.details?.novoPeriodo || "-"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Security Card */}
         <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
