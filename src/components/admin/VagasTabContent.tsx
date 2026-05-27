@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { PlusCircle, Trash2, Edit, Save, X, Calendar } from "lucide-react";
+import { PlusCircle, Trash2, Edit, Save, X, Calendar, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ interface Props {
 }
 
 export const VagasTabContent = ({ tipo }: Props) => {
-  const { vagas_semana, vagas_feirao, addVaga, updateVaga, deleteVaga, periodo_semana, periodo_feirao, setPeriodo, refreshFromStorage } = useVagasLocalStore();
+  const { vagas_semana, vagas_feirao, addVaga, updateVaga, deleteVaga, periodo_semana, periodo_feirao, setPeriodo, refreshFromStorage, resetVagas } = useVagasLocalStore();
   
   useEffect(() => {
     refreshFromStorage();
@@ -114,6 +114,19 @@ export const VagasTabContent = ({ tipo }: Props) => {
           >
             <Save className="w-4 h-4 mr-2" />
             Salvar Período
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              if (confirm("ATENÇÃO: Isso irá zerar todas as vagas deste período para iniciar um novo registro. Esta ação não pode ser desfeita. Deseja continuar?")) {
+                resetVagas(tipo);
+                toast.success("Período zerado! Você pode iniciar novos cadastros.");
+              }
+            }}
+            className="rounded-xl h-12 px-6 font-bold text-destructive hover:bg-destructive/5 hover:text-destructive border-destructive/30"
+          >
+            <Eraser className="w-4 h-4 mr-2" />
+            Zerar Período
           </Button>
         </div>
       </div>
