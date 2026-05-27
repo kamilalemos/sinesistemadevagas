@@ -33,9 +33,8 @@ export const saveVagasToLocalStorage = (tipo: 'semana' | 'feirao', vagas: VagaLo
   
   saveData(key, dataToSave);
   
-  if (info.week === 4) {
-    performMonthlyBackup(info.year, info.month);
-  }
+  // Sempre atualiza o backup mensal ao salvar qualquer vaga
+  performMonthlyBackup(info.year, info.month);
 };
 
 export const loadVagasFromLocalStorage = (tipo: 'semana' | 'feirao'): { vagas: VagaLocal[], periodo: string } => {

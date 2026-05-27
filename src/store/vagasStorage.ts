@@ -264,20 +264,23 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
     
-    // 1. Forçar o salvamento do estado atual no localStorage antes de limpar
-    // O saveVagasToLocalStorage já usa a data atual para gerar a chave,
-    // então ele vai garantir que o que está lá fique persistido.
+    // 1. Garantir que as vagas atuais sejam salvas no localStorage (e consequentemente no backup mensal)
+    // O saveVagasToLocalStorage agora chama o backup mensal automaticamente.
     saveVagasToLocalStorage(tipo, state[key], state[periodKey]);
-    logAudit('reset', 'periodo', tipo, { novoPeriodo });
     
-    // 2. Limpar para o novo período
+    logAudit('reset', 'periodo', tipo, { 
+      novoPeriodo, 
+      vagasArquivadas: state[key].length 
+    });
+    
+    // 2. Limpar o estado local para o novo período
     const newState = { 
       [key]: [],
       [periodKey]: novoPeriodo || "" 
     };
     
-    // O salvamento do novo estado vazio ocorrerá na próxima interação ou podemos forçar
-    // Mas o reset aqui deve garantir que a chave mude se o período mudar drasticamente ou se o admin trocar de semana manual
+    // 3. Salvar o novo estado vazio para refletir a limpeza no storage
+    saveVagasToLocalStorage(tipo, [], novoPeriodo || "");
     
     return newState;
   }),
