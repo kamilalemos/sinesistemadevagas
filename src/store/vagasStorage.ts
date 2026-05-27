@@ -20,6 +20,7 @@ interface VagasState {
   setVisibilidade: (tipo: 'semana' | 'feirao', ativa: boolean) => void;
   setPeriodo: (tipo: 'semana' | 'feirao', periodo: string) => void;
   refreshFromStorage: () => void;
+  resetVagas: (tipo: 'semana' | 'feirao') => void;
 }
 
 // Initial load
@@ -248,6 +249,18 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const newState = { [periodKey]: periodo };
     
     saveVagasToLocalStorage(tipo, state[key], periodo);
+    
+    return newState;
+  }),
+
+  resetVagas: (tipo) => set((state) => {
+    const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
+    const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
+    
+    // Resetting to empty but maintaining current period reference
+    const newState = { [key]: [] };
+    
+    saveVagasToLocalStorage(tipo, [], state[periodKey]);
     
     return newState;
   }),
