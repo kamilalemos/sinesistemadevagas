@@ -23,6 +23,51 @@ import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
 import { supabase } from "@/integrations/supabase/client";
 
+const PasswordUpdateForm = () => {
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdate = async () => {
+    if (newPassword.length < 8) {
+      toast.error("A nova senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message || "Erro ao atualizar senha.");
+      return;
+    }
+    setNewPassword("");
+    setConfirmPassword("");
+    toast.success("Senha atualizada com sucesso!");
+    logAudit('update', 'auth', 'password_change', {});
+  };
+
+  return (
+    <div className="max-w-md space-y-4">
+      <div className="space-y-2">
+        <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Nova Senha</Label>
+        <Input type="password" placeholder="Mínimo 8 caracteres" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-12 rounded-xl bg-muted/20 border-border/40 font-medium" />
+      </div>
+      <div className="space-y-2">
+        <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Confirmar Nova Senha</Label>
+        <Input type="password" placeholder="Repita a nova senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-12 rounded-xl bg-muted/20 border-border/40 font-medium" />
+      </div>
+      <Button onClick={handleUpdate} disabled={loading} className="w-full h-12 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20">
+        {loading ? "Atualizando..." : "Atualizar Senha"}
+      </Button>
+      <p className="text-xs text-muted-foreground">Para criar novos administradores, use o painel de Cloud (Users) — operações administrativas privilegiadas não podem ser feitas pelo cliente.</p>
+    </div>
+  );
+};
+
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
