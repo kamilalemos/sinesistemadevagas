@@ -50,8 +50,22 @@ const Admin = () => {
             <div className="space-y-1">
               <Input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-xl" />
             </div>
-            <div className="space-y-1">
-              <Input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleLogin()} className="rounded-xl" />
+            <div className="space-y-1 relative">
+              <Input 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Senha" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()} 
+                className="rounded-xl pr-10" 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
             <Button onClick={handleLogin} disabled={loginLoading} className="w-full rounded-xl font-heading font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
               {loginLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
