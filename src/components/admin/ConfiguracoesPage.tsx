@@ -47,7 +47,7 @@ const PasswordUpdateForm = () => {
     setNewPassword("");
     setConfirmPassword("");
     toast.success("Senha atualizada com sucesso!");
-    logAudit('update', 'auth', 'password_change', {});
+    logAudit('update', 'configuracao', 'password_change', {});
   };
 
   return (
