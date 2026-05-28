@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export type AuditAction = 'create' | 'update' | 'delete' | 'export' | 'publish' | 'reset';
 export type AuditEntity = 'vaga' | 'configuracao' | 'periodo' | 'banner' | 'popup';
 
+// Local-only version of audit logging
 export const logAudit = async (
   action: AuditAction,
   entity_type: AuditEntity,
@@ -10,33 +11,24 @@ export const logAudit = async (
   details?: any
 ) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const userSession = localStorage.getItem("sine_admin_session");
+    const user = userSession ? JSON.parse(userSession) : null;
     
-    // Fallback log to console if no user is authenticated (should not happen in admin)
-    console.log(`[AUDIT] Action: ${action}, Entity: ${entity_type}, ID: ${entity_id}, User: ${user?.id || 'anonymous'}`);
+    console.log(`[AUDIT] Action: ${action}, Entity: ${entity_type}, ID: ${entity_id}, User: ${user?.email || 'anonymous'}`);
 
-    const { error } = await supabase.from('audit_logs').insert({
-      user_id: user?.id,
+    const localLogs = JSON.parse(localStorage.getItem('sine_local_audit_logs') || '[]');
+    localLogs.push({
+      id: crypto.randomUUID(),
       action,
       entity_type,
       entity_id,
       details,
+      user_email: user?.email,
+      created_at: new Date().toISOString()
     });
-
-    if (error) {
-      console.error('Error saving audit log to Supabase:', error);
-      // Fallback: save to localStorage if DB fails
-      const localLogs = JSON.parse(localStorage.getItem('sine_local_audit_logs') || '[]');
-      localLogs.push({
-        action,
-        entity_type,
-        entity_id,
-        details,
-        user_id: user?.id,
-        created_at: new Date().toISOString()
-      });
-      localStorage.setItem('sine_local_audit_logs', JSON.stringify(localLogs.slice(-100))); // Keep last 100
-    }
+    
+    // Keep last 100 logs
+    localStorage.setItem('sine_local_audit_logs', JSON.stringify(localLogs.slice(-100)));
   } catch (err) {
     console.error('Audit logging failed:', err);
   }

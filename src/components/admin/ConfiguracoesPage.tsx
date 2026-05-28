@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, FileText, AlertTriangle, Eye } from "lucide-react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, FileText, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -17,56 +15,9 @@ import {
 import { toast } from "sonner";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { getHistory } from "@/lib/vagasPersistence";
-import { exportToCSV, exportToJSON, exportToPDF, generatePDF } from "@/lib/exportUtils";
-import { saveData } from "@/services/storage";
+import { exportToCSV, exportToJSON, generatePDF } from "@/lib/exportUtils";
 import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
-import { supabase } from "@/integrations/supabase/client";
-
-const PasswordUpdateForm = () => {
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleUpdate = async () => {
-    if (newPassword.length < 8) {
-      toast.error("A nova senha deve ter pelo menos 8 caracteres.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error("As senhas não coincidem.");
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message || "Erro ao atualizar senha.");
-      return;
-    }
-    setNewPassword("");
-    setConfirmPassword("");
-    toast.success("Senha atualizada com sucesso!");
-    logAudit('update', 'configuracao', 'password_change', {});
-  };
-
-  return (
-    <div className="max-w-md space-y-4">
-      <div className="space-y-2">
-        <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Nova Senha</Label>
-        <Input type="password" placeholder="Mínimo 8 caracteres" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-12 rounded-xl bg-muted/20 border-border/40 font-medium" />
-      </div>
-      <div className="space-y-2">
-        <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Confirmar Nova Senha</Label>
-        <Input type="password" placeholder="Repita a nova senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-12 rounded-xl bg-muted/20 border-border/40 font-medium" />
-      </div>
-      <Button onClick={handleUpdate} disabled={loading} className="w-full h-12 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20">
-        {loading ? "Atualizando..." : "Atualizar Senha"}
-      </Button>
-      <p className="text-xs text-muted-foreground">Para criar novos administradores, use o painel de Cloud (Users) — operações administrativas privilegiadas não podem ser feitas pelo cliente.</p>
-    </div>
-  );
-};
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
@@ -83,52 +34,38 @@ export const ConfiguracoesPage = () => {
   const fetchLogs = async () => {
     setLoadingLogs(true);
     try {
-      const { data, error } = await supabase
-        .from('audit_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20);
-      
-      if (error) throw error;
-      setLogs(data || []);
+      // Fetch exclusively from local storage
+      const localLogs = JSON.parse(localStorage.getItem('sine_local_audit_logs') || '[]');
+      // Sort by date desc (they are added at the end, so reverse)
+      setLogs([...localLogs].reverse().slice(0, 20));
     } catch (error) {
       console.error('Error fetching logs:', error);
-      // Load from local storage fallback
-      const localLogs = JSON.parse(localStorage.getItem('sine_local_audit_logs') || '[]');
-      setLogs(localLogs.reverse().slice(0, 20));
     } finally {
       setLoadingLogs(false);
     }
   };
-  
 
   const getConsolidatedMonthData = () => {
     const history = getHistory();
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const year = now.getFullYear();
-    const monthYear = `${year}_${month}`;
-    
-    // Find current month in history if available
-    const currentHistory = history.find(h => h.year === year && String(h.month).padStart(2, '0') === month);
     
     const consolidatedVagas: VagaLocal[] = [];
     
-    // Process current live data first (Week 3 as per current user setup)
     vagas_semana.filter(v => v.publicada).forEach(v => {
-      consolidatedVagas.push({ ...v, periodo: "Semana Atual (18/05 a 22/05)" });
+      consolidatedVagas.push({ ...v, periodo: "Semana Atual" });
     });
     
     vagas_feirao.filter(v => v.publicada).forEach(v => {
       consolidatedVagas.push({ ...v, periodo: "Feirão da Empregabilidade" });
     });
 
-    // Add other weeks from history if they exist for this month
+    const currentHistory = history.find(h => h.year === year && String(h.month).padStart(2, '0') === month);
     if (currentHistory) {
       Object.entries(currentHistory.weeks).forEach(([key, weekData]: [string, any]) => {
-        // Skip current week if already added or add specifically
         const weekNum = key.split('_')[1];
-        if (weekNum !== '3') { // Example: avoiding duplicates if live is week 3
+        if (weekNum !== '3') { 
           weekData.vagas.filter((v: any) => v.publicada).forEach((v: any) => {
             consolidatedVagas.push({ ...v, periodo: weekData.periodo || `Semana ${weekNum}` });
           });
@@ -145,82 +82,61 @@ export const ConfiguracoesPage = () => {
   };
 
   const handleExportFullBackup = () => {
-    try {
-      const data = getConsolidatedMonthData();
-      if (data.vagas.length === 0) {
-        toast.error("Nenhum dado publicado este mês para backup.");
-        return;
-      }
-
-      const backupData = {
-        mes: `${data.year}-${String(data.month).padStart(2, '0')}`,
-        vagas: data.vagas,
-        exportadoEm: new Date().toISOString(),
-        versao: "1.2.0"
-      };
-      
-      exportToJSON(backupData, `backup_mensal_${data.monthName.toLowerCase()}_${data.year}`);
-      logAudit('export', 'periodo', 'full_backup', { format: 'JSON' });
-    } catch (error) {
-      console.error("Erro no backup JSON:", error);
-      toast.error("Erro ao preparar backup JSON.");
+    const data = getConsolidatedMonthData();
+    if (data.vagas.length === 0) {
+      toast.error("Nenhum dado publicado este mês para backup.");
+      return;
     }
+
+    const backupData = {
+      mes: `${data.year}-${String(data.month).padStart(2, '0')}`,
+      vagas: data.vagas,
+      exportadoEm: new Date().toISOString()
+    };
+    
+    exportToJSON(backupData, `backup_mensal_${data.monthName.toLowerCase()}_${data.year}`);
+    logAudit('export', 'periodo', 'full_backup', { format: 'JSON' });
   };
 
   const handleExportCSV = () => {
-    try {
-      const data = getConsolidatedMonthData();
-      if (data.vagas.length === 0) {
-        toast.error("Nenhuma vaga publicada este mês para exportar.");
-        return;
-      }
-      
-      exportToCSV(data.vagas, `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`);
-      logAudit('export', 'periodo', 'monthly_report', { format: 'CSV' });
-    } catch (error) {
-      console.error("Erro no export CSV:", error);
-      toast.error("Erro ao preparar exportação CSV.");
+    const data = getConsolidatedMonthData();
+    if (data.vagas.length === 0) {
+      toast.error("Nenhuma vaga publicada este mês para exportar.");
+      return;
     }
+    
+    exportToCSV(data.vagas, `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`);
+    logAudit('export', 'periodo', 'monthly_report', { format: 'CSV' });
   };
 
   const handleExportPDF = () => {
-    try {
-      const data = getConsolidatedMonthData();
-      if (data.vagas.length === 0) {
-        toast.error("Nenhuma vaga publicada este mês para exportar.");
-        return;
-      }
+    const data = getConsolidatedMonthData();
+    if (data.vagas.length === 0) {
+      toast.error("Nenhuma vaga publicada este mês para exportar.");
+      return;
+    }
 
-      const title = `Relatório Mensal Consolidado - ${data.monthName} / ${data.year}`;
-      const filename = `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`;
-      
-      const doc = generatePDF(data.vagas, title, true);
-      if (doc) {
-        const pdfDataUri = doc.output('datauristring');
-        setPdfPreviewData(pdfDataUri);
-        setCurrentFilename(filename);
-        setIsPreviewOpen(true);
-      }
-    } catch (error) {
-      console.error("Erro no export PDF:", error);
-      toast.error("Erro ao preparar exportação PDF.");
+    const title = `Relatório Mensal Consolidado - ${data.monthName} / ${data.year}`;
+    const filename = `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`;
+    
+    const doc = generatePDF(data.vagas, title, true);
+    if (doc) {
+      const pdfDataUri = doc.output('datauristring');
+      setPdfPreviewData(pdfDataUri);
+      setCurrentFilename(filename);
+      setIsPreviewOpen(true);
     }
   };
 
   const confirmDownloadPDF = () => {
-    try {
-      const link = document.createElement('a');
-      link.href = pdfPreviewData!;
-      link.download = `${currentFilename}.pdf`;
-      link.click();
-      setIsPreviewOpen(false);
-      logAudit('export', 'periodo', 'monthly_report', { format: 'PDF' });
-      toast.success("PDF baixado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao baixar PDF.");
-    }
+    const link = document.createElement('a');
+    link.href = pdfPreviewData!;
+    link.download = `${currentFilename}.pdf`;
+    link.click();
+    setIsPreviewOpen(false);
+    logAudit('export', 'periodo', 'monthly_report', { format: 'PDF' });
+    toast.success("PDF baixado com sucesso!");
   };
-
 
   return (
     <div className="space-y-10 max-w-7xl mx-auto">
@@ -232,12 +148,11 @@ export const ConfiguracoesPage = () => {
             </div>
             <h1 className="font-heading font-black text-3xl text-foreground tracking-tight">Configurações & Backup</h1>
           </div>
-          <p className="text-muted-foreground font-medium pl-1">Gerencie a segurança e portabilidade dos seus dados.</p>
+          <p className="text-muted-foreground font-medium pl-1">Gerencie os seus dados localmente.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-8">
-        {/* Backup Card */}
         <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
           <CardHeader className="p-8 pb-4">
             <div className="flex items-center gap-3">
@@ -260,7 +175,6 @@ export const ConfiguracoesPage = () => {
                 </div>
                 <div className="text-center">
                   <span className="block font-black text-foreground">Relatório PDF</span>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Visual & Oficial</span>
                 </div>
               </Button>
 
@@ -274,7 +188,6 @@ export const ConfiguracoesPage = () => {
                 </div>
                 <div className="text-center">
                   <span className="block font-black text-foreground">Planilha CSV</span>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Excel / Sheets</span>
                 </div>
               </Button>
 
@@ -288,15 +201,12 @@ export const ConfiguracoesPage = () => {
                 </div>
                 <div className="text-center">
                   <span className="block font-black text-foreground">Backup Completo JSON</span>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Para restauração futura</span>
                 </div>
               </Button>
             </div>
           </CardContent>
         </Card>
 
-
-        {/* Auditoria Card */}
         <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
           <CardHeader className="p-8 pb-4">
             <div className="flex items-center justify-between">
@@ -304,13 +214,13 @@ export const ConfiguracoesPage = () => {
                 <div className="p-2 rounded-xl bg-primary/10 text-primary">
                   <Shield className="w-5 h-5" />
                 </div>
-                <CardTitle className="font-heading font-black text-xl tracking-tight">Logs de Auditoria</CardTitle>
+                <CardTitle className="font-heading font-black text-xl tracking-tight">Logs de Auditoria Local</CardTitle>
               </div>
               <Button variant="ghost" size="sm" onClick={fetchLogs} disabled={loadingLogs} className="rounded-xl font-bold">
                 {loadingLogs ? "Atualizando..." : "Recarregar"}
               </Button>
             </div>
-            <CardDescription className="font-medium text-muted-foreground">Últimas 20 ações administrativas registradas.</CardDescription>
+            <CardDescription className="font-medium text-muted-foreground">Últimas 20 ações administrativas registradas neste navegador.</CardDescription>
           </CardHeader>
           <CardContent className="p-8 pt-4">
             <div className="bg-muted/10 rounded-2xl border border-border/40 overflow-hidden">
@@ -360,23 +270,21 @@ export const ConfiguracoesPage = () => {
           </CardContent>
         </Card>
 
-        {/* Security Card */}
         <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
           <CardHeader className="p-8 pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-primary/10 text-primary">
                 <KeyRound className="w-5 h-5" />
               </div>
-              <CardTitle className="font-heading font-black text-xl tracking-tight">Segurança da Conta</CardTitle>
+              <CardTitle className="font-heading font-black text-xl tracking-tight">Segurança</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-8 pt-4">
-            <PasswordUpdateForm />
+            <p className="text-sm text-muted-foreground">O acesso ao painel é controlado localmente.</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* PDF Preview Modal */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 overflow-hidden bg-background border-border shadow-2xl">
           <DialogHeader className="p-6 border-b bg-muted/30">
@@ -385,8 +293,7 @@ export const ConfiguracoesPage = () => {
                 <Eye className="w-5 h-5" />
               </div>
               <div>
-                <DialogTitle className="font-heading font-black text-xl">Prévia do Relatório Institucional</DialogTitle>
-                <DialogDescription className="font-medium">Confirme o layout e os dados antes de finalizar o download.</DialogDescription>
+                <DialogTitle className="font-heading font-black text-xl">Prévia do Relatório</DialogTitle>
               </div>
             </div>
           </DialogHeader>
@@ -395,38 +302,22 @@ export const ConfiguracoesPage = () => {
             {pdfPreviewData ? (
               <iframe 
                 src={pdfPreviewData} 
-                className="w-full h-full rounded-lg border border-border shadow-lg bg-white"
+                className="w-full h-full border-none rounded-lg shadow-inner bg-white"
                 title="PDF Preview"
               />
             ) : (
-              <div className="flex flex-col items-center gap-4 text-muted-foreground">
-                <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                <p className="font-bold uppercase tracking-widest text-xs">Gerando prévia...</p>
+              <div className="flex flex-col items-center gap-4">
+                <p className="font-bold text-muted-foreground">Gerando prévia...</p>
               </div>
             )}
           </div>
 
-          <DialogFooter className="p-6 border-t bg-muted/30 flex sm:justify-between items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 text-muted-foreground">
-              <FileText className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-widest">{currentFilename}.pdf</span>
-            </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="rounded-xl font-bold flex-1 sm:flex-none">
-                Cancelar
-              </Button>
-              <Button onClick={confirmDownloadPDF} className="rounded-xl font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20 flex-1 sm:flex-none">
-                Baixar PDF Oficial
-              </Button>
-            </div>
+          <DialogFooter className="p-6 border-t bg-muted/20 flex gap-3">
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="rounded-xl font-bold px-8">Fechar</Button>
+            <Button className="rounded-xl font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20" onClick={confirmDownloadPDF}>Baixar PDF</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <div className="flex items-center justify-center gap-2 p-4 bg-muted/20 rounded-2xl border border-border/40">
-        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-        <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Sistema operando via LocalStorage com persistência isolada</span>
-      </div>
     </div>
   );
 };
