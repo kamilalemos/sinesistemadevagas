@@ -14,188 +14,17 @@ export type Database = {
   }
   public: {
     Tables: {
-      audit_logs: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          entity_id: string | null
-          entity_type: string
-          id: string
-          ip_address: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          entity_id?: string | null
-          entity_type: string
-          id?: string
-          ip_address?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          entity_id?: string | null
-          entity_type?: string
-          id?: string
-          ip_address?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      configuracoes: {
-        Row: {
-          chave: string
-          id: string
-          updated_at: string
-          valor: string
-        }
-        Insert: {
-          chave: string
-          id?: string
-          updated_at?: string
-          valor: string
-        }
-        Update: {
-          chave?: string
-          id?: string
-          updated_at?: string
-          valor?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      vagas: {
-        Row: {
-          beneficios: string | null
-          cargo: string
-          categoria: string
-          cbo: string | null
-          created_at: string
-          descricao: string
-          empresa: string
-          escolaridade: string
-          experiencia: string
-          id: string
-          num_vaga: string
-          observacoes: string
-          publicada: boolean | null
-          qtd: number
-          salario: string | null
-          tipo: string
-          updated_at: string
-        }
-        Insert: {
-          beneficios?: string | null
-          cargo: string
-          categoria?: string
-          cbo?: string | null
-          created_at?: string
-          descricao?: string
-          empresa?: string
-          escolaridade?: string
-          experiencia?: string
-          id?: string
-          num_vaga?: string
-          observacoes?: string
-          publicada?: boolean | null
-          qtd: number
-          salario?: string | null
-          tipo?: string
-          updated_at?: string
-        }
-        Update: {
-          beneficios?: string | null
-          cargo?: string
-          categoria?: string
-          cbo?: string | null
-          created_at?: string
-          descricao?: string
-          empresa?: string
-          escolaridade?: string
-          experiencia?: string
-          id?: string
-          num_vaga?: string
-          observacoes?: string
-          publicada?: boolean | null
-          qtd?: number
-          salario?: string | null
-          tipo?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      vagas_historico: {
-        Row: {
-          ano: number
-          categorias: Json | null
-          created_at: string
-          id: string
-          mes: number
-          tipo: string
-          total_cargos: number
-          total_vagas: number
-        }
-        Insert: {
-          ano: number
-          categorias?: Json | null
-          created_at?: string
-          id?: string
-          mes: number
-          tipo?: string
-          total_cargos?: number
-          total_vagas?: number
-        }
-        Update: {
-          ano?: number
-          categorias?: Json | null
-          created_at?: string
-          id?: string
-          mes?: number
-          tipo?: string
-          total_cargos?: number
-          total_vagas?: number
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       initialize_admin: { Args: { _user_id: string }; Returns: boolean }
       is_setup_needed: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -322,8 +151,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "user"],
-    },
+    Enums: {},
   },
 } as const
