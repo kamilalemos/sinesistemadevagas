@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+
 
 export type AuditAction = 'create' | 'update' | 'delete' | 'export' | 'publish' | 'reset';
 export type AuditEntity = 'vaga' | 'configuracao' | 'periodo' | 'banner' | 'popup';
