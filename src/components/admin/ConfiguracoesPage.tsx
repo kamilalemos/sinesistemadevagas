@@ -326,35 +326,7 @@ export const ConfiguracoesPage = () => {
             </div>
           </CardHeader>
           <CardContent className="p-8 pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Senha Atual</Label>
-                  <Input type="password" placeholder="********" className="h-12 rounded-xl bg-muted/20 border-border/40 font-medium" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Nova Senha</Label>
-                  <Input type="password" placeholder="********" className="h-12 rounded-xl bg-muted/20 border-border/40 font-medium" />
-                </div>
-                <Button className="w-full h-12 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg shadow-primary/20" onClick={() => toast.success("Senha alterada localmente!")}>
-                  Atualizar Senha
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-1">E-mail do Novo Admin</Label>
-                  <Input type="email" placeholder="admin@exemplo.com" className="h-12 rounded-xl bg-muted/20 border-border/40 font-medium" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Senha Temporária</Label>
-                  <Input type="password" placeholder="********" className="h-12 rounded-xl bg-muted/20 border-border/40 font-medium" />
-                </div>
-                <Button variant="secondary" className="w-full h-12 rounded-xl font-black text-sm uppercase tracking-widest" onClick={() => toast.success("Novo admin simulado com sucesso!")}>
-                  Criar Acesso
-                </Button>
-              </div>
-            </div>
+            <PasswordUpdateForm />
           </CardContent>
         </Card>
       </div>
