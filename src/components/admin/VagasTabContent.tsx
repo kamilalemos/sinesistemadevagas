@@ -174,6 +174,8 @@ export const VagasTabContent = ({ tipo }: Props) => {
             Novo Período (Arquivar Atual)
           </Button>
         </div>
+      </div>
+
       <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-6">
         <div className="flex items-center gap-4">
           <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
