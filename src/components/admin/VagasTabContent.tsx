@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { PlusCircle, Trash2, Edit, Save, X, Calendar, Eraser } from "lucide-react";
+import { PlusCircle, Trash2, Edit, Save, X, Calendar, Eraser, Download, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,48 @@ import { categorias } from "@/store/vagasStore";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Pagination } from "@/components/ui/pagination-custom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
+
+const WEEKLY_LIMIT = 4000;
+
+const exportVagasCSV = (vagas: VagaLocal[]) => {
+  if (!vagas.length) {
+    toast.error("Nenhuma vaga para exportar.");
+    return;
+  }
+  const headers = ["Quantidade","CBO","Descrição","Escolaridade","Experiência","ID","Benefícios","Salário","Empresa","Categoria","Período","Publicada","CriadaEm"];
+  const rows = vagas.map(v => [
+    v.quantidade, v.cbo, v.descricao, v.escolaridade, v.experiencia,
+    v.codigo, v.beneficios, v.salario, v.empresa, v.categoria,
+    v.periodo, v.publicada ? "Sim" : "Não", v.createdAt
+  ].map(f => `"${String(f ?? "").replace(/"/g,'""')}"`).join(","));
+  const csv = "\ufeff" + [headers.join(","), ...rows].join("\n");
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2,"0");
+  const mm = String(today.getMonth()+1).padStart(2,"0");
+  const filename = `vagas_semana_${dd}-${mm}-${today.getFullYear()}.csv`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  toast.success(`CSV exportado: ${vagas.length} vagas.`);
+};
 
 interface Props {
   tipo: "semana" | "feirao";
