@@ -174,6 +174,79 @@ export const VagasTabContent = ({ tipo }: Props) => {
             Novo Período (Arquivar Atual)
           </Button>
         </div>
+      <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+            <Database className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-heading font-extrabold text-lg text-foreground tracking-tight">
+              Vagas desta {tipo === "semana" ? "Semana" : "Edição do Feirão"}
+            </h3>
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Armazenamento local seguro no navegador
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="font-heading font-black text-3xl text-primary tabular-nums">
+              {vagas.length.toLocaleString("pt-BR")}
+              <span className="text-base text-muted-foreground font-bold"> / {WEEKLY_LIMIT.toLocaleString("pt-BR")}</span>
+            </div>
+            <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">vagas cadastradas</p>
+          </div>
+        </div>
+        <Progress value={Math.min(100, (vagas.length / WEEKLY_LIMIT) * 100)} className="h-2" />
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <Button
+            variant="secondary"
+            onClick={() => exportVagasCSV(vagas)}
+            className="rounded-xl h-12 px-6 font-bold"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="rounded-xl h-12 px-6 font-bold text-destructive hover:bg-destructive/5 border-destructive/30"
+              >
+                <Eraser className="w-4 h-4 mr-2" />
+                Zerar {tipo === "semana" ? "Semana" : "Feirão"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Isso vai apagar todas as {vagas.length} vagas {tipo === "semana" ? "da semana" : "do feirão"}.
+                  As vagas atuais serão arquivadas no histórico mensal antes da limpeza.
+                  Recomendamos exportar o CSV antes de prosseguir.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <Button
+                  variant="secondary"
+                  onClick={() => exportVagasCSV(vagas)}
+                  className="font-bold"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar antes
+                </Button>
+                <AlertDialogAction
+                  onClick={() => {
+                    resetVagas(tipo, periodo);
+                    toast.success("Vagas zeradas com sucesso!");
+                  }}
+                  className="bg-destructive hover:bg-destructive/90"
+                >
+                  Sim, apagar tudo
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-10">
