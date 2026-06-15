@@ -103,6 +103,14 @@ const Vagas = () => {
     setSearchParams({});
   };
 
+  if (isLoading) {
+    return (
+      <div className="pt-14 min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="pt-14 min-h-screen bg-background">
       <div className="container mx-auto px-4 py-10 space-y-8">
