@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
 
-const CREDENTIALS_KEY = "sine_admin_credentials";
-const SESSION_KEY = "sine_admin_session";
+const CREDENTIALS_KEY = STORAGE_KEYS.ADMIN_CREDENTIALS;
+const SESSION_KEY = STORAGE_KEYS.ADMIN_SESSION;
 
 type StoredCredentials = { email: string; password: string };
 

@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useVagasLocalStore, VagaLocal } from "@/store/vagasStorage";
-import { categorias } from "@/store/vagasStore";
+import { categorias } from "@/constants/categorias";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Pagination } from "@/components/ui/pagination-custom";
