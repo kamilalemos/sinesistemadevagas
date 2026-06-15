@@ -195,9 +195,12 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const sem = loadVagasFromLocalStorage('semana');
     const fei = loadVagasFromLocalStorage('feirao');
     
+    // Validar dados antes de usar
+    let finalVagasSemana = validateVagas(sem.vagas, 'vagas_semana');
+    const finalVagasFeirao = validateVagas(fei.vagas, 'vagas_feirao');
+
     // Auto-seed if empty even on refresh
-    let finalVagasSemana = sem.vagas;
-    if (sem.vagas.length === 0) {
+    if (finalVagasSemana.length === 0) {
       finalVagasSemana = mockVagas.map(v => ({
         ...v, 
         id: crypto.randomUUID(), 
@@ -208,7 +211,7 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
 
     set({
       vagas_semana: finalVagasSemana,
-      vagas_feirao: fei.vagas,
+      vagas_feirao: finalVagasFeirao,
       periodo_semana: sem.periodo,
       periodo_feirao: fei.periodo
     });
