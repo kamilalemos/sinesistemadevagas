@@ -6,7 +6,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import CategoryCard from "@/components/CategoryCard";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { useBannerStore } from "@/store/bannerStorage";
-import { categorias as categoriasMeta } from "@/store/vagasStore";
+import { categorias as categoriasMeta } from "@/constants/categorias";
 import { VagaLocal } from "@/types";
 
 const CandidatarSection = () => {
