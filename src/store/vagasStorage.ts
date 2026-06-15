@@ -1,22 +1,48 @@
 import { create } from 'zustand';
-import { 
-  loadVagasFromLocalStorage, 
-  saveVagasToLocalStorage 
+import {
+  loadVagasFromLocalStorage,
+  saveVagasToLocalStorage,
+  weekRefFromIso,
+  getWeekInfo,
 } from '@/lib/vagasPersistence';
 import { VagaLocal, VagasArraySchema } from '@/types';
 import { logAudit } from '@/services/auditService';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 export type { VagaLocal };
 
-// Valida um array de vagas vindo do localStorage. Se corrompido, retorna [].
-function validateVagas(vagas: unknown, label: string): VagaLocal[] {
+type ParseOutcome =
+  | { status: 'ok'; data: VagaLocal[] }
+  | { status: 'empty' }
+  | { status: 'corrupted' };
+
+// Verifica se a chave bruta existe em localStorage e tenta validar via Zod.
+// Se a chave não existe → empty. Se existe mas falha parse → corrupted (com backup).
+function parseVagasFromStorage(tipo: 'semana' | 'feirao', vagas: unknown, label: string): ParseOutcome {
+  const info = getWeekInfo();
+  const rawKey = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
+  const rawExists = typeof localStorage !== 'undefined' && localStorage.getItem(rawKey) !== null;
+
   const result = VagasArraySchema.safeParse(vagas);
   if (!result.success) {
-    console.warn(`[sine] Dados corrompidos em ${label} — resetando.`, result.error.issues);
-    return [];
+    console.error(`[vagasStorage] Dados corrompidos em ${label}. Parse falhou:`, result.error.flatten());
+    try {
+      const raw = localStorage.getItem(rawKey);
+      if (raw) {
+        localStorage.setItem(`sine_vagas_corrupted_backup_${Date.now()}`, raw);
+      }
+    } catch {
+      /* storage cheio, ignora */
+    }
+    return { status: 'corrupted' };
   }
-  return result.data as VagaLocal[];
+
+  if (result.data.length === 0) {
+    return rawExists ? { status: 'ok', data: [] } : { status: 'empty' };
+  }
+  return { status: 'ok', data: result.data as VagaLocal[] };
 }
+
 
 interface VagasState {
   vagas_semana: VagaLocal[];
@@ -32,7 +58,10 @@ interface VagasState {
   setPeriodo: (tipo: 'semana' | 'feirao', periodo: string) => void;
   refreshFromStorage: () => void;
   resetVagas: (tipo: 'semana' | 'feirao', novoPeriodo?: string) => void;
+  ultimo_backup: string | null;
+  setUltimoBackup: (iso: string) => void;
 }
+
 
 // Initial load
 const initialSemana = loadVagasFromLocalStorage('semana');
@@ -181,41 +210,63 @@ const mockVagas: Omit<VagaLocal, 'id' | 'createdAt'>[] = [
   }
 ];
 
+// Boot inicial — separa storage vazio (seed seguro) de corrompido (não fazer seed)
+function resolveInitialSemana(): VagaLocal[] {
+  const parsed = parseVagasFromStorage('semana', initialSemana.vagas, 'vagas_semana');
+  if (parsed.status === 'corrupted') return [];
+  if (parsed.status === 'empty') {
+    return mockVagas.map(v => ({ ...v, id: crypto.randomUUID(), createdAt: new Date().toISOString() }));
+  }
+  return parsed.data;
+}
+
+function resolveInitialFeirao(): VagaLocal[] {
+  const parsed = parseVagasFromStorage('feirao', initialFeirao.vagas, 'vagas_feirao');
+  return parsed.status === 'ok' ? parsed.data : [];
+}
+
 export const useVagasLocalStore = create<VagasState>((set) => ({
-  vagas_semana: validateVagas(initialSemana.vagas, 'vagas_semana').length === 0
-    ? mockVagas.map(v => ({...v, id: crypto.randomUUID(), createdAt: new Date().toISOString()}))
-    : validateVagas(initialSemana.vagas, 'vagas_semana'),
-  vagas_feirao: validateVagas(initialFeirao.vagas, 'vagas_feirao'),
+  vagas_semana: resolveInitialSemana(),
+  vagas_feirao: resolveInitialFeirao(),
   semana_ativa: true,
   feirao_ativa: true,
   periodo_semana: initialSemana.periodo,
   periodo_feirao: initialFeirao.periodo,
-  
+  ultimo_backup: (typeof localStorage !== 'undefined'
+    ? localStorage.getItem(STORAGE_KEYS.VAGAS_BACKUP_DATE)
+    : null),
+  setUltimoBackup: (iso) => set({ ultimo_backup: iso }),
+
   refreshFromStorage: () => {
     const sem = loadVagasFromLocalStorage('semana');
     const fei = loadVagasFromLocalStorage('feirao');
-    
-    // Validar dados antes de usar
-    let finalVagasSemana = validateVagas(sem.vagas, 'vagas_semana');
-    const finalVagasFeirao = validateVagas(fei.vagas, 'vagas_feirao');
 
-    // Auto-seed if empty even on refresh
-    if (finalVagasSemana.length === 0) {
+    const parsedSem = parseVagasFromStorage('semana', sem.vagas, 'vagas_semana');
+    const parsedFei = parseVagasFromStorage('feirao', fei.vagas, 'vagas_feirao');
+
+    let finalVagasSemana: VagaLocal[];
+    if (parsedSem.status === 'corrupted') {
+      finalVagasSemana = [];
+    } else if (parsedSem.status === 'empty') {
       finalVagasSemana = mockVagas.map(v => ({
-        ...v, 
-        id: crypto.randomUUID(), 
-        createdAt: new Date().toISOString()
+        ...v, id: crypto.randomUUID(), createdAt: new Date().toISOString(),
       }));
       saveVagasToLocalStorage('semana', finalVagasSemana, sem.periodo);
+    } else {
+      finalVagasSemana = parsedSem.data;
     }
+
+    const finalVagasFeirao = parsedFei.status === 'ok' ? parsedFei.data : [];
 
     set({
       vagas_semana: finalVagasSemana,
       vagas_feirao: finalVagasFeirao,
       periodo_semana: sem.periodo,
-      periodo_feirao: fei.periodo
+      periodo_feirao: fei.periodo,
     });
   },
+
+
 
   addVaga: (tipo, vagaData) => set((state) => {
     const newVaga: VagaLocal = {
@@ -237,26 +288,31 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
   updateVaga: (tipo, id, vagaData) => set((state) => {
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
+    const vagaExistente = state[key].find((v) => v.id === id);
     const updatedVagas = state[key].map((v) => (v.id === id ? { ...v, ...vagaData } : v));
     const newState = { [key]: updatedVagas };
-    
-    saveVagasToLocalStorage(tipo, updatedVagas, state[periodKey]);
+
+    const weekRef = weekRefFromIso(vagaExistente?.createdAt);
+    saveVagasToLocalStorage(tipo, updatedVagas, state[periodKey], weekRef);
     logAudit('update', 'vaga', id, { tipo, changes: vagaData });
-    
+
     return newState;
   }),
 
   deleteVaga: (tipo, id) => set((state) => {
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
+    const vagaExistente = state[key].find((v) => v.id === id);
     const filteredVagas = state[key].filter((v) => v.id !== id);
     const newState = { [key]: filteredVagas };
-    
-    saveVagasToLocalStorage(tipo, filteredVagas, state[periodKey]);
+
+    const weekRef = weekRefFromIso(vagaExistente?.createdAt);
+    saveVagasToLocalStorage(tipo, filteredVagas, state[periodKey], weekRef);
     logAudit('delete', 'vaga', id, { tipo });
-    
+
     return newState;
   }),
+
 
   setVisibilidade: (tipo, ativa) => set((state) => {
     logAudit('publish', 'periodo', tipo, { ativa });

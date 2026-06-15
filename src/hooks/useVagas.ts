@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useVagasLocalStore } from '../store/vagasStorage';
 import { VagaLocal } from '../types';
@@ -48,13 +48,16 @@ function autoBackup() {
       periodo_feirao: s.periodo_feirao,
       exportadoEm: new Date().toISOString(),
     });
+    const nowIso = new Date().toISOString();
     localStorage.setItem(STORAGE_KEYS.VAGAS_BACKUP, payload);
-    localStorage.setItem(STORAGE_KEYS.VAGAS_BACKUP_DATE, new Date().toISOString());
+    localStorage.setItem(STORAGE_KEYS.VAGAS_BACKUP_DATE, nowIso);
+    useVagasLocalStore.getState().setUltimoBackup(nowIso);
     notifyBackup();
   } catch (e) {
     console.warn('[sine] Falha ao salvar backup automático:', e);
   }
 }
+
 
 // Mantém o React Query sincronizado com mudanças do Zustand
 function useStoreSync() {
@@ -125,23 +128,21 @@ export function useVagasMutations() {
   return { criar, editar, remover };
 }
 
-// Hook utilitário reativo — atualiza automaticamente ao gravar backup nesta aba
-// ou em outras (via `storage` event do navegador).
-function subscribeBackup(listener: () => void) {
-  backupListeners.add(listener);
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEYS.VAGAS_BACKUP_DATE) listener();
-  };
-  window.addEventListener('storage', onStorage);
-  return () => {
-    backupListeners.delete(listener);
-    window.removeEventListener('storage', onStorage);
-  };
-}
-function getBackupSnapshot(): string | null {
-  return localStorage.getItem(STORAGE_KEYS.VAGAS_BACKUP_DATE);
-}
+// Hook reativo via Zustand — atualiza após qualquer autoBackup local
+// e sincroniza com outras abas via `storage` event.
 export function useUltimoBackup(): string | null {
-  return useSyncExternalStore(subscribeBackup, getBackupSnapshot, () => null);
+  const ultimo = useVagasLocalStore((s) => s.ultimo_backup);
+  // Sincroniza com mudanças vindas de outras abas
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEYS.VAGAS_BACKUP_DATE && e.newValue) {
+        useVagasLocalStore.getState().setUltimoBackup(e.newValue);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+  return ultimo;
 }
+
 
