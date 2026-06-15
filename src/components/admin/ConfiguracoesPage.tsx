@@ -35,7 +35,7 @@ export const ConfiguracoesPage = () => {
     setLoadingLogs(true);
     try {
       // Fetch exclusively from local storage
-      const localLogs = JSON.parse(localStorage.getItem('sine_local_audit_logs') || '[]');
+      const localLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS) || '[]');
       // Sort by date desc (they are added at the end, so reverse)
       setLogs([...localLogs].reverse().slice(0, 20));
     } catch (error) {
