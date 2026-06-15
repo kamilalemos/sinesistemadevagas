@@ -1,12 +1,28 @@
-import { Briefcase, TrendingUp, Users } from "lucide-react";
+import { Briefcase, TrendingUp, Users, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useVagasLocalStore } from "@/store/vagasStorage";
+import { useUltimoBackup } from "@/hooks/useVagas";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
 
 export const DashboardPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
-  
+  const ultimoBackup = useUltimoBackup();
+
   const totalVagas = vagas_semana.reduce((acc, v) => acc + v.quantidade, 0) + 
                      vagas_feirao.reduce((acc, v) => acc + v.quantidade, 0);
+
+  const baixarBackup = () => {
+    const raw = localStorage.getItem(STORAGE_KEYS.VAGAS_BACKUP);
+    if (!raw) return;
+    const blob = new Blob([raw], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `backup-vagas-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const stats = [
     { title: "Total de Vagas", value: totalVagas, icon: Briefcase, color: "text-blue-500" },
