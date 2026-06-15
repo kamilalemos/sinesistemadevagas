@@ -7,4 +7,5 @@ export const STORAGE_KEYS = {
   VAGAS_BACKUP: 'sine_vagas_backup',
   VAGAS_BACKUP_DATE: 'sine_vagas_backup_date',
   AUDIT_LOGS: 'sine_local_audit_logs',
+  ADMIN_LOGIN_ATTEMPTS: 'sine_admin_login_attempts',
 } as const;
