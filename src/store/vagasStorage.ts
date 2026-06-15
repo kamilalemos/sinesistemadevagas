@@ -182,8 +182,10 @@ const mockVagas: Omit<VagaLocal, 'id' | 'createdAt'>[] = [
 ];
 
 export const useVagasLocalStore = create<VagasState>((set) => ({
-  vagas_semana: initialSemana.vagas.length === 0 ? mockVagas.map(v => ({...v, id: crypto.randomUUID(), createdAt: new Date().toISOString()})) : initialSemana.vagas,
-  vagas_feirao: initialFeirao.vagas,
+  vagas_semana: validateVagas(initialSemana.vagas, 'vagas_semana').length === 0
+    ? mockVagas.map(v => ({...v, id: crypto.randomUUID(), createdAt: new Date().toISOString()}))
+    : validateVagas(initialSemana.vagas, 'vagas_semana'),
+  vagas_feirao: validateVagas(initialFeirao.vagas, 'vagas_feirao'),
   semana_ativa: true,
   feirao_ativa: true,
   periodo_semana: initialSemana.periodo,
