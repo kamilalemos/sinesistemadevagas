@@ -125,7 +125,23 @@ export function useVagasMutations() {
   return { criar, editar, remover };
 }
 
-// Hook utilitário para data do último backup (usado no Dashboard)
-export function useUltimoBackup(): string | null {
+// Hook utilitário reativo — atualiza automaticamente ao gravar backup nesta aba
+// ou em outras (via `storage` event do navegador).
+function subscribeBackup(listener: () => void) {
+  backupListeners.add(listener);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === STORAGE_KEYS.VAGAS_BACKUP_DATE) listener();
+  };
+  window.addEventListener('storage', onStorage);
+  return () => {
+    backupListeners.delete(listener);
+    window.removeEventListener('storage', onStorage);
+  };
+}
+function getBackupSnapshot(): string | null {
   return localStorage.getItem(STORAGE_KEYS.VAGAS_BACKUP_DATE);
 }
+export function useUltimoBackup(): string | null {
+  return useSyncExternalStore(subscribeBackup, getBackupSnapshot, () => null);
+}
+
