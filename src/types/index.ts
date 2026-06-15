@@ -1,3 +1,4 @@
+// Existing legacy types (mantidos para compatibilidade — não substituir nesta etapa)
 export interface VagaLocal {
   id: string;
   quantidade: number;
@@ -45,3 +46,8 @@ export interface HistoricoMensal {
   feirao: { vagas: VagaLocal[]; periodo: string };
   consolidatedAt: string;
 }
+
+// Novos schemas/tipos Zod (Prompt 1) — expostos com nomes próprios para evitar conflito
+export { VagaSchema, VagasArraySchema, type Vaga } from './vaga';
+export { BannerConfigSchema, type BannerConfig as BannerConfigZ } from './banner';
+export { AdminSessionSchema, type AdminSession } from './admin';
