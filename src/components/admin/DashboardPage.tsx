@@ -1,12 +1,28 @@
-import { Briefcase, TrendingUp, Users } from "lucide-react";
+import { Briefcase, TrendingUp, Users, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useVagasLocalStore } from "@/store/vagasStorage";
+import { useUltimoBackup } from "@/hooks/useVagas";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
 
 export const DashboardPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
-  
+  const ultimoBackup = useUltimoBackup();
+
   const totalVagas = vagas_semana.reduce((acc, v) => acc + v.quantidade, 0) + 
                      vagas_feirao.reduce((acc, v) => acc + v.quantidade, 0);
+
+  const baixarBackup = () => {
+    const raw = localStorage.getItem(STORAGE_KEYS.VAGAS_BACKUP);
+    if (!raw) return;
+    const blob = new Blob([raw], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `backup-vagas-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const stats = [
     { title: "Total de Vagas", value: totalVagas, icon: Briefcase, color: "text-blue-500" },
@@ -46,6 +62,29 @@ export const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="rounded-xl shadow-card">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-base">Backup automático</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Último backup:{" "}
+              {ultimoBackup
+                ? new Date(ultimoBackup).toLocaleString("pt-BR")
+                : "nenhum ainda"}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={baixarBackup}
+            disabled={!ultimoBackup}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Baixar JSON
+          </Button>
+        </CardHeader>
+      </Card>
     </div>
   );
 };

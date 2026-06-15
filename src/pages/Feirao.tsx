@@ -2,23 +2,28 @@ import { useState, useEffect, useMemo } from "react";
 import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin, X, Hash, Tag, DollarSign, Gift, GraduationCap, Briefcase, FileText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { useVagasLocalStore } from "@/store/vagasStorage";
+import { useVagasFeirao } from "@/hooks/useVagas";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 import { Pagination } from "@/components/ui/pagination-custom";
 
 const Feirao = () => {
-  const { vagas_feirao, feirao_ativa, periodo_feirao } = useVagasLocalStore();
-  const vagas = vagas_feirao.filter(v => v.publicada);
+  const { data: vagas = [], isLoading, ativo: feiraoAtivo, periodo } = useVagasFeirao();
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  const feiraoAtivo = feirao_ativa;
   const categoriaFiltro = searchParams.get("categoria") || "";
   const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
-  const periodo = periodo_feirao;
+
+  if (isLoading) {
+    return (
+      <div className="pt-14 min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   if (!feiraoAtivo) {
     return (
