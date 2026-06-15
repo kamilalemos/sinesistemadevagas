@@ -32,6 +32,12 @@ const vagasService = {
 };
 
 // Backup silencioso em JSON após cada mutação
+// Subscribers locais (mesma aba) — `storage` event só dispara em outras abas
+const backupListeners = new Set<() => void>();
+function notifyBackup() {
+  backupListeners.forEach((l) => l());
+}
+
 function autoBackup() {
   try {
     const s = useVagasLocalStore.getState();
@@ -44,6 +50,7 @@ function autoBackup() {
     });
     localStorage.setItem(STORAGE_KEYS.VAGAS_BACKUP, payload);
     localStorage.setItem(STORAGE_KEYS.VAGAS_BACKUP_DATE, new Date().toISOString());
+    notifyBackup();
   } catch (e) {
     console.warn('[sine] Falha ao salvar backup automático:', e);
   }
