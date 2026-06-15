@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useVagasLocalStore } from '../store/vagasStorage';
 import { VagaLocal } from '../types';
