@@ -1,22 +1,48 @@
 import { create } from 'zustand';
-import { 
-  loadVagasFromLocalStorage, 
-  saveVagasToLocalStorage 
+import {
+  loadVagasFromLocalStorage,
+  saveVagasToLocalStorage,
+  weekRefFromIso,
+  getWeekInfo,
 } from '@/lib/vagasPersistence';
 import { VagaLocal, VagasArraySchema } from '@/types';
 import { logAudit } from '@/services/auditService';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 export type { VagaLocal };
 
-// Valida um array de vagas vindo do localStorage. Se corrompido, retorna [].
-function validateVagas(vagas: unknown, label: string): VagaLocal[] {
+type ParseOutcome =
+  | { status: 'ok'; data: VagaLocal[] }
+  | { status: 'empty' }
+  | { status: 'corrupted' };
+
+// Verifica se a chave bruta existe em localStorage e tenta validar via Zod.
+// Se a chave não existe → empty. Se existe mas falha parse → corrupted (com backup).
+function parseVagasFromStorage(tipo: 'semana' | 'feirao', vagas: unknown, label: string): ParseOutcome {
+  const info = getWeekInfo();
+  const rawKey = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
+  const rawExists = typeof localStorage !== 'undefined' && localStorage.getItem(rawKey) !== null;
+
   const result = VagasArraySchema.safeParse(vagas);
   if (!result.success) {
-    console.warn(`[sine] Dados corrompidos em ${label} — resetando.`, result.error.issues);
-    return [];
+    console.error(`[vagasStorage] Dados corrompidos em ${label}. Parse falhou:`, result.error.flatten());
+    try {
+      const raw = localStorage.getItem(rawKey);
+      if (raw) {
+        localStorage.setItem(`sine_vagas_corrupted_backup_${Date.now()}`, raw);
+      }
+    } catch {
+      /* storage cheio, ignora */
+    }
+    return { status: 'corrupted' };
   }
-  return result.data as VagaLocal[];
+
+  if (result.data.length === 0) {
+    return rawExists ? { status: 'ok', data: [] } : { status: 'empty' };
+  }
+  return { status: 'ok', data: result.data as VagaLocal[] };
 }
+
 
 interface VagasState {
   vagas_semana: VagaLocal[];
