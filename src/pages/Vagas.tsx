@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Search, ArrowLeft, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { useVagasLocalStore } from "@/store/vagasStorage";
+import { useVagasDaSemana } from "@/hooks/useVagas";
 import { VagaLocal } from "@/types";
 import { VagaCard } from "@/components/vagas/VagaCard";
 import { Pagination } from "@/components/ui/pagination-custom";
@@ -59,22 +59,16 @@ function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
 }
 
 const Vagas = () => {
-  const { vagas_semana, periodo_semana, refreshFromStorage } = useVagasLocalStore();
+  const { data: vagas = [], isLoading, periodo } = useVagasDaSemana();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  
-  useEffect(() => {
-    refreshFromStorage();
-  }, [refreshFromStorage]);
 
-  const vagas = vagas_semana.filter(v => v.publicada);
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
 
   const categoriaFiltro = searchParams.get("categoria") || "";
 
   const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
-  const periodo = periodo_semana;
 
   const vagasFiltradas = vagas.filter((v) => {
     const termo = busca.toLowerCase();
