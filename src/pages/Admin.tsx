@@ -57,22 +57,36 @@ const Admin = () => {
       <div className="pt-14 min-h-screen bg-background flex items-center justify-center px-4">
         <div className="bg-card rounded-2xl shadow-card p-6 w-full max-w-sm border border-border space-y-4">
           <div className="text-center">
-            <Lock className="w-10 h-10 text-primary mx-auto mb-2" />
-            <h1 className="font-heading font-bold text-lg text-foreground">Painel Administrativo</h1>
-            <p className="text-muted-foreground text-xs">Identifique-se para acessar as configurações.</p>
+            {isSetup ? (
+              <UserPlus className="w-10 h-10 text-primary mx-auto mb-2" />
+            ) : (
+              <Lock className="w-10 h-10 text-primary mx-auto mb-2" />
+            )}
+            <h1 className="font-heading font-bold text-lg text-foreground">
+              {isSetup ? "Criar Administrador" : "Painel Administrativo"}
+            </h1>
+            <p className="text-muted-foreground text-xs">
+              {isSetup
+                ? "Nenhum administrador encontrado. Crie o primeiro acesso."
+                : "Identifique-se para acessar as configurações."}
+            </p>
           </div>
           <div className="space-y-3">
-            <div className="space-y-1">
-              <Input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-xl" />
-            </div>
+            <Input
+              type="email"
+              placeholder="E-mail"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="rounded-xl"
+            />
             <div className="space-y-1 relative">
-              <Input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="Senha" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()} 
-                className="rounded-xl pr-10" 
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder={isSetup ? "Senha (mín. 6 caracteres)" : "Senha"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !isSetup && handleLogin()}
+                className="rounded-xl pr-10"
               />
               <button
                 type="button"
@@ -82,9 +96,29 @@ const Admin = () => {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <Button onClick={handleLogin} disabled={loginLoading} className="w-full rounded-xl font-heading font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
-              {loginLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
-              Entrar no Painel
+            {isSetup && (
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Confirmar senha"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSignUp()}
+                className="rounded-xl"
+              />
+            )}
+            <Button
+              onClick={isSetup ? handleSignUp : handleLogin}
+              disabled={loginLoading}
+              className="w-full rounded-xl font-heading font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {loginLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : isSetup ? (
+                <UserPlus className="w-4 h-4 mr-2" />
+              ) : (
+                <ShieldCheck className="w-4 h-4 mr-2" />
+              )}
+              {isSetup ? "Criar Administrador" : "Entrar no Painel"}
             </Button>
           </div>
           <Link to="/" className="block text-center text-xs text-muted-foreground hover:text-foreground">← Voltar ao site</Link>
