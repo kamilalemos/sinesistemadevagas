@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lock, Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Lock, Loader2, ShieldCheck, Eye, EyeOff, UserPlus } from "lucide-react";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,19 +14,34 @@ import { ConfiguracoesPage } from "@/components/admin/ConfiguracoesPage";
 import { HistoricoPage } from "@/components/admin/HistoricoPage";
 
 const Admin = () => {
-  const { user, loading, isAdmin, signIn, signOut } = useAuth();
+  const { user, loading, isAdmin, hasAdmin, signIn, signUp, signOut } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("dashboard");
+
+  const isSetup = !hasAdmin;
 
   const handleLogin = async () => {
     setLoginLoading(true);
     const { error } = await signIn(email, password);
     setLoginLoading(false);
-    if (error) toast.error("Email ou senha incorretos");
+    if (error) toast.error(error.message);
     else toast.success("Login realizado com sucesso!");
+  };
+
+  const handleSignUp = async () => {
+    if (password !== confirmPassword) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+    setLoginLoading(true);
+    const { error } = await signUp(email, password);
+    setLoginLoading(false);
+    if (error) toast.error(error.message);
+    else toast.success("Administrador criado com sucesso!");
   };
 
   if (loading) {
