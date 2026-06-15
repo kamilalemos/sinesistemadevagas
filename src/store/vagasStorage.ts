@@ -3,10 +3,20 @@ import {
   loadVagasFromLocalStorage, 
   saveVagasToLocalStorage 
 } from '@/lib/vagasPersistence';
-import { VagaLocal } from '@/types';
+import { VagaLocal, VagasArraySchema } from '@/types';
 import { logAudit } from '@/services/auditService';
 
 export type { VagaLocal };
+
+// Valida um array de vagas vindo do localStorage. Se corrompido, retorna [].
+function validateVagas(vagas: unknown, label: string): VagaLocal[] {
+  const result = VagasArraySchema.safeParse(vagas);
+  if (!result.success) {
+    console.warn(`[sine] Dados corrompidos em ${label} — resetando.`, result.error.issues);
+    return [];
+  }
+  return result.data as VagaLocal[];
+}
 
 interface VagasState {
   vagas_semana: VagaLocal[];
