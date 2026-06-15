@@ -48,13 +48,16 @@ function autoBackup() {
       periodo_feirao: s.periodo_feirao,
       exportadoEm: new Date().toISOString(),
     });
+    const nowIso = new Date().toISOString();
     localStorage.setItem(STORAGE_KEYS.VAGAS_BACKUP, payload);
-    localStorage.setItem(STORAGE_KEYS.VAGAS_BACKUP_DATE, new Date().toISOString());
+    localStorage.setItem(STORAGE_KEYS.VAGAS_BACKUP_DATE, nowIso);
+    useVagasLocalStore.getState().setUltimoBackup(nowIso);
     notifyBackup();
   } catch (e) {
     console.warn('[sine] Falha ao salvar backup automático:', e);
   }
 }
+
 
 // Mantém o React Query sincronizado com mudanças do Zustand
 function useStoreSync() {
