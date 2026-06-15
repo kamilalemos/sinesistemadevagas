@@ -62,6 +62,29 @@ export const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="rounded-xl shadow-card">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-base">Backup automático</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Último backup:{" "}
+              {ultimoBackup
+                ? new Date(ultimoBackup).toLocaleString("pt-BR")
+                : "nenhum ainda"}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={baixarBackup}
+            disabled={!ultimoBackup}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Baixar JSON
+          </Button>
+        </CardHeader>
+      </Card>
     </div>
   );
 };
