@@ -288,26 +288,31 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
   updateVaga: (tipo, id, vagaData) => set((state) => {
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
+    const vagaExistente = state[key].find((v) => v.id === id);
     const updatedVagas = state[key].map((v) => (v.id === id ? { ...v, ...vagaData } : v));
     const newState = { [key]: updatedVagas };
-    
-    saveVagasToLocalStorage(tipo, updatedVagas, state[periodKey]);
+
+    const weekRef = weekRefFromIso(vagaExistente?.createdAt);
+    saveVagasToLocalStorage(tipo, updatedVagas, state[periodKey], weekRef);
     logAudit('update', 'vaga', id, { tipo, changes: vagaData });
-    
+
     return newState;
   }),
 
   deleteVaga: (tipo, id) => set((state) => {
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
+    const vagaExistente = state[key].find((v) => v.id === id);
     const filteredVagas = state[key].filter((v) => v.id !== id);
     const newState = { [key]: filteredVagas };
-    
-    saveVagasToLocalStorage(tipo, filteredVagas, state[periodKey]);
+
+    const weekRef = weekRefFromIso(vagaExistente?.createdAt);
+    saveVagasToLocalStorage(tipo, filteredVagas, state[periodKey], weekRef);
     logAudit('delete', 'vaga', id, { tipo });
-    
+
     return newState;
   }),
+
 
   setVisibilidade: (tipo, ativa) => set((state) => {
     logAudit('publish', 'periodo', tipo, { ativa });
