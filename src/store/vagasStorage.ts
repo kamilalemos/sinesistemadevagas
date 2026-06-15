@@ -58,7 +58,10 @@ interface VagasState {
   setPeriodo: (tipo: 'semana' | 'feirao', periodo: string) => void;
   refreshFromStorage: () => void;
   resetVagas: (tipo: 'semana' | 'feirao', novoPeriodo?: string) => void;
+  ultimo_backup: string | null;
+  setUltimoBackup: (iso: string) => void;
 }
+
 
 // Initial load
 const initialSemana = loadVagasFromLocalStorage('semana');
