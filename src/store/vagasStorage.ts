@@ -207,41 +207,63 @@ const mockVagas: Omit<VagaLocal, 'id' | 'createdAt'>[] = [
   }
 ];
 
+// Boot inicial — separa storage vazio (seed seguro) de corrompido (não fazer seed)
+function resolveInitialSemana(): VagaLocal[] {
+  const parsed = parseVagasFromStorage('semana', initialSemana.vagas, 'vagas_semana');
+  if (parsed.status === 'corrupted') return [];
+  if (parsed.status === 'empty') {
+    return mockVagas.map(v => ({ ...v, id: crypto.randomUUID(), createdAt: new Date().toISOString() }));
+  }
+  return parsed.data;
+}
+
+function resolveInitialFeirao(): VagaLocal[] {
+  const parsed = parseVagasFromStorage('feirao', initialFeirao.vagas, 'vagas_feirao');
+  return parsed.status === 'ok' ? parsed.data : [];
+}
+
 export const useVagasLocalStore = create<VagasState>((set) => ({
-  vagas_semana: validateVagas(initialSemana.vagas, 'vagas_semana').length === 0
-    ? mockVagas.map(v => ({...v, id: crypto.randomUUID(), createdAt: new Date().toISOString()}))
-    : validateVagas(initialSemana.vagas, 'vagas_semana'),
-  vagas_feirao: validateVagas(initialFeirao.vagas, 'vagas_feirao'),
+  vagas_semana: resolveInitialSemana(),
+  vagas_feirao: resolveInitialFeirao(),
   semana_ativa: true,
   feirao_ativa: true,
   periodo_semana: initialSemana.periodo,
   periodo_feirao: initialFeirao.periodo,
-  
+  ultimo_backup: (typeof localStorage !== 'undefined'
+    ? localStorage.getItem(STORAGE_KEYS.VAGAS_BACKUP_DATE)
+    : null),
+  setUltimoBackup: (iso) => set({ ultimo_backup: iso }),
+
   refreshFromStorage: () => {
     const sem = loadVagasFromLocalStorage('semana');
     const fei = loadVagasFromLocalStorage('feirao');
-    
-    // Validar dados antes de usar
-    let finalVagasSemana = validateVagas(sem.vagas, 'vagas_semana');
-    const finalVagasFeirao = validateVagas(fei.vagas, 'vagas_feirao');
 
-    // Auto-seed if empty even on refresh
-    if (finalVagasSemana.length === 0) {
+    const parsedSem = parseVagasFromStorage('semana', sem.vagas, 'vagas_semana');
+    const parsedFei = parseVagasFromStorage('feirao', fei.vagas, 'vagas_feirao');
+
+    let finalVagasSemana: VagaLocal[];
+    if (parsedSem.status === 'corrupted') {
+      finalVagasSemana = [];
+    } else if (parsedSem.status === 'empty') {
       finalVagasSemana = mockVagas.map(v => ({
-        ...v, 
-        id: crypto.randomUUID(), 
-        createdAt: new Date().toISOString()
+        ...v, id: crypto.randomUUID(), createdAt: new Date().toISOString(),
       }));
       saveVagasToLocalStorage('semana', finalVagasSemana, sem.periodo);
+    } else {
+      finalVagasSemana = parsedSem.data;
     }
+
+    const finalVagasFeirao = parsedFei.status === 'ok' ? parsedFei.data : [];
 
     set({
       vagas_semana: finalVagasSemana,
       vagas_feirao: finalVagasFeirao,
       periodo_semana: sem.periodo,
-      periodo_feirao: fei.periodo
+      periodo_feirao: fei.periodo,
     });
   },
+
+
 
   addVaga: (tipo, vagaData) => set((state) => {
     const newVaga: VagaLocal = {
