@@ -49,6 +49,16 @@ export type Database = {
       }
       initialize_admin: { Args: { _user_id: string }; Returns: boolean }
       is_setup_needed: { Args: never; Returns: boolean }
+      list_admins: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          user_id: string
+        }[]
+      }
+      promote_admin_by_email: { Args: { _email: string }; Returns: string }
+      remove_admin: { Args: { _user_id: string }; Returns: boolean }
       setup_first_admin: { Args: never; Returns: boolean }
     }
     Enums: {
