@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Shield, Trash2, UserPlus, Pencil, Clock, AlertTriangle } from "lucide-react";
+import { Loader2, Shield, Trash2, UserPlus, Pencil, Clock, AlertTriangle, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,37 @@ export const AdminsPage = () => {
   const [editPerms, setEditPerms] = useState<AdminPermission[]>([]);
   const [editExpires, setEditExpires] = useState("");
   const [editBusy, setEditBusy] = useState(false);
+
+  // password dialog
+  const [pwTarget, setPwTarget] = useState<AdminRow | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+
+  const handleSetPassword = async () => {
+    if (!pwTarget) return;
+    if (pwValue.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+    if (pwValue !== pwConfirm) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+    setPwBusy(true);
+    const { data, error } = await supabase.functions.invoke("admin-set-password", {
+      body: { user_id: pwTarget.user_id, password: pwValue },
+    });
+    setPwBusy(false);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error ?? error?.message ?? "Erro ao alterar senha");
+      return;
+    }
+    toast.success(`Senha de ${pwTarget.email} atualizada.`);
+    setPwTarget(null);
+    setPwValue("");
+    setPwConfirm("");
+  };
 
   const load = async () => {
     setLoading(true);
@@ -289,8 +320,21 @@ export const AdminsPage = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => openEdit(a)}
+                      title="Editar permissões"
                     >
                       <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setPwTarget(a);
+                        setPwValue("");
+                        setPwConfirm("");
+                      }}
+                      title="Definir nova senha"
+                    >
+                      <KeyRound className="w-4 h-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -376,6 +420,52 @@ export const AdminsPage = () => {
             >
               {editBusy && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password dialog */}
+      <Dialog open={!!pwTarget} onOpenChange={(o) => !o && setPwTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Definir nova senha</DialogTitle>
+            <DialogDescription>
+              A senha de <strong>{pwTarget?.email}</strong> será substituída
+              imediatamente. Comunique a nova senha em um canal seguro.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Nova senha</Label>
+              <Input
+                type="password"
+                value={pwValue}
+                onChange={(e) => setPwValue(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Confirmar nova senha</Label>
+              <Input
+                type="password"
+                value={pwConfirm}
+                onChange={(e) => setPwConfirm(e.target.value)}
+                className="rounded-xl"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwTarget(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSetPassword}
+              disabled={pwBusy || !pwValue || !pwConfirm}
+            >
+              {pwBusy && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Salvar senha
             </Button>
           </DialogFooter>
         </DialogContent>
