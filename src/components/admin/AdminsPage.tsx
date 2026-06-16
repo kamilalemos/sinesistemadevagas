@@ -320,8 +320,21 @@ export const AdminsPage = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => openEdit(a)}
+                      title="Editar permissões"
                     >
                       <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setPwTarget(a);
+                        setPwValue("");
+                        setPwConfirm("");
+                      }}
+                      title="Definir nova senha"
+                    >
+                      <KeyRound className="w-4 h-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
