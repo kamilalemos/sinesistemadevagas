@@ -42,10 +42,13 @@ const Feirao = () => {
     );
   }
 
+  const termos = busca.toLowerCase().split(/\s+/).filter(Boolean);
   const vagasFiltradas = vagas.filter((v) => {
-    const matchBusca =
-      !busca ||
-      v.descricao.toLowerCase().includes(busca.toLowerCase());
+    const haystack = [v.descricao, v.categoria, v.cbo, v.codigo]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const matchBusca = termos.every((t) => haystack.includes(t));
     const matchCategoria = !categoriaFiltro || v.categoria === categoriaFiltro;
     return matchBusca && matchCategoria;
   });
