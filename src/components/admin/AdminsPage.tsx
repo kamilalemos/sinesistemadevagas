@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { Loader2, Shield, Trash2, UserPlus } from "lucide-react";
+import { Loader2, Shield, Trash2, UserPlus, Pencil, Clock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { ALL_PERMISSIONS, type AdminPermission } from "@/hooks/useAuth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,15 +18,55 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-type AdminRow = { user_id: string; email: string; created_at: string };
+type AdminRow = {
+  user_id: string;
+  email: string;
+  created_at: string;
+  permissions: AdminPermission[];
+  expires_at: string | null;
+};
+
+const PERMISSION_LABELS: Record<AdminPermission, string> = {
+  dashboard: "Dashboard",
+  "cadastro-vagas": "Cadastro de Vagas",
+  visibilidade: "Visibilidade",
+  historico: "Histórico Mensal",
+  admins: "Administradores",
+  configuracoes: "Configurações",
+};
+
+const toLocalInputValue = (iso: string | null) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
+};
 
 export const AdminsPage = () => {
   const [admins, setAdmins] = useState<AdminRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
   const [currentUid, setCurrentUid] = useState<string | null>(null);
+
+  // promote form
+  const [email, setEmail] = useState("");
+  const [newPerms, setNewPerms] = useState<AdminPermission[]>([...ALL_PERMISSIONS]);
+  const [newExpires, setNewExpires] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  // edit dialog
+  const [editing, setEditing] = useState<AdminRow | null>(null);
+  const [editPerms, setEditPerms] = useState<AdminPermission[]>([]);
+  const [editExpires, setEditExpires] = useState("");
+  const [editBusy, setEditBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -41,11 +84,21 @@ export const AdminsPage = () => {
     load();
   }, []);
 
+  const togglePerm = (
+    list: AdminPermission[],
+    setter: (v: AdminPermission[]) => void,
+    p: AdminPermission
+  ) => {
+    setter(list.includes(p) ? list.filter((x) => x !== p) : [...list, p]);
+  };
+
   const handlePromote = async () => {
     if (!email.trim()) return;
     setBusy(true);
     const { error } = await supabase.rpc("promote_admin_by_email", {
       _email: email.trim(),
+      _permissions: newPerms,
+      _expires_at: newExpires ? new Date(newExpires).toISOString() : null,
     });
     setBusy(false);
     if (error) {
@@ -54,6 +107,32 @@ export const AdminsPage = () => {
     }
     toast.success("Administrador promovido com sucesso!");
     setEmail("");
+    setNewExpires("");
+    setNewPerms([...ALL_PERMISSIONS]);
+    load();
+  };
+
+  const openEdit = (a: AdminRow) => {
+    setEditing(a);
+    setEditPerms(a.permissions ?? []);
+    setEditExpires(toLocalInputValue(a.expires_at));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editing) return;
+    setEditBusy(true);
+    const { error } = await supabase.rpc("update_admin", {
+      _user_id: editing.user_id,
+      _permissions: editPerms,
+      _expires_at: editExpires ? new Date(editExpires).toISOString() : null,
+    });
+    setEditBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Permissões atualizadas.");
+    setEditing(null);
     load();
   };
 
@@ -67,6 +146,9 @@ export const AdminsPage = () => {
     load();
   };
 
+  const isExpired = (iso: string | null) =>
+    !!iso && new Date(iso) <= new Date();
+
   return (
     <div className="space-y-6">
       <header className="flex items-center gap-3">
@@ -78,47 +160,79 @@ export const AdminsPage = () => {
             Administradores
           </h1>
           <p className="text-sm text-muted-foreground">
-            Gerencie quem pode acessar o painel.
+            Controle quem acessa o painel, com quais permissões e até quando.
           </p>
         </div>
       </header>
 
-      <section className="bg-card border border-border rounded-2xl p-5 space-y-3">
+      {/* Promote */}
+      <section className="bg-card border border-border rounded-2xl p-5 space-y-4">
         <h2 className="font-heading font-semibold text-foreground">
           Promover novo administrador
         </h2>
         <p className="text-xs text-muted-foreground">
-          O usuário precisa ter criado uma conta antes (
-          <code className="text-[11px]">/admin</code>). Informe o e-mail dele
-          abaixo.
+          O usuário precisa ter criado uma conta antes em <code>/admin</code>.
         </p>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Input
-            type="email"
-            placeholder="email@exemplo.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded-xl"
-          />
-          <Button
-            onClick={handlePromote}
-            disabled={busy || !email.trim()}
-            className="rounded-xl"
-          >
-            {busy ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
-              <UserPlus className="w-4 h-4 mr-2" />
-            )}
-            Promover
-          </Button>
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs">E-mail</Label>
+            <Input
+              type="email"
+              placeholder="email@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="rounded-xl"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Expira em (opcional)</Label>
+            <Input
+              type="datetime-local"
+              value={newExpires}
+              onChange={(e) => setNewExpires(e.target.value)}
+              className="rounded-xl"
+            />
+          </div>
         </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs">Permissões</Label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {ALL_PERMISSIONS.map((p) => (
+              <label
+                key={p}
+                className="flex items-center gap-2 p-2 rounded-lg border border-border hover:bg-muted/50 cursor-pointer text-sm"
+              >
+                <Checkbox
+                  checked={newPerms.includes(p)}
+                  onCheckedChange={() => togglePerm(newPerms, setNewPerms, p)}
+                />
+                {PERMISSION_LABELS[p]}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <Button
+          onClick={handlePromote}
+          disabled={busy || !email.trim() || newPerms.length === 0}
+          className="rounded-xl w-full sm:w-auto"
+        >
+          {busy ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : (
+            <UserPlus className="w-4 h-4 mr-2" />
+          )}
+          Promover administrador
+        </Button>
       </section>
 
+      {/* List */}
       <section className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
           <h2 className="font-heading font-semibold text-foreground">
-            Lista de administradores
+            Administradores ativos
           </h2>
         </div>
         {loading ? (
@@ -133,61 +247,139 @@ export const AdminsPage = () => {
           <ul className="divide-y divide-border">
             {admins.map((a) => {
               const isSelf = a.user_id === currentUid;
+              const expired = isExpired(a.expires_at);
               return (
                 <li
                   key={a.user_id}
-                  className="flex items-center justify-between gap-3 px-5 py-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4"
                 >
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
+                  <div className="min-w-0 space-y-1">
+                    <p className="text-sm font-semibold text-foreground truncate flex items-center gap-2 flex-wrap">
                       {a.email}
                       {isSelf && (
-                        <span className="ml-2 text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                           você
                         </span>
                       )}
+                      {expired && (
+                        <span className="text-[10px] uppercase tracking-wider bg-destructive/10 text-destructive px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" /> expirado
+                        </span>
+                      )}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Desde{" "}
-                      {new Date(a.created_at).toLocaleDateString("pt-BR")}
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <Clock className="w-3 h-3" />
+                      {a.expires_at
+                        ? `Expira em ${new Date(a.expires_at).toLocaleString("pt-BR")}`
+                        : "Sem expiração"}
                     </p>
-                  </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={isSelf}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Remover administrador?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {a.email} perderá acesso ao painel imediatamente.
-                          Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleRemove(a.user_id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    <div className="flex flex-wrap gap-1">
+                      {(a.permissions ?? []).map((p) => (
+                        <span
+                          key={p}
+                          className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground"
                         >
-                          Remover
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          {PERMISSION_LABELS[p] ?? p}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEdit(a)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isSelf}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remover administrador?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {a.email} perderá acesso imediatamente.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleRemove(a.user_id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Remover
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </li>
               );
             })}
           </ul>
         )}
       </section>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar administrador</DialogTitle>
+            <DialogDescription>{editing?.email}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Expira em (opcional)</Label>
+              <Input
+                type="datetime-local"
+                value={editExpires}
+                onChange={(e) => setEditExpires(e.target.value)}
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Permissões</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {ALL_PERMISSIONS.map((p) => (
+                  <label
+                    key={p}
+                    className="flex items-center gap-2 p-2 rounded-lg border border-border hover:bg-muted/50 cursor-pointer text-sm"
+                  >
+                    <Checkbox
+                      checked={editPerms.includes(p)}
+                      onCheckedChange={() =>
+                        togglePerm(editPerms, setEditPerms, p)
+                      }
+                    />
+                    {PERMISSION_LABELS[p]}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={editBusy || editPerms.length === 0}
+            >
+              {editBusy && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
