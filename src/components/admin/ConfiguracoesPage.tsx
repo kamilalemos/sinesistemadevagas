@@ -15,9 +15,6 @@ import { ChangePasswordCard } from "./ChangePasswordCard";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [pdfPreviewData, setPdfPreviewData] = useState<string | null>(null);
-  const [currentFilename, setCurrentFilename] = useState("");
   const [logs, setLogs] = useState<any[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
 
@@ -28,9 +25,7 @@ export const ConfiguracoesPage = () => {
   const fetchLogs = async () => {
     setLoadingLogs(true);
     try {
-      // Fetch exclusively from local storage
       const localLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS) || '[]');
-      // Sort by date desc (they are added at the end, so reverse)
       setLogs([...localLogs].reverse().slice(0, 20));
     } catch (error) {
       console.error('Error fetching logs:', error);
@@ -44,13 +39,13 @@ export const ConfiguracoesPage = () => {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const year = now.getFullYear();
-    
+
     const consolidatedVagas: VagaLocal[] = [];
-    
+
     vagas_semana.filter(v => v.publicada).forEach(v => {
       consolidatedVagas.push({ ...v, periodo: "Semana Atual" });
     });
-    
+
     vagas_feirao.filter(v => v.publicada).forEach(v => {
       consolidatedVagas.push({ ...v, periodo: "Feirão da Empregabilidade" });
     });
@@ -59,7 +54,7 @@ export const ConfiguracoesPage = () => {
     if (currentHistory) {
       Object.entries(currentHistory.weeks).forEach(([key, weekData]: [string, any]) => {
         const weekNum = key.split('_')[1];
-        if (weekNum !== '3') { 
+        if (weekNum !== '3') {
           weekData.vagas.filter((v: any) => v.publicada).forEach((v: any) => {
             consolidatedVagas.push({ ...v, periodo: weekData.periodo || `Semana ${weekNum}` });
           });
@@ -87,7 +82,7 @@ export const ConfiguracoesPage = () => {
       vagas: data.vagas,
       exportadoEm: new Date().toISOString()
     };
-    
+
     exportToJSON(backupData, `backup_mensal_${data.monthName.toLowerCase()}_${data.year}`);
     logAudit('export', 'periodo', 'full_backup', { format: 'JSON' });
   };
@@ -98,39 +93,11 @@ export const ConfiguracoesPage = () => {
       toast.error("Nenhuma vaga publicada este mês para exportar.");
       return;
     }
-    
+
     exportToCSV(data.vagas, `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`);
     logAudit('export', 'periodo', 'monthly_report', { format: 'CSV' });
   };
 
-  const handleExportPDF = () => {
-    const data = getConsolidatedMonthData();
-    if (data.vagas.length === 0) {
-      toast.error("Nenhuma vaga publicada este mês para exportar.");
-      return;
-    }
-
-    const title = `Relatório Mensal Consolidado - ${data.monthName} / ${data.year}`;
-    const filename = `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`;
-    
-    const doc = generatePDF(data.vagas, title, true);
-    if (doc) {
-      const pdfDataUri = doc.output('datauristring');
-      setPdfPreviewData(pdfDataUri);
-      setCurrentFilename(filename);
-      setIsPreviewOpen(true);
-    }
-  };
-
-  const confirmDownloadPDF = () => {
-    const link = document.createElement('a');
-    link.href = pdfPreviewData!;
-    link.download = `${currentFilename}.pdf`;
-    link.click();
-    setIsPreviewOpen(false);
-    logAudit('export', 'periodo', 'monthly_report', { format: 'PDF' });
-    toast.success("PDF baixado com sucesso!");
-  };
 
   return (
     <div className="space-y-10 max-w-7xl mx-auto">
