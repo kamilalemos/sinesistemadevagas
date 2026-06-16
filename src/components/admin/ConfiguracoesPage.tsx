@@ -131,19 +131,6 @@ export const ConfiguracoesPage = () => {
               <Button 
                 variant="outline" 
                 className="h-auto p-4 flex flex-col items-center gap-3 rounded-2xl border-border/60 hover:border-primary/50 hover:bg-primary/[0.02] transition-all group"
-                onClick={handleExportPDF}
-              >
-                <div className="p-3 rounded-xl bg-red-50 text-red-500 group-hover:bg-red-100 transition-colors">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <div className="text-center">
-                  <span className="block font-black text-foreground">Relatório PDF</span>
-                </div>
-              </Button>
-
-              <Button 
-                variant="outline" 
-                className="h-auto p-4 flex flex-col items-center gap-3 rounded-2xl border-border/60 hover:border-primary/50 hover:bg-primary/[0.02] transition-all group"
                 onClick={handleExportCSV}
               >
                 <div className="p-3 rounded-xl bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100 transition-colors">
@@ -156,7 +143,7 @@ export const ConfiguracoesPage = () => {
 
               <Button 
                 variant="outline" 
-                className="h-auto p-4 flex flex-col items-center gap-3 rounded-2xl border-border/60 hover:border-primary/50 hover:bg-primary/[0.02] transition-all group sm:col-span-2"
+                className="h-auto p-4 flex flex-col items-center gap-3 rounded-2xl border-border/60 hover:border-primary/50 hover:bg-primary/[0.02] transition-all group"
                 onClick={handleExportFullBackup}
               >
                 <div className="p-3 rounded-xl bg-amber-50 text-amber-500 group-hover:bg-amber-100 transition-colors">
