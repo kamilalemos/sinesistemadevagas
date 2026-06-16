@@ -131,7 +131,20 @@ export const useAuth = () => {
     setIsAdmin(false);
     setUser(null);
     setSession(null);
+    setPermissions([]);
+    setExpiresAt(null);
   };
 
-  return { user, session, loading, isAdmin, hasAdmin, signIn, signUp, signOut };
+  return {
+    user,
+    session,
+    loading,
+    isAdmin,
+    hasAdmin,
+    permissions,
+    expiresAt,
+    signIn,
+    signUp,
+    signOut,
+  };
 };
