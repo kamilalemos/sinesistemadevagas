@@ -234,40 +234,6 @@ export const ConfiguracoesPage = () => {
           </CardContent>
         </Card>
       </div>
-
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 overflow-hidden bg-background border-border shadow-2xl">
-          <DialogHeader className="p-6 border-b bg-muted/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Eye className="w-5 h-5" />
-              </div>
-              <div>
-                <DialogTitle className="font-heading font-black text-xl">Prévia do Relatório</DialogTitle>
-              </div>
-            </div>
-          </DialogHeader>
-          
-          <div className="flex-1 bg-muted/20 p-4 md:p-8 overflow-hidden flex items-center justify-center">
-            {pdfPreviewData ? (
-              <iframe 
-                src={pdfPreviewData} 
-                className="w-full h-full border-none rounded-lg shadow-inner bg-white"
-                title="PDF Preview"
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-4">
-                <p className="font-bold text-muted-foreground">Gerando prévia...</p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="p-6 border-t bg-muted/20 flex gap-3">
-            <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="rounded-xl font-bold px-8">Fechar</Button>
-            <Button className="rounded-xl font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20" onClick={confirmDownloadPDF}>Baixar PDF</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
