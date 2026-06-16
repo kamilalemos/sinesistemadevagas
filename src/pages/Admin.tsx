@@ -15,7 +15,7 @@ import { HistoricoPage } from "@/components/admin/HistoricoPage";
 import { AdminsPage } from "@/components/admin/AdminsPage";
 
 const Admin = () => {
-  const { user, loading, isAdmin, hasAdmin, signIn, signUp, signOut } = useAuth();
+  const { user, loading, isAdmin, hasAdmin, permissions, signIn, signUp, signOut } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
