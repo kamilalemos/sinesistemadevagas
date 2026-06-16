@@ -218,8 +218,8 @@ export const HistoricoPage = () => {
                             <Eye className="w-4 h-4" /> Abrir Listagem
                           </Button>
                           <div className="flex gap-2">
-                            <Button variant="outline" className="rounded-xl h-10 bg-white border-primary/20 text-primary hover:bg-primary/5 px-4 font-bold" onClick={() => handleExport(item.feirao?.vagas || [], 'pdf', `Feirão - ${item.month}/${item.year}`)}>PDF</Button>
                             <Button variant="outline" className="rounded-xl h-10 bg-white border-primary/20 text-primary hover:bg-primary/5 px-4 font-bold" onClick={() => handleExport(item.feirao?.vagas || [], 'csv', `Feirão - ${item.month}/${item.year}`)}>CSV</Button>
+                            <Button variant="outline" className="rounded-xl h-10 bg-white border-primary/20 text-primary hover:bg-primary/5 px-4 font-bold" onClick={() => handleExport(item.feirao?.vagas || [], 'json', `Feirão - ${item.month}/${item.year}`)}>JSON</Button>
                           </div>
                         </div>
                       </div>
