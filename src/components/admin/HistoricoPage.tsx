@@ -5,7 +5,6 @@ import {
   Calendar, 
   Search, 
   FileText, 
-  Download, 
   Eye, 
   FileSpreadsheet, 
   FileJson 
@@ -16,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { getHistory } from "@/lib/vagasPersistence";
 import { HistoricoMensal, VagaLocal } from "@/types";
 import { cn } from "@/lib/utils";
-import { exportToPDF, exportToCSV, exportToJSON } from "@/lib/exportUtils";
+import { exportToCSV, exportToJSON } from "@/lib/exportUtils";
 import { Pagination } from "@/components/ui/pagination-custom";
 import { 
   Dialog, 
