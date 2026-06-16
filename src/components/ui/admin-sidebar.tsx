@@ -39,9 +39,10 @@ interface AdminSidebarProps {
   onSignOut: () => void;
   activeItem: string;
   onItemClick: (itemId: string) => void;
+  allowedItems?: string[];
 }
 
-export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: AdminSidebarProps) {
+export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick, allowedItems }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
