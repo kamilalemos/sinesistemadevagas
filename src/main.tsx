@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { cleanupOldStorageKeys } from "@/lib/vagasPersistence";
-// import "./seed.ts";
+import "./seed.ts";
 
 cleanupOldStorageKeys();
 
