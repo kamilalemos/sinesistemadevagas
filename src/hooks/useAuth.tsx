@@ -2,12 +2,24 @@ import { useState, useEffect } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+export const ALL_PERMISSIONS = [
+  "dashboard",
+  "cadastro-vagas",
+  "visibilidade",
+  "historico",
+  "admins",
+  "configuracoes",
+] as const;
+export type AdminPermission = (typeof ALL_PERMISSIONS)[number];
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasAdmin, setHasAdmin] = useState(true);
+  const [permissions, setPermissions] = useState<AdminPermission[]>([]);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
 
   const refreshSetupFlag = async () => {
     const { data, error } = await supabase.rpc("is_setup_needed");
@@ -17,20 +29,32 @@ export const useAuth = () => {
   const refreshAdminFlag = async (uid: string | undefined) => {
     if (!uid) {
       setIsAdmin(false);
+      setPermissions([]);
+      setExpiresAt(null);
       return;
     }
-    const { data, error } = await supabase.rpc("has_role", {
-      _user_id: uid,
-      _role: "admin",
-    });
-    setIsAdmin(!error && !!data);
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("permissions, expires_at")
+      .eq("user_id", uid)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (error || !data) {
+      setIsAdmin(false);
+      setPermissions([]);
+      setExpiresAt(null);
+      return;
+    }
+    const expired = data.expires_at && new Date(data.expires_at) <= new Date();
+    setIsAdmin(!expired);
+    setPermissions(expired ? [] : ((data.permissions ?? []) as AdminPermission[]));
+    setExpiresAt(data.expires_at ?? null);
   };
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
-      // Defer admin check to avoid deadlocks inside the callback
       setTimeout(() => {
         refreshAdminFlag(sess?.user?.id);
         refreshSetupFlag();
