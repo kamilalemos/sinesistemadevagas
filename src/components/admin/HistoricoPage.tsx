@@ -186,9 +186,6 @@ export const HistoricoPage = () => {
                                 <Eye className="w-4 h-4" /> Visualizar
                               </Button>
                               <div className="flex gap-1">
-                                <Button size="icon" variant="ghost" className="rounded-lg h-10 w-10 text-red-500 hover:bg-red-50" onClick={() => handleExport(weekVagas, 'pdf', title)} title="PDF">
-                                  <Download className="w-4 h-4" />
-                                </Button>
                                 <Button size="icon" variant="ghost" className="rounded-lg h-10 w-10 text-emerald-500 hover:bg-emerald-50" onClick={() => handleExport(weekVagas, 'csv', title)} title="CSV">
                                   <FileSpreadsheet className="w-4 h-4" />
                                 </Button>
