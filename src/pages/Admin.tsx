@@ -128,14 +128,16 @@ const Admin = () => {
     );
   }
 
+  const can = (perm: string) => permissions.includes(perm as any);
+
   const renderContent = () => {
     switch (activeSection) {
-      case "dashboard": return <DashboardPage />;
-      case "cadastro-vagas": return <CadastroVagasPage />;
-      case "visibilidade": return <VisibilidadePage />;
-      case "historico": return <HistoricoPage />;
-      case "admins": return <AdminsPage />;
-      case "configuracoes": return <ConfiguracoesPage />;
+      case "dashboard": return can("dashboard") ? <DashboardPage /> : <NoPermission />;
+      case "cadastro-vagas": return can("cadastro-vagas") ? <CadastroVagasPage /> : <NoPermission />;
+      case "visibilidade": return can("visibilidade") ? <VisibilidadePage /> : <NoPermission />;
+      case "historico": return can("historico") ? <HistoricoPage /> : <NoPermission />;
+      case "admins": return can("admins") ? <AdminsPage /> : <NoPermission />;
+      case "configuracoes": return can("configuracoes") ? <ConfiguracoesPage /> : <NoPermission />;
       default: return <DashboardPage />;
     }
   };
@@ -148,6 +150,7 @@ const Admin = () => {
           onSignOut={signOut} 
           activeItem={activeSection}
           onItemClick={setActiveSection}
+          allowedItems={permissions}
         />
         <main className="flex-1 p-4 lg:p-8 pt-20 lg:pt-8 overflow-y-auto max-h-screen">
           <div className="max-w-6xl mx-auto animate-fade-in">
@@ -158,5 +161,17 @@ const Admin = () => {
     </div>
   );
 };
+
+const NoPermission = () => (
+  <div className="bg-card border border-border rounded-2xl p-8 text-center">
+    <h2 className="font-heading font-bold text-lg text-foreground mb-2">
+      Acesso restrito
+    </h2>
+    <p className="text-sm text-muted-foreground">
+      Você não possui permissão para acessar esta seção. Peça a um administrador
+      para liberar.
+    </p>
+  </div>
+);
 
 export default Admin;
