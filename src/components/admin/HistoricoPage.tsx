@@ -284,7 +284,8 @@ export const HistoricoPage = () => {
 
           <DialogFooter className="p-6 border-t bg-muted/20 flex gap-3">
             <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="rounded-xl font-bold px-8">Fechar</Button>
-            <Button className="rounded-xl font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20" onClick={() => handleExport(selectedVagas, 'pdf', viewTitle)}>Exportar PDF</Button>
+            <Button variant="outline" className="rounded-xl font-black uppercase tracking-widest px-6" onClick={() => handleExport(selectedVagas, 'csv', viewTitle)}>Exportar CSV</Button>
+            <Button className="rounded-xl font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20" onClick={() => handleExport(selectedVagas, 'json', viewTitle)}>Exportar JSON</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
