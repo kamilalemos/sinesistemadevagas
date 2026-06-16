@@ -39,9 +39,10 @@ interface AdminSidebarProps {
   onSignOut: () => void;
   activeItem: string;
   onItemClick: (itemId: string) => void;
+  allowedItems?: string[];
 }
 
-export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: AdminSidebarProps) {
+export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick, allowedItems }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -127,7 +128,9 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick }: 
 
         {/* Navigation Items */}
         <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-1.5 scrollbar-hide">
-          {navigationItems.map((item) => {
+          {navigationItems
+            .filter((item) => !allowedItems || allowedItems.includes(item.id))
+            .map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
 
