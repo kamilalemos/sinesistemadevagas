@@ -70,13 +70,13 @@ const Vagas = () => {
 
   const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
 
+  const termos = busca.toLowerCase().split(/\s+/).filter(Boolean);
   const vagasFiltradas = vagas.filter((v) => {
-    const termo = busca.toLowerCase();
-    const matchBusca =
-      !busca ||
-      v.descricao.toLowerCase().includes(termo) ||
-      v.categoria?.toLowerCase().includes(termo) ||
-      v.cbo?.toLowerCase().includes(termo);
+    const haystack = [v.descricao, v.categoria, v.cbo, v.codigo]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const matchBusca = termos.every((t) => haystack.includes(t));
     const matchCategoria = !categoriaFiltro || v.categoria === categoriaFiltro;
     return matchBusca && matchCategoria;
   });
