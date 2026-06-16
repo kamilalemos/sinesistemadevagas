@@ -17,19 +17,25 @@ export type Database = {
       user_roles: {
         Row: {
           created_at: string
+          expires_at: string | null
           id: string
+          permissions: string[]
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
+          expires_at?: string | null
           id?: string
+          permissions?: string[]
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string
+          expires_at?: string | null
           id?: string
+          permissions?: string[]
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
@@ -40,6 +46,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_permission: {
+        Args: { _permission: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -54,12 +64,21 @@ export type Database = {
         Returns: {
           created_at: string
           email: string
+          expires_at: string
+          permissions: string[]
           user_id: string
         }[]
       }
-      promote_admin_by_email: { Args: { _email: string }; Returns: string }
+      promote_admin_by_email: {
+        Args: { _email: string; _expires_at?: string; _permissions?: string[] }
+        Returns: string
+      }
       remove_admin: { Args: { _user_id: string }; Returns: boolean }
       setup_first_admin: { Args: never; Returns: boolean }
+      update_admin: {
+        Args: { _expires_at: string; _permissions: string[]; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
