@@ -17,6 +17,37 @@ const Feirao = () => {
   const categoriaFiltro = searchParams.get("categoria") || "";
   const totalVagas = vagas.reduce((sum, v) => sum + v.quantidade, 0);
 
+  const termos = busca.toLowerCase().split(/\s+/).filter(Boolean);
+  const vagasFiltradas = vagas.filter((v) => {
+    const haystack = [v.descricao, v.categoria, v.cbo, v.codigo]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const matchBusca = termos.every((t) => haystack.includes(t));
+    const matchCategoria = !categoriaFiltro || v.categoria === categoriaFiltro;
+    return matchBusca && matchCategoria;
+  });
+
+  const totalPages = Math.ceil(vagasFiltradas.length / itemsPerPage);
+
+  const currentVagas = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return vagasFiltradas.slice(startIndex, startIndex + itemsPerPage);
+  }, [vagasFiltradas, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [busca, categoriaFiltro]);
+
+  const limparFiltro = () => {
+    setSearchParams({});
+  };
+
   if (isLoading) {
     return (
       <div className="pt-14 min-h-screen bg-background flex items-center justify-center">
@@ -41,37 +72,6 @@ const Feirao = () => {
       </div>
     );
   }
-
-  const termos = busca.toLowerCase().split(/\s+/).filter(Boolean);
-  const vagasFiltradas = vagas.filter((v) => {
-    const haystack = [v.descricao, v.categoria, v.cbo, v.codigo]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    const matchBusca = termos.every((t) => haystack.includes(t));
-    const matchCategoria = !categoriaFiltro || v.categoria === categoriaFiltro;
-    return matchBusca && matchCategoria;
-  });
-
-  const totalPages = Math.ceil(vagasFiltradas.length / itemsPerPage);
-  
-  const currentVagas = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return vagasFiltradas.slice(startIndex, startIndex + itemsPerPage);
-  }, [vagasFiltradas, currentPage]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [busca, categoriaFiltro]);
-
-  const limparFiltro = () => {
-    setSearchParams({});
-  };
 
   return (
     <div className="pt-14 min-h-screen bg-background">
