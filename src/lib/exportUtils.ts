@@ -1,34 +1,18 @@
-import { VagaLocal, HistoricoMensal } from '@/types';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import { VagaLocal } from '@/types';
 import { toast } from 'sonner';
-
-// Type augmentation for jspdf-autotable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
-
-const MONTH_NAMES = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-];
 
 /**
  * Generates and downloads a CSV file from an array of vagas.
- * For monthly consolidation, includes the period column.
  */
-export const exportToCSV = (vagas: VagaLocal[], filename: string, includePeriodColumn = true) => {
+export const exportToCSV = (vagas: VagaLocal[], filename: string, _includePeriodColumn = true) => {
   try {
     if (!vagas || vagas.length === 0) {
       toast.error("Nenhuma vaga disponível para exportar.");
       return;
     }
 
-    // Colunas: Quantidade, CBO, Descrição, Escolaridade, Experiência, ID da vaga, Benefícios, Salário, Empresa, Publicada, Data, Período
     const headers = ["Quantidade", "CBO", "Descrição", "Escolaridade", "Experiência", "ID da Vaga", "Benefícios", "Salário", "Empresa", "Publicada", "Data", "Período"];
-    
+
     const csvRows = vagas.map(v => {
       const row = [
         v.quantidade || 0,
@@ -44,7 +28,7 @@ export const exportToCSV = (vagas: VagaLocal[], filename: string, includePeriodC
         v.createdAt || "",
         v.periodo || ""
       ];
-      
+
       return row.map(field => {
         const stringField = String(field).replace(/"/g, '""');
         return `"${stringField}"`;
@@ -54,19 +38,19 @@ export const exportToCSV = (vagas: VagaLocal[], filename: string, includePeriodC
     const csvContent = "\ufeff" + [headers.join(","), ...csvRows].join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", `${filename}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
-    
+
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     }, 100);
-    
+
     toast.success(`CSV exportado: ${vagas.length} registros.`);
   } catch (error) {
     console.error("Erro ao exportar CSV:", error);
@@ -87,263 +71,22 @@ export const exportToJSON = (data: any, filename: string) => {
     const jsonContent = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", `${filename}.json`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
-    
+
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     }, 100);
-    
+
     toast.success("Backup JSON gerado com sucesso!");
   } catch (error) {
     console.error("Erro ao exportar JSON:", error);
     toast.error("Falha ao gerar o arquivo JSON.");
-  }
-};
-
-/**
- * Generates institutional PDF blob or dataURL for preview or download.
- */
-export const generatePDF = (vagas: VagaLocal[], title: string, isConsolidated = false) => {
-  try {
-    if (!vagas || vagas.length === 0) {
-      return null;
-    }
-
-    // Configuração Landscape A4
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4"
-    }) as any;
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('pt-BR');
-    const timeStr = now.toLocaleTimeString('pt-BR');
-
-    // Cabeçalho Institucional Azul SINE
-    doc.setFillColor(0, 56, 147);
-    doc.rect(0, 0, 297, 35, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text("SINE JOÃO PESSOA - PAINEL DA EMPREGABILIDADE", 148.5, 15, { align: 'center' });
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(title.toUpperCase(), 148.5, 25, { align: 'center' });
-    
-    // Metadados do Relatório
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(9);
-    doc.text(`Exportado em: ${dateStr} às ${timeStr}`, 15, 42);
-    doc.text(`Total de Oportunidades Filtradas: ${vagas.length}`, 15, 47);
-    
-    doc.setDrawColor(200, 200, 200);
-    doc.line(15, 52, 282, 52);
-
-    const tableHeaders = [["ID", "Cargo", "Qtd", "CBO", "Escolaridade", "Experiência", "Salário", "Benefícios", "Empresa", "Status"]];
-    
-    if (isConsolidated) {
-      // Group by period if consolidated
-      const groups: Record<string, VagaLocal[]> = {};
-      vagas.forEach(v => {
-        const p = v.periodo || "Outros";
-        if (!groups[p]) groups[p] = [];
-        groups[p].push(v);
-      });
-
-      let currentY = 55;
-      Object.entries(groups).forEach(([period, groupVagas], index) => {
-        // Add group header
-        if (index > 0) currentY += 10;
-        
-        // Check for page break if header is near bottom
-        if (currentY > 180) {
-          doc.addPage();
-          currentY = 15;
-        }
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(0, 56, 147);
-        doc.text(period.toUpperCase(), 15, currentY);
-        currentY += 5;
-
-        const tableData = groupVagas.map(v => [
-          v.codigo || "-",
-          v.descricao || "-",
-          v.quantidade || "0",
-          v.cbo || "-",
-          v.escolaridade || "-",
-          v.experiencia || "-",
-          v.salario || "A combinar",
-          v.beneficios || "-",
-          v.empresa || "-",
-          v.publicada ? "Ativa" : "Pausada"
-        ]);
-
-        doc.autoTable({
-          startY: currentY,
-          head: tableHeaders,
-          body: tableData,
-          theme: 'striped',
-          headStyles: { 
-            fillColor: [0, 56, 147],
-            textColor: [255, 255, 255],
-            fontSize: 8,
-            fontStyle: 'bold',
-            halign: 'center'
-          },
-          styles: { 
-            fontSize: 7, 
-            cellPadding: 2,
-            overflow: 'linebreak',
-            font: 'helvetica',
-            minCellHeight: 8
-          },
-          columnStyles: {
-            0: { cellWidth: 15, halign: 'center' }, // ID/Código
-            1: { cellWidth: 45, overflow: 'linebreak' }, // Cargo
-            2: { cellWidth: 10, halign: 'center' }, // Qtd
-            3: { cellWidth: 18, halign: 'center' }, // CBO
-            4: { cellWidth: 35, overflow: 'linebreak' }, // Escolaridade
-            5: { cellWidth: 25, overflow: 'linebreak' }, // Experiência
-            6: { cellWidth: 25 },                   // Salário
-            7: { cellWidth: 50, overflow: 'linebreak' }, // Benefícios
-            8: { cellWidth: 30, overflow: 'linebreak' }, // Empresa
-            9: { cellWidth: 15, halign: 'center' }  // Status
-          },
-          alternateRowStyles: { fillColor: [245, 248, 255] },
-          margin: { left: 10, right: 10 },
-          didDrawPage: (data: any) => {
-            doc.setFontSize(7);
-            doc.setTextColor(150, 150, 150);
-            const str = `Página ${doc.internal.getNumberOfPages()} - Relatório Consolidado SINE João Pessoa`;
-            doc.text(str, 148.5, 205, { align: 'center' });
-          }
-        });
-        currentY = (doc as any).lastAutoTable.finalY;
-      });
-    } else {
-      const tableData = vagas.map(v => [
-        v.codigo || "-",
-        v.descricao || "-",
-        v.quantidade || "0",
-        v.cbo || "-",
-        v.escolaridade || "-",
-        v.experiencia || "-",
-        v.salario || "A combinar",
-        v.beneficios || "-",
-        v.empresa || "-",
-        v.publicada ? "Ativa" : "Pausada"
-      ]);
-
-      doc.autoTable({
-        startY: 55,
-        head: tableHeaders,
-        body: tableData,
-        theme: 'striped',
-        headStyles: { 
-          fillColor: [0, 56, 147],
-          textColor: [255, 255, 255],
-          fontSize: 8,
-          fontStyle: 'bold',
-          halign: 'center'
-        },
-        styles: { 
-          fontSize: 7, 
-          cellPadding: 2,
-          overflow: 'linebreak',
-          font: 'helvetica',
-          minCellHeight: 8
-        },
-        columnStyles: {
-          0: { cellWidth: 15, halign: 'center' }, // ID/Código
-          1: { cellWidth: 45, overflow: 'linebreak' }, // Cargo
-          2: { cellWidth: 10, halign: 'center' }, // Qtd
-          3: { cellWidth: 18, halign: 'center' }, // CBO
-          4: { cellWidth: 35, overflow: 'linebreak' }, // Escolaridade
-          5: { cellWidth: 25, overflow: 'linebreak' }, // Experiência
-          6: { cellWidth: 25 },                   // Salário
-          7: { cellWidth: 50, overflow: 'linebreak' }, // Benefícios
-          8: { cellWidth: 30, overflow: 'linebreak' }, // Empresa
-          9: { cellWidth: 15, halign: 'center' }  // Status
-        },
-        alternateRowStyles: { fillColor: [245, 248, 255] },
-        margin: { left: 10, right: 10 },
-        didDrawPage: (data: any) => {
-          doc.setFontSize(7);
-          doc.setTextColor(150, 150, 150);
-          const str = `Página ${doc.internal.getNumberOfPages()} - Relatório Oficial SINE João Pessoa`;
-          doc.text(str, 148.5, 205, { align: 'center' });
-        }
-      });
-    }
-
-    return doc;
-  } catch (error) {
-    console.error("Erro ao gerar PDF:", error);
-    return null;
-  }
-};
-
-/**
- * Generates and downloads a PDF file with institutional branding (Landscape A4).
- */
-export const exportToPDF = (vagas: VagaLocal[], title: string, filename: string, isConsolidated = false) => {
-  const doc = generatePDF(vagas, title, isConsolidated);
-  if (doc) {
-    doc.save(`${filename}.pdf`);
-    toast.success("Relatório PDF exportado com sucesso");
-  } else {
-    toast.error("Falha ao gerar o relatório PDF.");
-  }
-};
-
-/**
- * Specifically for Monthly History export
- */
-export const exportHistoryToPDF = (item: HistoricoMensal) => {
-  try {
-    const allPublishedVagas: VagaLocal[] = [];
-    
-    if (item.weeks) {
-      [1, 2, 3, 4].forEach(w => {
-        const weekKey = `semana_${w}` as keyof typeof item.weeks;
-        const weekVagas = item.weeks[weekKey]?.vagas?.filter(v => v.publicada) || [];
-        allPublishedVagas.push(...weekVagas);
-      });
-    }
-    
-    if (item.feirao?.vagas) {
-      const feiraoVagas = item.feirao.vagas.filter(v => v.publicada) || [];
-      allPublishedVagas.push(...feiraoVagas);
-    }
-
-    const monthNames = [
-      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
-    
-    const monthLabel = typeof item.month === 'number' 
-      ? monthNames[item.month - 1] 
-      : item.month;
-
-    exportToPDF(
-      allPublishedVagas, 
-      `Relatório Consolidado: ${monthLabel} / ${item.year}`,
-      `relatorio_vagas_${monthLabel.toLowerCase()}_${item.year}`
-    );
-  } catch (error) {
-    console.error("Erro ao exportar histórico:", error);
-    toast.error("Falha ao exportar relatório histórico.");
   }
 };

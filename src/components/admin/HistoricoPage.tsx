@@ -5,7 +5,6 @@ import {
   Calendar, 
   Search, 
   FileText, 
-  Download, 
   Eye, 
   FileSpreadsheet, 
   FileJson 
@@ -16,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { getHistory } from "@/lib/vagasPersistence";
 import { HistoricoMensal, VagaLocal } from "@/types";
 import { cn } from "@/lib/utils";
-import { exportToPDF, exportToCSV, exportToJSON } from "@/lib/exportUtils";
+import { exportToCSV, exportToJSON } from "@/lib/exportUtils";
 import { Pagination } from "@/components/ui/pagination-custom";
 import { 
   Dialog, 
@@ -71,12 +70,11 @@ export const HistoricoPage = () => {
     setIsPreviewOpen(true);
   };
 
-  const handleExport = (vagas: VagaLocal[], type: 'pdf' | 'csv' | 'json', title: string) => {
+  const handleExport = (vagas: VagaLocal[], type: 'csv' | 'json', title: string) => {
     const publishedOnly = vagas.filter(v => v.publicada);
     const filename = `sine-historico-${title.toLowerCase().replace(/\s+/g, '-')}`;
-    
-    if (type === 'pdf') exportToPDF(publishedOnly, title, filename);
-    else if (type === 'csv') exportToCSV(publishedOnly, filename);
+
+    if (type === 'csv') exportToCSV(publishedOnly, filename);
     else if (type === 'json') exportToJSON(publishedOnly, filename);
   };
 
@@ -188,9 +186,6 @@ export const HistoricoPage = () => {
                                 <Eye className="w-4 h-4" /> Visualizar
                               </Button>
                               <div className="flex gap-1">
-                                <Button size="icon" variant="ghost" className="rounded-lg h-10 w-10 text-red-500 hover:bg-red-50" onClick={() => handleExport(weekVagas, 'pdf', title)} title="PDF">
-                                  <Download className="w-4 h-4" />
-                                </Button>
                                 <Button size="icon" variant="ghost" className="rounded-lg h-10 w-10 text-emerald-500 hover:bg-emerald-50" onClick={() => handleExport(weekVagas, 'csv', title)} title="CSV">
                                   <FileSpreadsheet className="w-4 h-4" />
                                 </Button>
@@ -223,8 +218,8 @@ export const HistoricoPage = () => {
                             <Eye className="w-4 h-4" /> Abrir Listagem
                           </Button>
                           <div className="flex gap-2">
-                            <Button variant="outline" className="rounded-xl h-10 bg-white border-primary/20 text-primary hover:bg-primary/5 px-4 font-bold" onClick={() => handleExport(item.feirao?.vagas || [], 'pdf', `Feirão - ${item.month}/${item.year}`)}>PDF</Button>
                             <Button variant="outline" className="rounded-xl h-10 bg-white border-primary/20 text-primary hover:bg-primary/5 px-4 font-bold" onClick={() => handleExport(item.feirao?.vagas || [], 'csv', `Feirão - ${item.month}/${item.year}`)}>CSV</Button>
+                            <Button variant="outline" className="rounded-xl h-10 bg-white border-primary/20 text-primary hover:bg-primary/5 px-4 font-bold" onClick={() => handleExport(item.feirao?.vagas || [], 'json', `Feirão - ${item.month}/${item.year}`)}>JSON</Button>
                           </div>
                         </div>
                       </div>
@@ -289,7 +284,8 @@ export const HistoricoPage = () => {
 
           <DialogFooter className="p-6 border-t bg-muted/20 flex gap-3">
             <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="rounded-xl font-bold px-8">Fechar</Button>
-            <Button className="rounded-xl font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20" onClick={() => handleExport(selectedVagas, 'pdf', viewTitle)}>Exportar PDF</Button>
+            <Button variant="outline" className="rounded-xl font-black uppercase tracking-widest px-6" onClick={() => handleExport(selectedVagas, 'csv', viewTitle)}>Exportar CSV</Button>
+            <Button className="rounded-xl font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20" onClick={() => handleExport(selectedVagas, 'json', viewTitle)}>Exportar JSON</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

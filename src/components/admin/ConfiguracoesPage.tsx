@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, FileText, Eye } from "lucide-react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter 
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { getHistory } from "@/lib/vagasPersistence";
-import { exportToCSV, exportToJSON, generatePDF } from "@/lib/exportUtils";
+import { exportToCSV, exportToJSON } from "@/lib/exportUtils";
 import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
@@ -23,9 +15,6 @@ import { ChangePasswordCard } from "./ChangePasswordCard";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [pdfPreviewData, setPdfPreviewData] = useState<string | null>(null);
-  const [currentFilename, setCurrentFilename] = useState("");
   const [logs, setLogs] = useState<any[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
 
@@ -36,9 +25,7 @@ export const ConfiguracoesPage = () => {
   const fetchLogs = async () => {
     setLoadingLogs(true);
     try {
-      // Fetch exclusively from local storage
       const localLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS) || '[]');
-      // Sort by date desc (they are added at the end, so reverse)
       setLogs([...localLogs].reverse().slice(0, 20));
     } catch (error) {
       console.error('Error fetching logs:', error);
@@ -52,13 +39,13 @@ export const ConfiguracoesPage = () => {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const year = now.getFullYear();
-    
+
     const consolidatedVagas: VagaLocal[] = [];
-    
+
     vagas_semana.filter(v => v.publicada).forEach(v => {
       consolidatedVagas.push({ ...v, periodo: "Semana Atual" });
     });
-    
+
     vagas_feirao.filter(v => v.publicada).forEach(v => {
       consolidatedVagas.push({ ...v, periodo: "Feirão da Empregabilidade" });
     });
@@ -67,7 +54,7 @@ export const ConfiguracoesPage = () => {
     if (currentHistory) {
       Object.entries(currentHistory.weeks).forEach(([key, weekData]: [string, any]) => {
         const weekNum = key.split('_')[1];
-        if (weekNum !== '3') { 
+        if (weekNum !== '3') {
           weekData.vagas.filter((v: any) => v.publicada).forEach((v: any) => {
             consolidatedVagas.push({ ...v, periodo: weekData.periodo || `Semana ${weekNum}` });
           });
@@ -95,7 +82,7 @@ export const ConfiguracoesPage = () => {
       vagas: data.vagas,
       exportadoEm: new Date().toISOString()
     };
-    
+
     exportToJSON(backupData, `backup_mensal_${data.monthName.toLowerCase()}_${data.year}`);
     logAudit('export', 'periodo', 'full_backup', { format: 'JSON' });
   };
@@ -106,39 +93,11 @@ export const ConfiguracoesPage = () => {
       toast.error("Nenhuma vaga publicada este mês para exportar.");
       return;
     }
-    
+
     exportToCSV(data.vagas, `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`);
     logAudit('export', 'periodo', 'monthly_report', { format: 'CSV' });
   };
 
-  const handleExportPDF = () => {
-    const data = getConsolidatedMonthData();
-    if (data.vagas.length === 0) {
-      toast.error("Nenhuma vaga publicada este mês para exportar.");
-      return;
-    }
-
-    const title = `Relatório Mensal Consolidado - ${data.monthName} / ${data.year}`;
-    const filename = `relatorio_mensal_${data.monthName.toLowerCase()}_${data.year}`;
-    
-    const doc = generatePDF(data.vagas, title, true);
-    if (doc) {
-      const pdfDataUri = doc.output('datauristring');
-      setPdfPreviewData(pdfDataUri);
-      setCurrentFilename(filename);
-      setIsPreviewOpen(true);
-    }
-  };
-
-  const confirmDownloadPDF = () => {
-    const link = document.createElement('a');
-    link.href = pdfPreviewData!;
-    link.download = `${currentFilename}.pdf`;
-    link.click();
-    setIsPreviewOpen(false);
-    logAudit('export', 'periodo', 'monthly_report', { format: 'PDF' });
-    toast.success("PDF baixado com sucesso!");
-  };
 
   return (
     <div className="space-y-10 max-w-7xl mx-auto">
@@ -172,19 +131,6 @@ export const ConfiguracoesPage = () => {
               <Button 
                 variant="outline" 
                 className="h-auto p-4 flex flex-col items-center gap-3 rounded-2xl border-border/60 hover:border-primary/50 hover:bg-primary/[0.02] transition-all group"
-                onClick={handleExportPDF}
-              >
-                <div className="p-3 rounded-xl bg-red-50 text-red-500 group-hover:bg-red-100 transition-colors">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <div className="text-center">
-                  <span className="block font-black text-foreground">Relatório PDF</span>
-                </div>
-              </Button>
-
-              <Button 
-                variant="outline" 
-                className="h-auto p-4 flex flex-col items-center gap-3 rounded-2xl border-border/60 hover:border-primary/50 hover:bg-primary/[0.02] transition-all group"
                 onClick={handleExportCSV}
               >
                 <div className="p-3 rounded-xl bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100 transition-colors">
@@ -197,7 +143,7 @@ export const ConfiguracoesPage = () => {
 
               <Button 
                 variant="outline" 
-                className="h-auto p-4 flex flex-col items-center gap-3 rounded-2xl border-border/60 hover:border-primary/50 hover:bg-primary/[0.02] transition-all group sm:col-span-2"
+                className="h-auto p-4 flex flex-col items-center gap-3 rounded-2xl border-border/60 hover:border-primary/50 hover:bg-primary/[0.02] transition-all group"
                 onClick={handleExportFullBackup}
               >
                 <div className="p-3 rounded-xl bg-amber-50 text-amber-500 group-hover:bg-amber-100 transition-colors">
@@ -288,40 +234,6 @@ export const ConfiguracoesPage = () => {
           </CardContent>
         </Card>
       </div>
-
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 overflow-hidden bg-background border-border shadow-2xl">
-          <DialogHeader className="p-6 border-b bg-muted/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Eye className="w-5 h-5" />
-              </div>
-              <div>
-                <DialogTitle className="font-heading font-black text-xl">Prévia do Relatório</DialogTitle>
-              </div>
-            </div>
-          </DialogHeader>
-          
-          <div className="flex-1 bg-muted/20 p-4 md:p-8 overflow-hidden flex items-center justify-center">
-            {pdfPreviewData ? (
-              <iframe 
-                src={pdfPreviewData} 
-                className="w-full h-full border-none rounded-lg shadow-inner bg-white"
-                title="PDF Preview"
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-4">
-                <p className="font-bold text-muted-foreground">Gerando prévia...</p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="p-6 border-t bg-muted/20 flex gap-3">
-            <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="rounded-xl font-bold px-8">Fechar</Button>
-            <Button className="rounded-xl font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20" onClick={confirmDownloadPDF}>Baixar PDF</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
