@@ -2,7 +2,7 @@ import { generateFictitiousVagas } from "./lib/mockGenerator";
 import { saveVagasToLocalStorage } from "./lib/vagasPersistence";
 
 const seedVagas = () => {
-  const count = 150;
+  const count = 800;
   const periodo = "25 a 30 de maio";
   const vagas = generateFictitiousVagas(count, periodo);
   
