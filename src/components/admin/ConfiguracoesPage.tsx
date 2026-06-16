@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, FileText, Eye } from "lucide-react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter 
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { getHistory } from "@/lib/vagasPersistence";
-import { exportToCSV, exportToJSON, generatePDF } from "@/lib/exportUtils";
+import { exportToCSV, exportToJSON } from "@/lib/exportUtils";
 import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
