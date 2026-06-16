@@ -128,7 +128,9 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick, al
 
         {/* Navigation Items */}
         <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-1.5 scrollbar-hide">
-          {navigationItems.map((item) => {
+          {navigationItems
+            .filter((item) => !allowedItems || allowedItems.includes(item.id))
+            .map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
 
