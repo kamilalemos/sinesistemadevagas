@@ -142,7 +142,7 @@ const Admin = () => {
     <div className="min-h-screen bg-muted/30">
       <div className="flex flex-col lg:flex-row min-h-screen">
         <AdminSidebar 
-          userEmail={user.email} 
+          userEmail={user.email ?? ""} 
           onSignOut={signOut} 
           activeItem={activeSection}
           onItemClick={setActiveSection}

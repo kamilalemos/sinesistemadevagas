@@ -1,105 +1,56 @@
 import { useState, useEffect } from "react";
-import { STORAGE_KEYS } from "@/constants/storageKeys";
-
-const CREDENTIALS_KEY = STORAGE_KEYS.ADMIN_CREDENTIALS;
-const SESSION_KEY = STORAGE_KEYS.ADMIN_SESSION;
-const ATTEMPTS_KEY = STORAGE_KEYS.ADMIN_LOGIN_ATTEMPTS;
-
-const SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8h
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 15 * 60 * 1000; // 15min
-
-type StoredCredentials = { email: string; password: string };
-type StoredSession = { email: string; expiresAt?: number };
-interface LoginAttempts {
-  count: number;
-  lockoutUntil: number | null;
-}
-
-async function hashSenha(senha: string): Promise<string> {
-  const buf = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(senha)
-  );
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-const readCredentials = (): StoredCredentials | null => {
-  const raw = localStorage.getItem(CREDENTIALS_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-};
-
-const writeCredentials = (creds: StoredCredentials) => {
-  localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(creds));
-};
-
-const readSession = (): StoredSession | null => {
-  const raw = localStorage.getItem(SESSION_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-};
-
-const getAttempts = (): LoginAttempts => {
-  try {
-    const raw = localStorage.getItem(ATTEMPTS_KEY);
-    if (!raw) return { count: 0, lockoutUntil: null };
-    return JSON.parse(raw) ?? { count: 0, lockoutUntil: null };
-  } catch {
-    return { count: 0, lockoutUntil: null };
-  }
-};
-
-const setAttempts = (data: LoginAttempts) => {
-  localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(data));
-};
-
-const resetAttempts = () => {
-  localStorage.removeItem(ATTEMPTS_KEY);
-};
+import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useAuth = () => {
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [hasAdmin, setHasAdmin] = useState(false);
+  const [hasAdmin, setHasAdmin] = useState(true);
 
-  useEffect(() => {
-    setHasAdmin(!!readCredentials());
-    const saved = readSession();
-    if (saved) {
-      if (saved.expiresAt && Date.now() > saved.expiresAt) {
-        localStorage.removeItem(SESSION_KEY);
-      } else {
-        setUser({ email: saved.email });
-        setIsAdmin(true);
-      }
-    }
-    setLoading(false);
-  }, []);
-
-  const persistSession = (email: string) => {
-    const sessao: StoredSession = {
-      email,
-      expiresAt: Date.now() + SESSION_TTL_MS,
-    };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(sessao));
+  const refreshSetupFlag = async () => {
+    const { data, error } = await supabase.rpc("is_setup_needed");
+    if (!error) setHasAdmin(!data);
   };
 
-  const signUp = async (emailInput: string, passwordInput: string) => {
-    if (readCredentials()) {
-      return { error: { message: "Já existe um administrador cadastrado." } };
+  const refreshAdminFlag = async (uid: string | undefined) => {
+    if (!uid) {
+      setIsAdmin(false);
+      return;
     }
+    const { data, error } = await supabase.rpc("has_role", {
+      _user_id: uid,
+      _role: "admin",
+    });
+    setIsAdmin(!error && !!data);
+  };
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+      setSession(sess);
+      setUser(sess?.user ?? null);
+      // Defer admin check to avoid deadlocks inside the callback
+      setTimeout(() => {
+        refreshAdminFlag(sess?.user?.id);
+        refreshSetupFlag();
+      }, 0);
+    });
+
+    supabase.auth.getSession().then(({ data: { session: sess } }) => {
+      setSession(sess);
+      setUser(sess?.user ?? null);
+      Promise.all([refreshAdminFlag(sess?.user?.id), refreshSetupFlag()]).finally(
+        () => setLoading(false)
+      );
+    });
+
+    return () => {
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const signUp = async (emailInput: string, passwordInput: string) => {
     const email = emailInput.trim().toLowerCase();
     const password = passwordInput.trim();
     if (!email || !password) {
@@ -108,65 +59,55 @@ export const useAuth = () => {
     if (password.length < 6) {
       return { error: { message: "A senha deve ter pelo menos 6 caracteres." } };
     }
-    const hashed = await hashSenha(password);
-    writeCredentials({ email, password: hashed });
-    persistSession(email);
-    setUser({ email });
-    setIsAdmin(true);
-    setHasAdmin(true);
+
+    // Block if an admin already exists
+    const { data: setupNeeded } = await supabase.rpc("is_setup_needed");
+    if (!setupNeeded) {
+      return { error: { message: "Já existe um administrador cadastrado." } };
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/admin` },
+    });
+    if (error) return { error: { message: error.message } };
+
+    // If session is available (auto-confirm on), promote to admin now
+    if (data.session) {
+      const { error: rpcErr } = await supabase.rpc("setup_first_admin");
+      if (rpcErr) return { error: { message: rpcErr.message } };
+      await refreshAdminFlag(data.user?.id);
+      await refreshSetupFlag();
+    }
     return { error: null };
   };
 
   const signIn = async (emailInput: string, passwordInput: string) => {
-    const attempts = getAttempts();
-    if (attempts.lockoutUntil && Date.now() < attempts.lockoutUntil) {
-      const minutosRestantes = Math.ceil(
-        (attempts.lockoutUntil - Date.now()) / 60000
-      );
-      return {
-        error: {
-          message: `Muitas tentativas. Tente novamente em ${minutosRestantes} min.`,
-        },
-      };
-    }
-
-    const creds = readCredentials();
-    if (!creds) {
-      return { error: { message: "Nenhum administrador cadastrado." } };
-    }
     const email = emailInput.trim().toLowerCase();
     const password = passwordInput.trim();
-
-    const hashed = await hashSenha(password);
-    let matched = email === creds.email && hashed === creds.password;
-
-    // Fallback de migração: senha antiga em plain text
-    if (!matched && email === creds.email && password === creds.password) {
-      matched = true;
-      writeCredentials({ email: creds.email, password: hashed });
-    }
-
-    if (matched) {
-      resetAttempts();
-      setUser({ email });
-      setIsAdmin(true);
-      persistSession(email);
-      return { error: null };
-    }
-
-    const novoCount = (attempts.count ?? 0) + 1;
-    setAttempts({
-      count: novoCount,
-      lockoutUntil: novoCount >= MAX_ATTEMPTS ? Date.now() + LOCKOUT_MS : null,
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
-    return { error: { message: "E-mail ou senha incorretos" } };
+    if (error) return { error: { message: error.message } };
+
+    // Safety net: if this user is the first one and no admin exists, promote.
+    const { data: setupNeeded } = await supabase.rpc("is_setup_needed");
+    if (setupNeeded && data.user) {
+      await supabase.rpc("setup_first_admin");
+    }
+    await refreshAdminFlag(data.user?.id);
+    await refreshSetupFlag();
+    return { error: null };
   };
 
   const signOut = async () => {
-    setUser(null);
+    await supabase.auth.signOut();
     setIsAdmin(false);
-    localStorage.removeItem(SESSION_KEY);
+    setUser(null);
+    setSession(null);
   };
 
-  return { user, session: null, loading, isAdmin, hasAdmin, signIn, signUp, signOut };
+  return { user, session, loading, isAdmin, hasAdmin, signIn, signUp, signOut };
 };
