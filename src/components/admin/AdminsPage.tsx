@@ -424,6 +424,52 @@ export const AdminsPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Password dialog */}
+      <Dialog open={!!pwTarget} onOpenChange={(o) => !o && setPwTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Definir nova senha</DialogTitle>
+            <DialogDescription>
+              A senha de <strong>{pwTarget?.email}</strong> será substituída
+              imediatamente. Comunique a nova senha em um canal seguro.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Nova senha</Label>
+              <Input
+                type="password"
+                value={pwValue}
+                onChange={(e) => setPwValue(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Confirmar nova senha</Label>
+              <Input
+                type="password"
+                value={pwConfirm}
+                onChange={(e) => setPwConfirm(e.target.value)}
+                className="rounded-xl"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwTarget(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSetPassword}
+              disabled={pwBusy || !pwValue || !pwConfirm}
+            >
+              {pwBusy && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Salvar senha
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
