@@ -70,12 +70,11 @@ export const HistoricoPage = () => {
     setIsPreviewOpen(true);
   };
 
-  const handleExport = (vagas: VagaLocal[], type: 'pdf' | 'csv' | 'json', title: string) => {
+  const handleExport = (vagas: VagaLocal[], type: 'csv' | 'json', title: string) => {
     const publishedOnly = vagas.filter(v => v.publicada);
     const filename = `sine-historico-${title.toLowerCase().replace(/\s+/g, '-')}`;
-    
-    if (type === 'pdf') exportToPDF(publishedOnly, title, filename);
-    else if (type === 'csv') exportToCSV(publishedOnly, filename);
+
+    if (type === 'csv') exportToCSV(publishedOnly, filename);
     else if (type === 'json') exportToJSON(publishedOnly, filename);
   };
 
