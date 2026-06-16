@@ -19,6 +19,7 @@ import { exportToCSV, exportToJSON, generatePDF } from "@/lib/exportUtils";
 import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
+import { ChangePasswordCard } from "./ChangePasswordCard";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
@@ -154,6 +155,8 @@ export const ConfiguracoesPage = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-8">
+        <ChangePasswordCard />
+
         <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
           <CardHeader className="p-8 pb-4">
             <div className="flex items-center gap-3">
