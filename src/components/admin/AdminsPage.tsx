@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Shield, Trash2, UserPlus, Pencil, Clock, AlertTriangle } from "lucide-react";
+import { Loader2, Shield, Trash2, UserPlus, Pencil, Clock, AlertTriangle, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
