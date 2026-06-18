@@ -39,18 +39,3 @@ export const loadData = <T>(key: string, defaultValue: T): T => {
   }
 };
 
-export const removeData = (key: string): void => {
-  try {
-    localStorage.removeItem(key);
-  } catch (error) {
-    console.error(`Error removing from localStorage [${key}]:`, error);
-  }
-};
-
-export const clearAllStorage = (): void => {
-  try {
-    localStorage.clear();
-  } catch (error) {
-    console.error('Error clearing localStorage:', error);
-  }
-};

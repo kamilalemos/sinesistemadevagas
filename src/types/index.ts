@@ -49,5 +49,4 @@ export interface HistoricoMensal {
 
 // Novos schemas/tipos Zod (Prompt 1) — expostos com nomes próprios para evitar conflito
 export { VagaSchema, VagasArraySchema, type Vaga } from './vaga';
-export { BannerConfigSchema, type BannerConfig as BannerConfigZ } from './banner';
 export { AdminSessionSchema, type AdminSession } from './admin';
