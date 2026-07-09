@@ -3,6 +3,7 @@ import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin, X, Hash, Tag, Dolla
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useVagasFeirao } from "@/hooks/useVagas";
+import { formatDateBR } from "@/lib/periodoNome";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 import { Pagination } from "@/components/ui/pagination-custom";
