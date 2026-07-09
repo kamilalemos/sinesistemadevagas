@@ -1,39 +1,17 @@
-import { useState, useEffect } from "react";
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, MonitorSmartphone } from "lucide-react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { getHistory } from "@/lib/vagasPersistence";
 import { exportToCSV, exportToJSON } from "@/lib/exportUtils";
 import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
-import { STORAGE_KEYS } from "@/constants/storageKeys";
 import { ChangePasswordCard } from "./ChangePasswordCard";
 import { resetPWAGuide } from "./PWAInstallGuideCard";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-
-  useEffect(() => {
-    fetchLogs();
-  }, []);
-
-  const fetchLogs = async () => {
-    setLoadingLogs(true);
-    try {
-      const localLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS) || '[]');
-      setLogs([...localLogs].reverse().slice(0, 20));
-    } catch (error) {
-      console.error('Error fetching logs:', error);
-    } finally {
-      setLoadingLogs(false);
-    }
-  };
 
   const getConsolidatedMonthData = () => {
     const history = getHistory();
