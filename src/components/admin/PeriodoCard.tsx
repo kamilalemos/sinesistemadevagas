@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar as CalendarIcon, Save, Eraser } from "lucide-react";
+import { Calendar as CalendarIcon, Save, Eraser, Megaphone } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -79,6 +81,8 @@ export function PeriodoCard({ tipo }: Props) {
   const fimAtual = tipo === "semana" ? store.data_fim_semana : store.data_fim_feirao;
   const nomeAtual = tipo === "semana" ? store.nome_semana : store.nome_feirao;
   const labelAtual = tipo === "semana" ? store.periodo_semana : store.periodo_feirao;
+  const ativoAtual = tipo === "semana" ? store.semana_ativa : store.feirao_ativa;
+  const tipoLabel = tipo === "semana" ? "Vagas da Semana" : "Feirão da Empregabilidade";
 
   const [inicio, setInicio] = useState<string | null>(inicioAtual);
   const [fim, setFim] = useState<string | null>(fimAtual);
@@ -131,15 +135,36 @@ export function PeriodoCard({ tipo }: Props) {
 
   return (
     <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-8">
-      <div className="flex items-center gap-4">
-        <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-          <CalendarIcon className="w-5 h-5" />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+            <Megaphone className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-heading font-extrabold text-lg text-foreground tracking-tight">
+              Publicação das Vagas
+            </h3>
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Defina a validade da publicação atual
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-heading font-extrabold text-lg text-foreground tracking-tight">Período das Vagas</h3>
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-            Defina a validade oficial das vagas por data
-          </p>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="font-bold uppercase tracking-wider text-[10px]">
+            Tipo: {tipoLabel}
+          </Badge>
+          <div className="flex items-center gap-2 h-10 px-3 rounded-xl bg-muted/20 border border-border/50">
+            <Switch
+              checked={ativoAtual}
+              onCheckedChange={(v) => {
+                store.setVisibilidade(tipo, v);
+                toast.success(v ? "Publicação ativada" : "Publicação arquivada");
+              }}
+            />
+            <Label className="font-bold text-xs cursor-pointer">
+              {ativoAtual ? "Ativo" : "Arquivado"}
+            </Label>
+          </div>
         </div>
       </div>
 
@@ -158,12 +183,12 @@ export function PeriodoCard({ tipo }: Props) {
         </div>
         <div className="md:col-span-2 space-y-2">
           <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-            Nome do Período (opcional)
+            Nome da Publicação (opcional)
           </Label>
           <Input
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            placeholder={formatPeriodoAuto(inicio, fim) || "Ex: Feirão de Julho"}
+            placeholder={formatPeriodoAuto(inicio, fim) || "Ex: Vagas da Semana, Feirão da Empregabilidade, Processo Seletivo"}
             className="rounded-xl h-12 bg-muted/20 border-border/50"
           />
           {previewNome && (
@@ -191,15 +216,15 @@ export function PeriodoCard({ tipo }: Props) {
               className="rounded-xl h-12 px-6 font-bold text-primary hover:bg-primary/5 border-primary/30"
             >
               <Eraser className="w-4 h-4 mr-2" />
-              Criar Novo Período
+              Nova Publicação
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg rounded-2xl">
             <DialogHeader>
-              <DialogTitle className="font-heading">Criar novo período</DialogTitle>
+              <DialogTitle className="font-heading">Nova publicação</DialogTitle>
               <DialogDescription>
-                O período atual{labelAtual ? ` (${labelAtual})` : ""} será arquivado no histórico com todas as vagas
-                atuais. O novo período iniciará vazio.
+                A publicação atual{labelAtual ? ` (${labelAtual})` : ""} será arquivada no histórico com todas as
+                vagas atuais. A nova publicação iniciará vazia.
               </DialogDescription>
             </DialogHeader>
 
@@ -220,7 +245,7 @@ export function PeriodoCard({ tipo }: Props) {
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Nome (opcional)
+                  Nome da Publicação (opcional)
                 </Label>
                 <Input
                   value={novoNome}

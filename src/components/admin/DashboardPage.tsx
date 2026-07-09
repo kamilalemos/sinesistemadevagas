@@ -144,7 +144,7 @@ function PeriodoAtualCard({
             <CalendarRange className="w-4 h-4" />
           </div>
           <div>
-            <CardTitle className="text-sm font-semibold">Período Atual — {titulo}</CardTitle>
+            <CardTitle className="text-sm font-semibold">Publicação Atual — {titulo}</CardTitle>
             {label && <p className="text-xs text-muted-foreground mt-0.5">{label}</p>}
           </div>
         </div>
