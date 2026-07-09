@@ -145,8 +145,6 @@ const Index = () => {
         </section>
       )}
 
-      {/* Banner de instalação do PWA */}
-      <PWAInstallBanner />
 
       {/* Vagas da Semana */}
       {sAtiva && (
@@ -190,6 +188,9 @@ const Index = () => {
               </Link>
             </div>
           </section>
+
+          {/* Banner de instalação do PWA */}
+          <PWAInstallBanner />
 
           {/* Como se Candidatar - Semana */}
           <section className="px-4 pb-8">
