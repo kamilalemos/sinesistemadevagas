@@ -45,24 +45,36 @@ interface AdminSidebarProps {
 export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick, allowedItems }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsOpen(true);
-      } else {
-        setIsOpen(false);
-      }
+      setIsOpen(window.innerWidth >= 1024);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const closeMobile = React.useCallback(() => {
+    setIsOpen(false);
+    // Restore focus to the trigger for accessibility
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || window.innerWidth >= 1024) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMobile();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, closeMobile]);
+
   const handleItemClick = (itemId: string) => {
     onItemClick(itemId);
     if (window.innerWidth < 1024) {
-      setIsOpen(false);
+      closeMobile();
     }
   };
 
