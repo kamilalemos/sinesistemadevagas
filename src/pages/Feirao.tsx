@@ -3,12 +3,16 @@ import { Search, ArrowLeft, Rocket, Calendar, Clock, MapPin, X, Hash, Tag, Dolla
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useVagasFeirao } from "@/hooks/useVagas";
+import { formatDateBR } from "@/lib/periodoNome";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion } from "framer-motion";
 import { Pagination } from "@/components/ui/pagination-custom";
 
 const Feirao = () => {
-  const { data: vagas = [], isLoading, ativo: feiraoAtivo, periodo } = useVagasFeirao();
+  const { data: vagas = [], isLoading, ativo: feiraoAtivo, periodo, dataInicio, dataFim } = useVagasFeirao();
+  const periodoLabel = dataInicio && dataFim
+    ? `${formatDateBR(dataInicio)} até ${formatDateBR(dataFim)}`
+    : periodo;
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -148,7 +152,7 @@ const Feirao = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
                 <InfoItem icon={Hash} label="CBO" value={vaga.cbo} />
                 <InfoItem icon={Tag} label="Nº da(s) vaga(s)" value={vaga.codigo} />
-                <InfoItem icon={Calendar} label="Período" value={periodo} />
+                <InfoItem icon={Calendar} label="Período" value={periodoLabel} />
                 <InfoItem icon={DollarSign} label="Salário" value={vaga.salario || "A combinar"} />
                 <InfoItem icon={Gift} label="Benefícios" value={vaga.beneficios || "Não informado"} />
                 <InfoItem icon={GraduationCap} label="Escolaridade" value={vaga.escolaridade} />

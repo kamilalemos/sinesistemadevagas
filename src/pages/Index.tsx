@@ -8,6 +8,7 @@ import { useVagasLocalStore } from "@/store/vagasStorage";
 import { useBannerStore } from "@/store/bannerStorage";
 import { categorias as categoriasMeta } from "@/constants/categorias";
 import { VagaLocal } from "@/types";
+import { formatDateBR } from "@/lib/periodoNome";
 
 const CandidatarSection = () => {
   const documentos = [
@@ -70,7 +71,7 @@ const CandidatarSection = () => {
 };
 
 const Index = () => {
-  const { vagas_semana, vagas_feirao, semana_ativa, feirao_ativa, periodo_semana } = useVagasLocalStore();
+  const { vagas_semana, vagas_feirao, semana_ativa, feirao_ativa, periodo_semana, data_inicio_semana, data_fim_semana } = useVagasLocalStore();
   const { config: bannerConfig } = useBannerStore();
   const vSemana = vagas_semana.filter(v => v.publicada);
   const vFeirao = vagas_feirao.filter(v => v.publicada);
@@ -86,7 +87,9 @@ const Index = () => {
 
   const categoriasComQtdSemana = calcCatLocal(vSemana);
   const categoriasComQtdFeirao = calcCatLocal(vFeirao);
-  const periodo = periodo_semana;
+  const periodo = data_inicio_semana && data_fim_semana
+    ? `${formatDateBR(data_inicio_semana)} até ${formatDateBR(data_fim_semana)}`
+    : periodo_semana;
   const sAtiva = semana_ativa;
   const fAtiva = feirao_ativa;
 

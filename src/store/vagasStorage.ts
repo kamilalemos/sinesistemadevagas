@@ -51,13 +51,29 @@ interface VagasState {
   feirao_ativa: boolean;
   periodo_semana: string;
   periodo_feirao: string;
+  data_inicio_semana: string | null;
+  data_fim_semana: string | null;
+  nome_semana: string | null;
+  data_inicio_feirao: string | null;
+  data_fim_feirao: string | null;
+  nome_feirao: string | null;
   addVaga: (tipo: 'semana' | 'feirao', vaga: Omit<VagaLocal, 'id' | 'createdAt'>) => void;
   updateVaga: (tipo: 'semana' | 'feirao', id: string, vaga: Partial<VagaLocal>) => void;
   deleteVaga: (tipo: 'semana' | 'feirao', id: string) => void;
   setVisibilidade: (tipo: 'semana' | 'feirao', ativa: boolean) => void;
   setPeriodo: (tipo: 'semana' | 'feirao', periodo: string) => void;
+  setDatasPeriodo: (
+    tipo: 'semana' | 'feirao',
+    inicio: string | null,
+    fim: string | null,
+    nome?: string | null,
+  ) => void;
   refreshFromStorage: () => void;
-  resetVagas: (tipo: 'semana' | 'feirao', novoPeriodo?: string) => void;
+  resetVagas: (
+    tipo: 'semana' | 'feirao',
+    novoPeriodo?: string,
+    datas?: { inicio?: string | null; fim?: string | null; nome?: string | null },
+  ) => void;
   ultimo_backup: string | null;
   setUltimoBackup: (iso: string) => void;
 }
@@ -225,6 +241,13 @@ function resolveInitialFeirao(): VagaLocal[] {
   return parsed.status === 'ok' ? parsed.data : [];
 }
 
+// Helpers internos para preservar as datas ao salvar em cada mutação.
+function datasFor(state: VagasState, tipo: 'semana' | 'feirao') {
+  return tipo === 'semana'
+    ? { data_inicio: state.data_inicio_semana, data_fim: state.data_fim_semana, nome: state.nome_semana }
+    : { data_inicio: state.data_inicio_feirao, data_fim: state.data_fim_feirao, nome: state.nome_feirao };
+}
+
 export const useVagasLocalStore = create<VagasState>((set) => ({
   vagas_semana: resolveInitialSemana(),
   vagas_feirao: resolveInitialFeirao(),
@@ -232,6 +255,12 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
   feirao_ativa: true,
   periodo_semana: initialSemana.periodo,
   periodo_feirao: initialFeirao.periodo,
+  data_inicio_semana: initialSemana.data_inicio,
+  data_fim_semana: initialSemana.data_fim,
+  nome_semana: initialSemana.nome,
+  data_inicio_feirao: initialFeirao.data_inicio,
+  data_fim_feirao: initialFeirao.data_fim,
+  nome_feirao: initialFeirao.nome,
   ultimo_backup: (typeof localStorage !== 'undefined'
     ? localStorage.getItem(STORAGE_KEYS.VAGAS_BACKUP_DATE)
     : null),
@@ -251,7 +280,9 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
       finalVagasSemana = mockVagas.map(v => ({
         ...v, id: crypto.randomUUID(), createdAt: new Date().toISOString(),
       }));
-      saveVagasToLocalStorage('semana', finalVagasSemana, sem.periodo);
+      saveVagasToLocalStorage('semana', finalVagasSemana, sem.periodo, undefined, {
+        data_inicio: sem.data_inicio, data_fim: sem.data_fim, nome: sem.nome,
+      });
     } else {
       finalVagasSemana = parsedSem.data;
     }
@@ -263,10 +294,14 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
       vagas_feirao: finalVagasFeirao,
       periodo_semana: sem.periodo,
       periodo_feirao: fei.periodo,
+      data_inicio_semana: sem.data_inicio,
+      data_fim_semana: sem.data_fim,
+      nome_semana: sem.nome,
+      data_inicio_feirao: fei.data_inicio,
+      data_fim_feirao: fei.data_fim,
+      nome_feirao: fei.nome,
     });
   },
-
-
 
   addVaga: (tipo, vagaData) => set((state) => {
     const newVaga: VagaLocal = {
@@ -277,11 +312,10 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
     const newState = { [key]: [newVaga, ...state[key]] };
-    
-    // Auto-save to localStorage with the correct key
-    saveVagasToLocalStorage(tipo, newState[key] as VagaLocal[], state[periodKey]);
+
+    saveVagasToLocalStorage(tipo, newState[key] as VagaLocal[], state[periodKey], undefined, datasFor(state, tipo));
     logAudit('create', 'vaga', newVaga.id, { tipo, descricao: newVaga.descricao });
-    
+
     return newState;
   }),
 
@@ -293,7 +327,7 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const newState = { [key]: updatedVagas };
 
     const weekRef = weekRefFromIso(vagaExistente?.createdAt);
-    saveVagasToLocalStorage(tipo, updatedVagas, state[periodKey], weekRef);
+    saveVagasToLocalStorage(tipo, updatedVagas, state[periodKey], weekRef, datasFor(state, tipo));
     logAudit('update', 'vaga', id, { tipo, changes: vagaData });
 
     return newState;
@@ -307,12 +341,11 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const newState = { [key]: filteredVagas };
 
     const weekRef = weekRefFromIso(vagaExistente?.createdAt);
-    saveVagasToLocalStorage(tipo, filteredVagas, state[periodKey], weekRef);
+    saveVagasToLocalStorage(tipo, filteredVagas, state[periodKey], weekRef, datasFor(state, tipo));
     logAudit('delete', 'vaga', id, { tipo });
 
     return newState;
   }),
-
 
   setVisibilidade: (tipo, ativa) => set((state) => {
     logAudit('publish', 'periodo', tipo, { ativa });
@@ -325,34 +358,70 @@ export const useVagasLocalStore = create<VagasState>((set) => ({
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
     const newState = { [periodKey]: periodo };
-    
-    saveVagasToLocalStorage(tipo, state[key], periodo);
-    
+
+    saveVagasToLocalStorage(tipo, state[key], periodo, undefined, datasFor(state, tipo));
     return newState;
   }),
 
-  resetVagas: (tipo, novoPeriodo) => set((state) => {
+  setDatasPeriodo: (tipo, inicio, fim, nome) => set((state) => {
     const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
     const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
-    
-    // 1. Garantir que as vagas atuais sejam salvas no localStorage (e consequentemente no backup mensal)
-    // O saveVagasToLocalStorage agora chama o backup mensal automaticamente.
-    saveVagasToLocalStorage(tipo, state[key], state[periodKey]);
-    
-    logAudit('reset', 'periodo', tipo, { 
-      novoPeriodo, 
-      vagasArquivadas: state[key].length 
+
+    // rótulo: usa nome se informado, senão gera auto (feito pelo caller ou usa periodo atual)
+    const label = (nome && nome.trim()) || state[periodKey];
+
+    const newState: Partial<VagasState> = tipo === 'semana'
+      ? { data_inicio_semana: inicio, data_fim_semana: fim, nome_semana: nome ?? null, periodo_semana: label }
+      : { data_inicio_feirao: inicio, data_fim_feirao: fim, nome_feirao: nome ?? null, periodo_feirao: label };
+
+    saveVagasToLocalStorage(tipo, state[key], label, undefined, {
+      data_inicio: inicio, data_fim: fim, nome: nome ?? null,
     });
-    
-    // 2. Limpar o estado local para o novo período
-    const newState = { 
-      [key]: [],
-      [periodKey]: novoPeriodo || "" 
-    };
-    
-    // 3. Salvar o novo estado vazio para refletir a limpeza no storage
-    saveVagasToLocalStorage(tipo, [], novoPeriodo || "");
-    
-    return newState;
+    logAudit('update', 'periodo', tipo, { inicio, fim, nome });
+
+    return newState as any;
+  }),
+
+  resetVagas: (tipo, novoPeriodo, datas) => set((state) => {
+    const key = tipo === 'semana' ? 'vagas_semana' : 'vagas_feirao';
+    const periodKey = tipo === 'semana' ? 'periodo_semana' : 'periodo_feirao';
+
+    // 1. Salvar as vagas atuais (garante backup mensal com as datas atuais).
+    saveVagasToLocalStorage(tipo, state[key], state[periodKey], undefined, datasFor(state, tipo));
+
+    logAudit('reset', 'periodo', tipo, {
+      novoPeriodo,
+      vagasArquivadas: state[key].length,
+      datas,
+    });
+
+    const novoInicio = datas?.inicio ?? null;
+    const novoFim = datas?.fim ?? null;
+    const novoNome = datas?.nome ?? null;
+    const novoLabel = novoPeriodo || "";
+
+    const newState: Partial<VagasState> = tipo === 'semana'
+      ? {
+          vagas_semana: [],
+          periodo_semana: novoLabel,
+          data_inicio_semana: novoInicio,
+          data_fim_semana: novoFim,
+          nome_semana: novoNome,
+        }
+      : {
+          vagas_feirao: [],
+          periodo_feirao: novoLabel,
+          data_inicio_feirao: novoInicio,
+          data_fim_feirao: novoFim,
+          nome_feirao: novoNome,
+        };
+
+    // 3. Persistir o novo período vazio.
+    saveVagasToLocalStorage(tipo, [], novoLabel, undefined, {
+      data_inicio: novoInicio, data_fim: novoFim, nome: novoNome,
+    });
+
+    return newState as any;
   }),
 }));
+

@@ -3,6 +3,7 @@ import { Search, ArrowLeft, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useVagasDaSemana } from "@/hooks/useVagas";
+import { formatDateBR } from "@/lib/periodoNome";
 import { VagaLocal } from "@/types";
 import { VagaCard } from "@/components/vagas/VagaCard";
 import { Pagination } from "@/components/ui/pagination-custom";
@@ -59,7 +60,7 @@ function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
 }
 
 const Vagas = () => {
-  const { data: vagas = [], isLoading, periodo } = useVagasDaSemana();
+  const { data: vagas = [], isLoading, periodo, dataInicio, dataFim } = useVagasDaSemana();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -120,7 +121,9 @@ const Vagas = () => {
         </div>
 
         <p className="text-muted-foreground text-xs">
-          Período: {periodo} • {totalVagas} vagas
+          {dataInicio && dataFim
+            ? <>Período: {formatDateBR(dataInicio)} até {formatDateBR(dataFim)} • {totalVagas} vagas</>
+            : <>Período: {periodo} • {totalVagas} vagas</>}
         </p>
 
         {categoriaFiltro && (
