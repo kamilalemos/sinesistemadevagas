@@ -11,6 +11,7 @@ import { categorias } from "@/constants/categorias";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Pagination } from "@/components/ui/pagination-custom";
+import { PeriodoCard } from "./PeriodoCard";
 import {
   AlertDialog,
   AlertDialogAction,
