@@ -199,8 +199,8 @@ const Admin = () => {
           tabIndex={-1}
           className="flex-1 flex flex-col overflow-hidden min-w-0 outline-none"
         >
-          {/* Topbar */}
-          <header className="h-16 shrink-0 bg-card/95 backdrop-blur border-b border-border flex items-center gap-3 px-4 lg:px-6 z-30">
+          {/* Topbar institucional */}
+          <header className="h-16 lg:h-[68px] shrink-0 bg-primary text-primary-foreground border-b border-primary/20 flex items-center gap-4 lg:gap-6 px-5 lg:px-6 overflow-hidden z-30 shadow-sm">
             <button
               type="button"
               onClick={() => {
@@ -210,18 +210,18 @@ const Admin = () => {
                   setSidebarCollapsed((v) => !v);
                 }
               }}
-              aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+              aria-label="Abrir ou fechar menu"
               aria-controls="admin-sidebar"
               aria-expanded={mobileOpen || !sidebarCollapsed}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-foreground/70 hover:text-foreground hover:bg-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <h1 className="font-heading font-bold text-base lg:text-lg text-foreground truncate">
+            <h1 className="font-heading font-bold text-base lg:text-lg text-white truncate min-w-0">
               {sectionTitles[activeSection] ?? "Painel"}
             </h1>
-            <div className="ml-auto flex items-center gap-2">
-              <span className="hidden sm:inline text-xs text-muted-foreground truncate max-w-[220px]">
+            <div className="ml-auto flex items-center gap-3 min-w-0">
+              <span className="hidden sm:inline text-xs text-white/70 truncate max-w-[220px]">
                 {user.email}
               </span>
             </div>
