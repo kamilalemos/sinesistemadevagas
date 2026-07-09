@@ -9,6 +9,7 @@ import { useBannerStore } from "@/store/bannerStorage";
 import { categorias as categoriasMeta } from "@/constants/categorias";
 import { VagaLocal } from "@/types";
 import { formatDateBR } from "@/lib/periodoNome";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 
 const CandidatarSection = () => {
   const documentos = [
