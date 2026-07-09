@@ -131,50 +131,8 @@ export const VagasTabContent = ({ tipo }: Props) => {
 
   return (
     <div className="space-y-10">
-      <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-8">
-        <div className="flex items-center gap-4">
-          <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-            <Calendar className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-heading font-extrabold text-lg text-foreground tracking-tight">Período de Exibição</h3>
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Defina as datas que aparecerão no site</p>
-          </div>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Input 
-            value={periodo} 
-            onChange={(e) => setPeriodo(tipo, e.target.value)}
-            placeholder="Ex: 01/01 a 07/01"
-            className="sm:max-w-xs rounded-xl h-12 bg-muted/20 border-border/50 focus:ring-primary/20"
-          />
-          <Button 
-            variant="secondary" 
-            onClick={() => toast.success("Período atualizado!")}
-            className="rounded-xl h-12 px-8 font-bold shadow-md hover:shadow-lg transition-all"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Salvar Período
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              const novo = prompt("Digite o novo período (Ex: 08/01 a 14/01):");
-              if (novo) {
-                if (confirm(`ATENÇÃO: As vagas atuais serão ARQUIVADAS no histórico e a lista será zerada para o novo período: ${novo}. Deseja continuar?`)) {
-                  resetVagas(tipo, novo);
-                  toast.success("Período arquivado e lista zerada com sucesso!");
-                }
-              }
-            }}
-            className="rounded-xl h-12 px-6 font-bold text-primary hover:bg-primary/5 border-primary/30"
-          >
-            <Eraser className="w-4 h-4 mr-2" />
-            Novo Período (Arquivar Atual)
-          </Button>
-        </div>
-      </div>
+      <PeriodoCard tipo={tipo} />
+
 
       <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-6">
         <div className="flex items-center gap-4">
