@@ -1,39 +1,17 @@
-import { useState, useEffect } from "react";
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, MonitorSmartphone } from "lucide-react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { getHistory } from "@/lib/vagasPersistence";
 import { exportToCSV, exportToJSON } from "@/lib/exportUtils";
 import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
-import { STORAGE_KEYS } from "@/constants/storageKeys";
 import { ChangePasswordCard } from "./ChangePasswordCard";
 import { resetPWAGuide } from "./PWAInstallGuideCard";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-
-  useEffect(() => {
-    fetchLogs();
-  }, []);
-
-  const fetchLogs = async () => {
-    setLoadingLogs(true);
-    try {
-      const localLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS) || '[]');
-      setLogs([...localLogs].reverse().slice(0, 20));
-    } catch (error) {
-      console.error('Error fetching logs:', error);
-    } finally {
-      setLoadingLogs(false);
-    }
-  };
 
   const getConsolidatedMonthData = () => {
     const history = getHistory();
@@ -160,77 +138,14 @@ export const ConfiguracoesPage = () => {
 
         <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
           <CardHeader className="p-8 pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <Shield className="w-5 h-5" />
-                </div>
-                <CardTitle className="font-heading font-black text-xl tracking-tight">Logs de Auditoria Local</CardTitle>
-              </div>
-              <Button variant="ghost" size="sm" onClick={fetchLogs} disabled={loadingLogs} className="rounded-xl font-bold">
-                {loadingLogs ? "Atualizando..." : "Recarregar"}
-              </Button>
-            </div>
-            <CardDescription className="font-medium text-muted-foreground">Últimas 20 ações administrativas registradas neste navegador.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-8 pt-4">
-            <div className="bg-muted/10 rounded-2xl border border-border/40 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border/40 text-left bg-muted/20">
-                      <th className="py-3 px-4 font-black uppercase text-[10px] text-muted-foreground">Data/Hora</th>
-                      <th className="py-3 px-4 font-black uppercase text-[10px] text-muted-foreground">Ação</th>
-                      <th className="py-3 px-4 font-black uppercase text-[10px] text-muted-foreground">Entidade</th>
-                      <th className="py-3 px-4 font-black uppercase text-[10px] text-muted-foreground">Detalhes</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/20">
-                    {logs.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="py-8 text-center text-muted-foreground italic">Nenhum log encontrado.</td>
-                      </tr>
-                    ) : (
-                      logs.map((log, i) => (
-                        <tr key={log.id || i} className="hover:bg-primary/[0.01]">
-                          <td className="py-3 px-4 text-xs font-medium text-muted-foreground">
-                            {new Date(log.created_at).toLocaleString('pt-BR')}
-                          </td>
-                          <td className="py-3 px-4">
-                            <Badge variant="outline" className={cn(
-                              "text-[9px] uppercase font-black px-1.5 h-5",
-                              log.action === 'create' && "text-emerald-600 border-emerald-200 bg-emerald-50",
-                              log.action === 'update' && "text-blue-600 border-blue-200 bg-blue-50",
-                              log.action === 'delete' && "text-red-600 border-red-200 bg-red-50",
-                              log.action === 'export' && "text-amber-600 border-amber-200 bg-amber-50"
-                            )}>
-                              {log.action}
-                            </Badge>
-                          </td>
-                          <td className="py-3 px-4 font-bold text-xs uppercase tracking-tighter">{log.entity_type}</td>
-                          <td className="py-3 px-4 text-xs text-muted-foreground truncate max-w-[200px]" title={JSON.stringify(log.details)}>
-                            {log.details?.descricao || log.details?.format || log.details?.novoPeriodo || "-"}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
-          <CardHeader className="p-8 pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                <MonitorSmartphone className="w-5 h-5" />
+                <Smartphone className="w-5 h-5" />
               </div>
-              <CardTitle className="font-heading font-black text-xl tracking-tight">Guia de Instalação (PWA)</CardTitle>
+              <CardTitle className="font-heading font-black text-xl tracking-tight">Instale o App</CardTitle>
             </div>
             <CardDescription className="font-medium text-muted-foreground">
-              Reexiba o card com o passo a passo de instalação do painel como aplicativo.
+              Reexibe o card com o guia rápido de instalação do aplicativo.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-8 pt-4">
@@ -242,11 +157,12 @@ export const ConfiguracoesPage = () => {
               }}
               className="rounded-xl font-bold"
             >
-              <MonitorSmartphone className="w-4 h-4 mr-2" />
-              Reexibir guia de instalação
+              <Smartphone className="w-4 h-4 mr-2" />
+              Reexibir guia
             </Button>
           </CardContent>
         </Card>
+
 
         <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
           <CardHeader className="p-8 pb-4">
