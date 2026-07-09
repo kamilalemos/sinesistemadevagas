@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet } from "lucide-react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, MonitorSmartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
 import { ChangePasswordCard } from "./ChangePasswordCard";
+import { resetPWAGuide } from "./PWAInstallGuideCard";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
