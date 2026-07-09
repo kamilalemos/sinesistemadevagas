@@ -70,7 +70,7 @@ const CandidatarSection = () => {
 };
 
 const Index = () => {
-  const { vagas_semana, vagas_feirao, semana_ativa, feirao_ativa, periodo_semana } = useVagasLocalStore();
+  const { vagas_semana, vagas_feirao, semana_ativa, feirao_ativa, periodo_semana, data_inicio_semana, data_fim_semana } = useVagasLocalStore();
   const { config: bannerConfig } = useBannerStore();
   const vSemana = vagas_semana.filter(v => v.publicada);
   const vFeirao = vagas_feirao.filter(v => v.publicada);
