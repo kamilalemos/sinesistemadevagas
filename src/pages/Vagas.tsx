@@ -121,7 +121,9 @@ const Vagas = () => {
         </div>
 
         <p className="text-muted-foreground text-xs">
-          Período: {periodo} • {totalVagas} vagas
+          {dataInicio && dataFim
+            ? <>Período: {formatDateBR(dataInicio)} até {formatDateBR(dataFim)} • {totalVagas} vagas</>
+            : <>Período: {periodo} • {totalVagas} vagas</>}
         </p>
 
         {categoriaFiltro && (
