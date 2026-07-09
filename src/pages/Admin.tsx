@@ -189,10 +189,46 @@ const Admin = () => {
           activeItem={activeSection}
           onItemClick={setActiveSection}
           allowedItems={permissions}
+          collapsed={sidebarCollapsed}
+          onCollapsedChange={setSidebarCollapsed}
+          mobileOpen={mobileOpen}
+          onMobileOpenChange={setMobileOpen}
         />
-        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <section className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-7xl px-6 lg:px-8 py-6 lg:py-8 pt-20 lg:pt-8 animate-fade-in">
+        <main
+          ref={mainRef}
+          tabIndex={-1}
+          className="flex-1 flex flex-col overflow-hidden min-w-0 outline-none"
+        >
+          {/* Topbar */}
+          <header className="h-16 shrink-0 bg-card/95 backdrop-blur border-b border-border flex items-center gap-3 px-4 lg:px-6 z-30">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.innerWidth < 1024) {
+                  setMobileOpen((v) => !v);
+                } else {
+                  setSidebarCollapsed((v) => !v);
+                }
+              }}
+              aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+              aria-controls="admin-sidebar"
+              aria-expanded={mobileOpen || !sidebarCollapsed}
+              className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-foreground/70 hover:text-foreground hover:bg-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+            <h1 className="font-heading font-bold text-base lg:text-lg text-foreground truncate">
+              {sectionTitles[activeSection] ?? "Painel"}
+            </h1>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="hidden sm:inline text-xs text-muted-foreground truncate max-w-[220px]">
+                {user.email}
+              </span>
+            </div>
+          </header>
+
+          <section className="flex-1 min-h-0 overflow-y-auto">
+            <div className="mx-auto w-full max-w-7xl px-6 lg:px-8 py-6 lg:py-8 animate-fade-in">
               {renderContent()}
             </div>
           </section>
