@@ -83,7 +83,11 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick, al
       {/* Mobile Toggle Button */}
       <div className="fixed top-0 left-0 right-0 h-16 bg-primary border-b border-primary/20 z-[60] flex items-center px-4 lg:hidden">
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          ref={triggerRef}
+          onClick={() => (isOpen ? closeMobile() : setIsOpen(true))}
+          aria-expanded={isOpen}
+          aria-controls="admin-sidebar"
+          aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
           className="p-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
         >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -103,12 +107,15 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick, al
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
-            onClick={() => setIsOpen(false)}
+            onClick={closeMobile}
+            aria-hidden="true"
           />
         )}
       </AnimatePresence>
 
       <aside
+        id="admin-sidebar"
+        role="navigation"
         className={cn(
           "fixed top-0 left-0 bottom-0 z-[60] bg-primary border-r border-primary/20 flex flex-col transition-all duration-300 ease-in-out shadow-2xl",
           "lg:relative lg:top-auto lg:left-auto lg:bottom-auto lg:h-screen lg:shrink-0 lg:shadow-none lg:z-40",
