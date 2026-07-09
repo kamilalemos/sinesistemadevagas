@@ -8,6 +8,7 @@ import { useVagasLocalStore } from "@/store/vagasStorage";
 import { useBannerStore } from "@/store/bannerStorage";
 import { categorias as categoriasMeta } from "@/constants/categorias";
 import { VagaLocal } from "@/types";
+import { formatDateBR } from "@/lib/periodoNome";
 
 const CandidatarSection = () => {
   const documentos = [
