@@ -154,7 +154,7 @@ const Admin = () => {
         />
         <main className="flex-1 flex flex-col overflow-hidden min-w-0">
           <section className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-6 lg:py-8 pt-20 lg:pt-8 animate-fade-in">
+            <div className="mx-auto w-full max-w-7xl px-6 lg:px-8 py-6 lg:py-8 pt-20 lg:pt-8 animate-fade-in">
               {renderContent()}
             </div>
           </section>
