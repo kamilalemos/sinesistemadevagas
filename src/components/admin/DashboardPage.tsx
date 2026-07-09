@@ -69,7 +69,7 @@ export const DashboardPage = () => {
         label={periodo_feirao}
       />
 
-      <PWAInstallGuideCard />
+      
 
 
 
