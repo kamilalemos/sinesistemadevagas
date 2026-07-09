@@ -9,7 +9,10 @@ import { motion } from "framer-motion";
 import { Pagination } from "@/components/ui/pagination-custom";
 
 const Feirao = () => {
-  const { data: vagas = [], isLoading, ativo: feiraoAtivo, periodo } = useVagasFeirao();
+  const { data: vagas = [], isLoading, ativo: feiraoAtivo, periodo, dataInicio, dataFim } = useVagasFeirao();
+  const periodoLabel = dataInicio && dataFim
+    ? `${formatDateBR(dataInicio)} até ${formatDateBR(dataFim)}`
+    : periodo;
   const [searchParams, setSearchParams] = useSearchParams();
   const [busca, setBusca] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
