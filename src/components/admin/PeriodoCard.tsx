@@ -81,6 +81,8 @@ export function PeriodoCard({ tipo }: Props) {
   const fimAtual = tipo === "semana" ? store.data_fim_semana : store.data_fim_feirao;
   const nomeAtual = tipo === "semana" ? store.nome_semana : store.nome_feirao;
   const labelAtual = tipo === "semana" ? store.periodo_semana : store.periodo_feirao;
+  const ativoAtual = tipo === "semana" ? store.semana_ativa : store.feirao_ativa;
+  const tipoLabel = tipo === "semana" ? "Vagas da Semana" : "Feirão da Empregabilidade";
 
   const [inicio, setInicio] = useState<string | null>(inicioAtual);
   const [fim, setFim] = useState<string | null>(fimAtual);
