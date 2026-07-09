@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { useUltimoBackup } from "@/hooks/useVagas";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
+import { PWAInstallGuideCard } from "./PWAInstallGuideCard";
 
 export const DashboardPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
@@ -48,6 +49,9 @@ export const DashboardPage = () => {
           </Card>
         ))}
       </div>
+
+      <PWAInstallGuideCard />
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="rounded-xl shadow-card">
