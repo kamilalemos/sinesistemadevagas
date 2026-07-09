@@ -75,24 +75,28 @@ function useStoreSync() {
 export function useVagasDaSemana() {
   useStoreSync();
   const periodo = useVagasLocalStore(s => s.periodo_semana);
+  const dataInicio = useVagasLocalStore(s => s.data_inicio_semana);
+  const dataFim = useVagasLocalStore(s => s.data_fim_semana);
   const query = useQuery({
     queryKey: ['vagas', 'semana'],
     queryFn: vagasService.getSemana,
     staleTime: 1000 * 60 * 5,
   });
-  return { ...query, periodo };
+  return { ...query, periodo, dataInicio, dataFim };
 }
 
 export function useVagasFeirao() {
   useStoreSync();
   const periodo = useVagasLocalStore(s => s.periodo_feirao);
   const ativo = useVagasLocalStore(s => s.feirao_ativa);
+  const dataInicio = useVagasLocalStore(s => s.data_inicio_feirao);
+  const dataFim = useVagasLocalStore(s => s.data_fim_feirao);
   const query = useQuery({
     queryKey: ['vagas', 'feirao'],
     queryFn: vagasService.getFeirao,
     staleTime: 1000 * 60 * 5,
   });
-  return { ...query, periodo, ativo };
+  return { ...query, periodo, ativo, dataInicio, dataFim };
 }
 
 // ─── Hooks para área admin ─────────────────────────────────────────────────
