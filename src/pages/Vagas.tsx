@@ -3,6 +3,7 @@ import { Search, ArrowLeft, X } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useVagasDaSemana } from "@/hooks/useVagas";
+import { formatDateBR } from "@/lib/periodoNome";
 import { VagaLocal } from "@/types";
 import { VagaCard } from "@/components/vagas/VagaCard";
 import { Pagination } from "@/components/ui/pagination-custom";
