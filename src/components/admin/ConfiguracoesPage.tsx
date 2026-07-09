@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet } from "lucide-react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, MonitorSmartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
 import { ChangePasswordCard } from "./ChangePasswordCard";
+import { resetPWAGuide } from "./PWAInstallGuideCard";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
@@ -217,6 +218,33 @@ export const ConfiguracoesPage = () => {
                 </table>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
+          <CardHeader className="p-8 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                <MonitorSmartphone className="w-5 h-5" />
+              </div>
+              <CardTitle className="font-heading font-black text-xl tracking-tight">Guia de Instalação (PWA)</CardTitle>
+            </div>
+            <CardDescription className="font-medium text-muted-foreground">
+              Reexiba o card com o passo a passo de instalação do painel como aplicativo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-8 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                resetPWAGuide();
+                toast.success("Guia de instalação reexibido no Dashboard.");
+              }}
+              className="rounded-xl font-bold"
+            >
+              <MonitorSmartphone className="w-4 h-4 mr-2" />
+              Reexibir guia de instalação
+            </Button>
           </CardContent>
         </Card>
 

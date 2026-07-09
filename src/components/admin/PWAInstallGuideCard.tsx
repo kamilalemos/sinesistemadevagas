@@ -1,9 +1,40 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MonitorSmartphone, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "pwaGuideDismissed";
+export const PWA_GUIDE_STORAGE_KEY = "pwaGuideDismissed";
+export const PWA_GUIDE_RESET_EVENT = "pwa-guide-reset";
+
+/** Emit a same-tab event so open Dashboard instances re-check visibility. */
+export const resetPWAGuide = () => {
+  try {
+    window.localStorage.removeItem(PWA_GUIDE_STORAGE_KEY);
+  } catch {}
+  window.dispatchEvent(new CustomEvent(PWA_GUIDE_RESET_EVENT));
+};
+
+const isStandaloneNow = () => {
+  if (typeof window === "undefined") return false;
+  const mm = window.matchMedia?.("(display-mode: standalone)").matches;
+  const mmFs = window.matchMedia?.("(display-mode: fullscreen)").matches;
+  const mmMw = window.matchMedia?.("(display-mode: minimal-ui)").matches;
+  const iosStandalone =
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  return Boolean(mm || mmFs || mmMw || iosStandalone);
+};
+
+const hasInstallSupport = () => {
+  if (typeof window === "undefined") return false;
+  const ua = window.navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const isAndroid = /Android/.test(ua);
+  // Chromium-based desktop / Android exposes beforeinstallprompt + serviceWorker;
+  // iOS Safari supports Add to Home Screen without the prompt event.
+  const hasSW = "serviceWorker" in navigator;
+  const isChromium = /Chrome|Edg|OPR/.test(ua) && !/Firefox/.test(ua);
+  return isIOS || (hasSW && (isChromium || isAndroid));
+};
 
 const steps: { title: string; items: string[] }[] = [
   {
@@ -42,31 +73,61 @@ const steps: { title: string; items: string[] }[] = [
 
 export const PWAInstallGuideCard = () => {
   const [visible, setVisible] = useState(false);
+  const [installPromptAvailable, setInstallPromptAvailable] = useState(false);
+
+  const evaluate = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const dismissed =
+      window.localStorage.getItem(PWA_GUIDE_STORAGE_KEY) === "true";
+    if (dismissed) return setVisible(false);
+    if (isStandaloneNow()) return setVisible(false);
+    if (!hasInstallSupport() && !installPromptAvailable) return setVisible(false);
+    setVisible(true);
+  }, [installPromptAvailable]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    evaluate();
 
-    const dismissed = window.localStorage.getItem(STORAGE_KEY) === "true";
-    if (dismissed) return;
+    // Watch display-mode changes (installation while page is open, iPad multitasking, etc.)
+    const mediaQueries = [
+      "(display-mode: standalone)",
+      "(display-mode: fullscreen)",
+      "(display-mode: minimal-ui)",
+    ]
+      .map((q) => window.matchMedia?.(q))
+      .filter(Boolean) as MediaQueryList[];
 
-    // Already installed as PWA
-    const isStandalone =
-      window.matchMedia?.("(display-mode: standalone)").matches ||
-      // iOS Safari
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-    if (isStandalone) return;
+    const onMedia = () => evaluate();
+    mediaQueries.forEach((mq) => mq.addEventListener?.("change", onMedia));
 
-    // Basic support heuristic (Service Worker OR iOS Safari)
-    const isIOS = /iPad|iPhone|iPod/.test(window.navigator.userAgent);
-    const supportsInstall = "serviceWorker" in navigator || isIOS;
-    if (!supportsInstall) return;
+    // Confirms real install support at runtime (Chromium)
+    const onBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallPromptAvailable(true);
+    };
+    const onInstalled = () => setVisible(false);
+    const onReset = () => evaluate();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === PWA_GUIDE_STORAGE_KEY) evaluate();
+    };
 
-    setVisible(true);
-  }, []);
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    window.addEventListener("appinstalled", onInstalled);
+    window.addEventListener(PWA_GUIDE_RESET_EVENT, onReset);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      mediaQueries.forEach((mq) => mq.removeEventListener?.("change", onMedia));
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onInstalled);
+      window.removeEventListener(PWA_GUIDE_RESET_EVENT, onReset);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [evaluate]);
 
   const dismiss = () => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, "true");
+      window.localStorage.setItem(PWA_GUIDE_STORAGE_KEY, "true");
     } catch {}
     setVisible(false);
   };
@@ -74,7 +135,7 @@ export const PWAInstallGuideCard = () => {
   if (!visible) return null;
 
   return (
-    <Card className="rounded-xl shadow-card">
+    <Card className="rounded-xl shadow-card animate-fade-in">
       <CardHeader className="flex flex-row items-start gap-3 space-y-0">
         <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
           <MonitorSmartphone className="w-5 h-5" />
