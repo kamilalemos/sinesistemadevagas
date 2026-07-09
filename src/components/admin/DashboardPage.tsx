@@ -1,16 +1,22 @@
-import { Briefcase, TrendingUp, Users, Download } from "lucide-react";
+import { Briefcase, TrendingUp, Users, Download, CalendarRange } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { useUltimoBackup } from "@/hooks/useVagas";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
 import { PWAInstallGuideCard } from "./PWAInstallGuideCard";
+import { formatDateBR, diasRestantes } from "@/lib/periodoNome";
 
 export const DashboardPage = () => {
-  const { vagas_semana, vagas_feirao } = useVagasLocalStore();
+  const {
+    vagas_semana, vagas_feirao,
+    data_inicio_semana, data_fim_semana, periodo_semana,
+    data_inicio_feirao, data_fim_feirao, periodo_feirao,
+  } = useVagasLocalStore();
   const ultimoBackup = useUltimoBackup();
 
-  const totalVagas = vagas_semana.reduce((acc, v) => acc + v.quantidade, 0) + 
+  const totalVagas = vagas_semana.reduce((acc, v) => acc + v.quantidade, 0) +
                      vagas_feirao.reduce((acc, v) => acc + v.quantidade, 0);
 
   const baixarBackup = () => {
