@@ -145,6 +145,9 @@ const Index = () => {
         </section>
       )}
 
+      {/* Banner de instalação do PWA */}
+      <PWAInstallBanner />
+
       {/* Vagas da Semana */}
       {sAtiva && (
         <>
