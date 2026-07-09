@@ -59,7 +59,7 @@ function agruparVagas(vagas: VagaLocal[]): VagaAgrupada[] {
 }
 
 const Vagas = () => {
-  const { data: vagas = [], isLoading, periodo } = useVagasDaSemana();
+  const { data: vagas = [], isLoading, periodo, dataInicio, dataFim } = useVagasDaSemana();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
