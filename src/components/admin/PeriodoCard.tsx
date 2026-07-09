@@ -135,15 +135,36 @@ export function PeriodoCard({ tipo }: Props) {
 
   return (
     <div className="bg-card rounded-[1.5rem] p-8 md:p-10 border border-border shadow-card space-y-8">
-      <div className="flex items-center gap-4">
-        <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-          <CalendarIcon className="w-5 h-5" />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+            <Megaphone className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-heading font-extrabold text-lg text-foreground tracking-tight">
+              Publicação das Vagas
+            </h3>
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+              Defina a validade da publicação atual
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-heading font-extrabold text-lg text-foreground tracking-tight">Período das Vagas</h3>
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-            Defina a validade oficial das vagas por data
-          </p>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="font-bold uppercase tracking-wider text-[10px]">
+            Tipo: {tipoLabel}
+          </Badge>
+          <div className="flex items-center gap-2 h-10 px-3 rounded-xl bg-muted/20 border border-border/50">
+            <Switch
+              checked={ativoAtual}
+              onCheckedChange={(v) => {
+                store.setVisibilidade(tipo, v);
+                toast.success(v ? "Publicação ativada" : "Publicação arquivada");
+              }}
+            />
+            <Label className="font-bold text-xs cursor-pointer">
+              {ativoAtual ? "Ativo" : "Arquivado"}
+            </Label>
+          </div>
         </div>
       </div>
 
