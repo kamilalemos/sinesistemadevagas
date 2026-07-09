@@ -225,6 +225,33 @@ export const ConfiguracoesPage = () => {
           <CardHeader className="p-8 pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                <MonitorSmartphone className="w-5 h-5" />
+              </div>
+              <CardTitle className="font-heading font-black text-xl tracking-tight">Guia de Instalação (PWA)</CardTitle>
+            </div>
+            <CardDescription className="font-medium text-muted-foreground">
+              Reexiba o card com o passo a passo de instalação do painel como aplicativo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-8 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                resetPWAGuide();
+                toast.success("Guia de instalação reexibido no Dashboard.");
+              }}
+              className="rounded-xl font-bold"
+            >
+              <MonitorSmartphone className="w-4 h-4 mr-2" />
+              Reexibir guia de instalação
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
+          <CardHeader className="p-8 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/10 text-primary">
                 <KeyRound className="w-5 h-5" />
               </div>
               <CardTitle className="font-heading font-black text-xl tracking-tight">Segurança</CardTitle>
