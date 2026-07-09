@@ -57,6 +57,11 @@ const Header = () => {
     setOpen(false);
   }, [location.pathname]);
 
+  // Hide global site header on admin routes — admin has its own Topbar
+  if (location.pathname.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <header 
       className={cn(
