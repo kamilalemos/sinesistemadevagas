@@ -53,15 +53,28 @@ export const weekRefFromIso = (iso?: string): WeekRef | undefined => {
   };
 };
 
+export interface PeriodoDatas {
+  data_inicio?: string | null; // 'yyyy-mm-dd'
+  data_fim?: string | null;
+  nome?: string | null; // rótulo opcional do admin
+}
+
 export const saveVagasToLocalStorage = (
   tipo: 'semana' | 'feirao',
   vagas: VagaLocal[],
   periodo: string,
   weekRefOverride?: WeekRef,
+  datas?: PeriodoDatas,
 ) => {
   const info = getWeekInfo(weekRefOverride);
   const key = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
-  const dataToSave = { vagas, periodo };
+  const dataToSave = {
+    vagas,
+    periodo,
+    data_inicio: datas?.data_inicio ?? null,
+    data_fim: datas?.data_fim ?? null,
+    nome: datas?.nome ?? null,
+  };
 
   saveData(key, dataToSave);
 
@@ -69,20 +82,25 @@ export const saveVagasToLocalStorage = (
   performMonthlyBackup(info.year, info.month);
 };
 
-export const loadVagasFromLocalStorage = (tipo: 'semana' | 'feirao'): { vagas: VagaLocal[], periodo: string } => {
+export const loadVagasFromLocalStorage = (
+  tipo: 'semana' | 'feirao',
+): { vagas: VagaLocal[]; periodo: string; data_inicio: string | null; data_fim: string | null; nome: string | null } => {
   const info = getWeekInfo();
   const key = tipo === 'semana' ? info.vagasKey : info.feiraoKey;
   const defaultPeriod = tipo === 'semana' ? "Próxima Semana" : "Próximo Feirão";
 
-  const data = loadData<{ vagas: VagaLocal[], periodo: string } | VagaLocal[]>(key, { vagas: [], periodo: defaultPeriod });
+  const data = loadData<any>(key, { vagas: [], periodo: defaultPeriod });
 
   if (Array.isArray(data)) {
-    return { vagas: data, periodo: defaultPeriod };
+    return { vagas: data, periodo: defaultPeriod, data_inicio: null, data_fim: null, nome: null };
   }
 
   return {
     vagas: data.vagas || [],
-    periodo: data.periodo || defaultPeriod
+    periodo: data.periodo || defaultPeriod,
+    data_inicio: data.data_inicio ?? null,
+    data_fim: data.data_fim ?? null,
+    nome: data.nome ?? null,
   };
 };
 
