@@ -22,6 +22,44 @@ const Admin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("sidebarCollapsed") === "true";
+  });
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const mainRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("sidebarCollapsed", String(sidebarCollapsed));
+    } catch {}
+  }, [sidebarCollapsed]);
+
+  // Lock background scroll while mobile drawer is open
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
+  // Return focus to main content when drawer closes
+  useEffect(() => {
+    if (!mobileOpen) {
+      mainRef.current?.focus?.();
+    }
+  }, [mobileOpen]);
+
+  const sectionTitles: Record<string, string> = {
+    dashboard: "Dashboard",
+    "cadastro-vagas": "Cadastro de Vagas",
+    visibilidade: "Visibilidade",
+    historico: "Histórico Mensal",
+    admins: "Administradores",
+    configuracoes: "Configurações",
+  };
 
   const isSetup = !hasAdmin;
 
