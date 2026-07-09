@@ -51,13 +51,29 @@ interface VagasState {
   feirao_ativa: boolean;
   periodo_semana: string;
   periodo_feirao: string;
+  data_inicio_semana: string | null;
+  data_fim_semana: string | null;
+  nome_semana: string | null;
+  data_inicio_feirao: string | null;
+  data_fim_feirao: string | null;
+  nome_feirao: string | null;
   addVaga: (tipo: 'semana' | 'feirao', vaga: Omit<VagaLocal, 'id' | 'createdAt'>) => void;
   updateVaga: (tipo: 'semana' | 'feirao', id: string, vaga: Partial<VagaLocal>) => void;
   deleteVaga: (tipo: 'semana' | 'feirao', id: string) => void;
   setVisibilidade: (tipo: 'semana' | 'feirao', ativa: boolean) => void;
   setPeriodo: (tipo: 'semana' | 'feirao', periodo: string) => void;
+  setDatasPeriodo: (
+    tipo: 'semana' | 'feirao',
+    inicio: string | null,
+    fim: string | null,
+    nome?: string | null,
+  ) => void;
   refreshFromStorage: () => void;
-  resetVagas: (tipo: 'semana' | 'feirao', novoPeriodo?: string) => void;
+  resetVagas: (
+    tipo: 'semana' | 'feirao',
+    novoPeriodo?: string,
+    datas?: { inicio?: string | null; fim?: string | null; nome?: string | null },
+  ) => void;
   ultimo_backup: string | null;
   setUltimoBackup: (iso: string) => void;
 }
