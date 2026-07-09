@@ -152,7 +152,7 @@ const Feirao = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
                 <InfoItem icon={Hash} label="CBO" value={vaga.cbo} />
                 <InfoItem icon={Tag} label="Nº da(s) vaga(s)" value={vaga.codigo} />
-                <InfoItem icon={Calendar} label="Período" value={periodo} />
+                <InfoItem icon={Calendar} label="Período" value={periodoLabel} />
                 <InfoItem icon={DollarSign} label="Salário" value={vaga.salario || "A combinar"} />
                 <InfoItem icon={Gift} label="Benefícios" value={vaga.beneficios || "Não informado"} />
                 <InfoItem icon={GraduationCap} label="Escolaridade" value={vaga.escolaridade} />
