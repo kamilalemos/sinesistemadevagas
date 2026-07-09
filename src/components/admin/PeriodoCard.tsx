@@ -245,7 +245,7 @@ export function PeriodoCard({ tipo }: Props) {
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Nome (opcional)
+                  Nome da Publicação (opcional)
                 </Label>
                 <Input
                   value={novoNome}
