@@ -56,7 +56,21 @@ export const DashboardPage = () => {
         ))}
       </div>
 
+      <PeriodoAtualCard
+        titulo="Vagas da Semana"
+        inicio={data_inicio_semana}
+        fim={data_fim_semana}
+        label={periodo_semana}
+      />
+      <PeriodoAtualCard
+        titulo="Feirão da Empregabilidade"
+        inicio={data_inicio_feirao}
+        fim={data_fim_feirao}
+        label={periodo_feirao}
+      />
+
       <PWAInstallGuideCard />
+
 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
