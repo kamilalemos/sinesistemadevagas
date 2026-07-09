@@ -112,3 +112,73 @@ export const DashboardPage = () => {
     </div>
   );
 };
+
+function PeriodoAtualCard({
+  titulo, inicio, fim, label,
+}: { titulo: string; inicio: string | null; fim: string | null; label: string }) {
+  const dias = diasRestantes(fim);
+  const inicioBR = formatDateBR(inicio);
+  const fimBR = formatDateBR(fim);
+  const semDatas = !inicio || !fim;
+
+  let restanteTexto = "—";
+  let restanteTom: "ok" | "warn" | "expired" = "ok";
+  if (dias !== null) {
+    if (dias < 0) {
+      restanteTexto = `Expirado há ${Math.abs(dias)} ${Math.abs(dias) === 1 ? "dia" : "dias"}`;
+      restanteTom = "expired";
+    } else if (dias === 0) {
+      restanteTexto = "Último dia";
+      restanteTom = "warn";
+    } else {
+      restanteTexto = `${dias} ${dias === 1 ? "dia" : "dias"}`;
+      restanteTom = dias <= 3 ? "warn" : "ok";
+    }
+  }
+
+  return (
+    <Card className="rounded-xl shadow-card">
+      <CardHeader className="flex flex-row items-center justify-between pb-3 space-y-0">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <CalendarRange className="w-4 h-4" />
+          </div>
+          <div>
+            <CardTitle className="text-sm font-semibold">Período Atual — {titulo}</CardTitle>
+            {label && <p className="text-xs text-muted-foreground mt-0.5">{label}</p>}
+          </div>
+        </div>
+        <Badge
+          className={
+            restanteTom === "expired"
+              ? "bg-destructive/10 text-destructive border-transparent"
+              : restanteTom === "warn"
+              ? "bg-amber-500/10 text-amber-600 border-transparent"
+              : "bg-emerald-500/10 text-emerald-600 border-transparent"
+          }
+        >
+          Restam: {restanteTexto}
+        </Badge>
+      </CardHeader>
+      <CardContent>
+        {semDatas ? (
+          <p className="text-sm text-muted-foreground">
+            Nenhum intervalo definido. Configure as datas em Cadastro de Vagas.
+          </p>
+        ) : (
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data Inicial</span>
+              <span className="font-heading font-black text-lg text-foreground tabular-nums">{inicioBR}</span>
+            </div>
+            <div className="text-muted-foreground text-xl">→</div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data Final</span>
+              <span className="font-heading font-black text-lg text-foreground tabular-nums">{fimBR}</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
