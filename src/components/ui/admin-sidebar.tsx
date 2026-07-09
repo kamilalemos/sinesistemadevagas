@@ -98,10 +98,10 @@ export function AdminSidebar({ userEmail, onSignOut, activeItem, onItemClick, al
 
       <aside
         className={cn(
-          "fixed top-0 left-0 bottom-0 z-[60] bg-primary border-r border-primary/20 flex flex-col transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none",
+          "fixed top-0 left-0 bottom-0 z-[60] bg-primary border-r border-primary/20 flex flex-col transition-all duration-300 ease-in-out shadow-2xl",
+          "lg:relative lg:top-auto lg:left-auto lg:bottom-auto lg:h-screen lg:shrink-0 lg:shadow-none lg:z-40",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-          isCollapsed ? "lg:w-20" : "w-[280px] lg:w-72",
-          "lg:z-40"
+          isCollapsed ? "lg:w-20" : "w-[280px] lg:w-72"
         )}
       >
         {/* Sidebar Header */}

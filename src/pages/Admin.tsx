@@ -143,19 +143,21 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="flex flex-col lg:flex-row min-h-screen">
-        <AdminSidebar 
-          userEmail={user.email ?? ""} 
-          onSignOut={signOut} 
+    <div className="h-screen overflow-hidden bg-muted/30">
+      <div className="flex h-full">
+        <AdminSidebar
+          userEmail={user.email ?? ""}
+          onSignOut={signOut}
           activeItem={activeSection}
           onItemClick={setActiveSection}
           allowedItems={permissions}
         />
-        <main className="flex-1 p-4 lg:p-8 pt-20 lg:pt-8 overflow-y-auto max-h-screen">
-          <div className="max-w-6xl mx-auto animate-fade-in">
-            {renderContent()}
-          </div>
+        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <section className="flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-8 py-6 lg:py-8 pt-20 lg:pt-8 animate-fade-in">
+              {renderContent()}
+            </div>
+          </section>
         </main>
       </div>
     </div>
