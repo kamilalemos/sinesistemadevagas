@@ -188,7 +188,7 @@ export function PeriodoCard({ tipo }: Props) {
           <Input
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            placeholder={formatPeriodoAuto(inicio, fim) || "Ex: Feirão de Julho"}
+            placeholder={formatPeriodoAuto(inicio, fim) || "Ex: Vagas da Semana, Feirão da Empregabilidade, Processo Seletivo"}
             className="rounded-xl h-12 bg-muted/20 border-border/50"
           />
           {previewNome && (
