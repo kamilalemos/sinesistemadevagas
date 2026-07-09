@@ -86,7 +86,9 @@ const Index = () => {
 
   const categoriasComQtdSemana = calcCatLocal(vSemana);
   const categoriasComQtdFeirao = calcCatLocal(vFeirao);
-  const periodo = periodo_semana;
+  const periodo = data_inicio_semana && data_fim_semana
+    ? `${formatDateBR(data_inicio_semana)} até ${formatDateBR(data_fim_semana)}`
+    : periodo_semana;
   const sAtiva = semana_ativa;
   const fAtiva = feirao_ativa;
 
