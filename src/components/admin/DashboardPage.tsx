@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useVagasLocalStore } from "@/store/vagasStorage";
 import { useUltimoBackup } from "@/hooks/useVagas";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
-import { PWAInstallGuideCard } from "./PWAInstallGuideCard";
+
 import { formatDateBR, diasRestantes } from "@/lib/periodoNome";
 
 export const DashboardPage = () => {
