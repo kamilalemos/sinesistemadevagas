@@ -1,4 +1,4 @@
-import { KeyRound, Shield, Download, FileJson, FileSpreadsheet, Smartphone } from "lucide-react";
+import { KeyRound, Shield, Download, FileJson, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -8,7 +8,6 @@ import { exportToCSV, exportToJSON } from "@/lib/exportUtils";
 import { VagaLocal } from "@/types";
 import { logAudit } from "@/services/auditService";
 import { ChangePasswordCard } from "./ChangePasswordCard";
-import { resetPWAGuide } from "./PWAInstallGuideCard";
 
 export const ConfiguracoesPage = () => {
   const { vagas_semana, vagas_feirao } = useVagasLocalStore();
@@ -136,32 +135,6 @@ export const ConfiguracoesPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
-          <CardHeader className="p-8 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                <Smartphone className="w-5 h-5" />
-              </div>
-              <CardTitle className="font-heading font-black text-xl tracking-tight">Instale o App</CardTitle>
-            </div>
-            <CardDescription className="font-medium text-muted-foreground">
-              Reexibe o card com o guia rápido de instalação do aplicativo.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-8 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                resetPWAGuide();
-                toast.success("Guia de instalação reexibido no Dashboard.");
-              }}
-              className="rounded-xl font-bold"
-            >
-              <Smartphone className="w-4 h-4 mr-2" />
-              Reexibir guia
-            </Button>
-          </CardContent>
-        </Card>
 
 
         <Card className="rounded-[2rem] border-border/60 shadow-card overflow-hidden">
