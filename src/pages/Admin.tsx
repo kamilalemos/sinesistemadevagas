@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Lock, Loader2, ShieldCheck, Eye, EyeOff, UserPlus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Lock, Loader2, ShieldCheck, Eye, EyeOff, UserPlus, Menu, X } from "lucide-react";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
