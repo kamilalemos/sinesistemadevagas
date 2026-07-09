@@ -216,15 +216,15 @@ export function PeriodoCard({ tipo }: Props) {
               className="rounded-xl h-12 px-6 font-bold text-primary hover:bg-primary/5 border-primary/30"
             >
               <Eraser className="w-4 h-4 mr-2" />
-              Criar Novo Período
+              Nova Publicação
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg rounded-2xl">
             <DialogHeader>
-              <DialogTitle className="font-heading">Criar novo período</DialogTitle>
+              <DialogTitle className="font-heading">Nova publicação</DialogTitle>
               <DialogDescription>
-                O período atual{labelAtual ? ` (${labelAtual})` : ""} será arquivado no histórico com todas as vagas
-                atuais. O novo período iniciará vazio.
+                A publicação atual{labelAtual ? ` (${labelAtual})` : ""} será arquivada no histórico com todas as
+                vagas atuais. A nova publicação iniciará vazia.
               </DialogDescription>
             </DialogHeader>
 
